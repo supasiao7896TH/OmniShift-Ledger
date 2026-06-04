@@ -1,0 +1,17 @@
+# Editor / tooling
+.claude/
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# App data backups (local only)
+shift-tracker-backup-*.json
+*.bak
+
+# Old / draft versions
+Shift pro*.html
+ShiftPro*.html
