@@ -535,7 +535,6 @@
         const month = getEl('monthSelect').value;
         const daysInMonth = new Date(year, month, 0).getDate();
         let totals = { m: 0, n: 0, ot15: 0, ot20: 0, ot30: 0 };
-        let hasWork = false;
 
         for (let d = 1; d <= daysInMonth; d++) {
             const key = `${year}-${month}-${d}`;
@@ -544,13 +543,9 @@
             const shift = shiftEl.value;
             if (shift === 'M') totals.m++;
             if (shift === 'N') totals.n++;
-            const ot15 = parseFloat((getEl(fieldId('ot15', key)) || {}).value) || 0;
-            const ot20 = parseFloat((getEl(fieldId('ot20', key)) || {}).value) || 0;
-            const ot30 = parseFloat((getEl(fieldId('ot30', key)) || {}).value) || 0;
-            totals.ot15 += ot15; totals.ot20 += ot20; totals.ot30 += ot30;
-            const reason = (getEl(fieldId('reason', key)) || {}).value || '';
-            const detail = (getEl(fieldId('detail', key)) || {}).value || '';
-            if (shift !== '-' || ot15 || ot20 || ot30 || reason || detail) hasWork = true;
+            totals.ot15 += parseFloat((getEl(fieldId('ot15', key)) || {}).value) || 0;
+            totals.ot20 += parseFloat((getEl(fieldId('ot20', key)) || {}).value) || 0;
+            totals.ot30 += parseFloat((getEl(fieldId('ot30', key)) || {}).value) || 0;
         }
 
         const hourlyRate = s.salary > 0 ? s.salary / s.monthlyHours : 0;
@@ -559,10 +554,10 @@
         const ot30Income = totals.ot30 * hourlyRate * 3.0;
         const mShiftIncome = totals.m * s.mRate;
         const nShiftIncome = totals.n * s.nRate;
-        // allowance/bonus คิดเฉพาะเดือนที่มีการทำงาน (สอดคล้องกับ Annual Dashboard)
-        const houseAllowance = hasWork ? s.salary * (s.houseAllowanceRate / 100) : 0;
-        const holidayBonus = hasWork ? s.salary * (s.holidayBonusRate / 100) : 0;
-        const baseSalary = hasWork ? s.salary : 0;
+        // เงินเดือน/ค่าบ้าน/โบนัส คิดทันทีจากเงินเดือนที่กรอก (ไม่ต้องรอบันทึกรายการกะ/OT)
+        const baseSalary = s.salary;
+        const houseAllowance = s.salary * (s.houseAllowanceRate / 100);
+        const holidayBonus = s.salary * (s.holidayBonusRate / 100);
         const totalIncome = baseSalary + ot15Income + ot20Income + ot30Income + mShiftIncome + nShiftIncome + houseAllowance + holidayBonus;
         const totalOtHours = totals.ot15 + totals.ot20 + totals.ot30;
         const f = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
