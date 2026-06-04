@@ -287,6 +287,24 @@
     const cssVar = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     const mqDesktop = window.matchMedia('(min-width: 768px)');
 
+    // ===== Safe storage =====
+    // บางเบราว์เซอร์มือถือบล็อก localStorage เมื่อเปิดผ่าน file:// -> fallback เป็น in-memory
+    // เพื่อให้แอปไม่ตาย (แต่ข้อมูลจะไม่ถูกบันทึกถาวร จนกว่าจะเปิดผ่าน https เช่น GitHub Pages)
+    const _LS = (() => {
+        try { const s = window['local' + 'Storage']; const t = '__ls_test__'; s.setItem(t, '1'); s.removeItem(t); return s; }
+        catch (e) { return null; }
+    })();
+    const _mem = {};
+    const safeStorage = {
+        getItem(k) { if (_LS) { try { return _LS.getItem(k); } catch (e) {} } return Object.prototype.hasOwnProperty.call(_mem, k) ? _mem[k] : null; },
+        setItem(k, v) { if (_LS) { try { _LS.setItem(k, String(v)); return; } catch (e) {} } _mem[k] = String(v); },
+        removeItem(k) { if (_LS) { try { _LS.removeItem(k); return; } catch (e) {} } delete _mem[k]; },
+        clear() { if (_LS) { try { _LS.clear(); } catch (e) {} } for (const k in _mem) delete _mem[k]; },
+        key(i) { if (_LS) { try { return _LS.key(i); } catch (e) {} } return Object.keys(_mem)[i] ?? null; },
+        get length() { if (_LS) { try { return _LS.length; } catch (e) {} } return Object.keys(_mem).length; }
+    };
+    const storageAvailable = () => _LS !== null;
+
     // ===== Security helper =====
     function escapeHtml(value) {
         return String(value ?? '')
@@ -303,9 +321,17 @@
 
     // ===== Application Initialization =====
     window.onload = function () {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        applyTheme(savedTheme);
-        initializeApp();
+        try {
+            const savedTheme = safeStorage.getItem('theme') || 'light';
+            applyTheme(savedTheme);
+            initializeApp();
+            if (!storageAvailable()) {
+                showToast('เบราว์เซอร์นี้ไม่อนุญาตให้บันทึกข้อมูลถาวร (แนะนำให้เปิดผ่านลิงก์ https)', 'error', 6000);
+            }
+        } catch (e) {
+            console.error('Init failed:', e);
+            try { showToast('เริ่มแอปไม่สำเร็จ: ' + e.message, 'error', 6000); } catch (_) {}
+        }
     };
 
     function initializeApp() {
@@ -380,7 +406,8 @@
 
     function updateCalculations() {
         const summaryData = calculateAndRenderSummary();
-        renderCharts(summaryData);
+        // กราฟพังไม่ควรทำให้การคำนวณ/บันทึกพัง (เช่น Chart.js โหลดไม่ทันบนเน็ตช้า)
+        try { renderCharts(summaryData); } catch (e) { console.error('Chart render failed:', e); }
     }
 
     // ===== Table / Card Rendering (single set of inputs) =====
@@ -623,7 +650,7 @@
     }
 
     function displayLastSaved() {
-        const timestamp = localStorage.getItem('last_saved');
+        const timestamp = safeStorage.getItem('last_saved');
         const el = getEl('lastSavedTimestamp');
         if (timestamp) {
             const date = new Date(timestamp);
@@ -653,20 +680,20 @@
                 data[key] = { shift, ot15, ot20, ot30, reason, detail };
             }
         }
-        localStorage.setItem(`shift_data_${year}_${month}`, JSON.stringify(data));
+        safeStorage.setItem(`shift_data_${year}_${month}`, JSON.stringify(data));
         const settings = {
             salary: getEl('salaryInput').value, mRate: getEl('mRateInput').value, nRate: getEl('nRateInput').value,
             houseAllowanceRate: getEl('houseAllowanceRate').value, holidayBonusRate: getEl('holidayBonusRate').value,
             monthlyHours: getEl('monthlyHoursInput').value
         };
-        localStorage.setItem('settings', JSON.stringify(settings));
-        localStorage.setItem('last_saved', new Date().toISOString());
+        safeStorage.setItem('settings', JSON.stringify(settings));
+        safeStorage.setItem('last_saved', new Date().toISOString());
         displayLastSaved();
         if (!silent) showToast('บันทึกข้อมูลเรียบร้อย!');
     }
 
     function getMonthData(year, month) {
-        const dataString = localStorage.getItem(`shift_data_${year}_${month}`);
+        const dataString = safeStorage.getItem(`shift_data_${year}_${month}`);
         if (!dataString) return {};
         try {
             const parsed = JSON.parse(dataString);
@@ -681,7 +708,7 @@
     function loadSettings() {
         let savedSettings = {};
         try {
-            const settingsString = localStorage.getItem('settings');
+            const settingsString = safeStorage.getItem('settings');
             if (settingsString) savedSettings = JSON.parse(settingsString);
         } catch (error) {
             console.error('Error parsing settings:', error);
@@ -698,15 +725,15 @@
     }
 
     function loadReasonOptions() {
-        const savedVersion = localStorage.getItem('reasonOptionsVersion');
+        const savedVersion = safeStorage.getItem('reasonOptionsVersion');
         if (savedVersion && parseInt(savedVersion) === REASON_OPTIONS_VERSION) {
             try {
-                const savedReasons = localStorage.getItem('reasonOptionsV2');
+                const savedReasons = safeStorage.getItem('reasonOptionsV2');
                 if (savedReasons) { reasonOptions = JSON.parse(savedReasons); return; }
             } catch (error) { console.error('Error parsing reasons:', error); }
         }
-        localStorage.setItem('reasonOptionsV2', JSON.stringify(reasonOptions));
-        localStorage.setItem('reasonOptionsVersion', REASON_OPTIONS_VERSION);
+        safeStorage.setItem('reasonOptionsV2', JSON.stringify(reasonOptions));
+        safeStorage.setItem('reasonOptionsVersion', REASON_OPTIONS_VERSION);
     }
 
     // ===== UI Interaction & Modals =====
@@ -768,7 +795,7 @@
     function confirmRemoveReason() {
         if (reasonToRemoveIndex > -1) {
             reasonOptions.splice(reasonToRemoveIndex, 1);
-            localStorage.setItem('reasonOptionsV2', JSON.stringify(reasonOptions));
+            safeStorage.setItem('reasonOptionsV2', JSON.stringify(reasonOptions));
             renderReasonList();
             showToast('ลบเหตุผลแล้ว');
         }
@@ -780,7 +807,7 @@
         const newReason = input.value.trim();
         if (newReason && !reasonOptions.includes(newReason)) {
             reasonOptions.push(newReason);
-            localStorage.setItem('reasonOptionsV2', JSON.stringify(reasonOptions));
+            safeStorage.setItem('reasonOptionsV2', JSON.stringify(reasonOptions));
             showToast('เพิ่มเหตุผลใหม่แล้ว');
             input.value = '';
             renderReasonList();
@@ -792,7 +819,7 @@
         const year = getEl('yearSelect').value;
         const monthName = monthSel.options[monthSel.selectedIndex].text;
         showConfirmModal(`ล้างข้อมูลทั้งหมดของ ${monthName} ${year}? ไม่สามารถย้อนกลับได้`, () => {
-            localStorage.removeItem(`shift_data_${year}_${monthSel.value}`);
+            safeStorage.removeItem(`shift_data_${year}_${monthSel.value}`);
             renderAll();
             showToast(`ล้างข้อมูล ${monthName} ${year} แล้ว`);
         });
@@ -801,9 +828,9 @@
     // ===== Data Import/Export =====
     function backupData() {
         const backupObject = {};
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            backupObject[key] = localStorage.getItem(key);
+        for (let i = 0; i < safeStorage.length; i++) {
+            const key = safeStorage.key(i);
+            backupObject[key] = safeStorage.getItem(key);
         }
         const dataStr = JSON.stringify(backupObject, null, 2);
         const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -841,11 +868,11 @@
                     showToast('ไฟล์นี้ไม่ใช่ไฟล์สำรองของ ShiftPro', 'error');
                     return;
                 }
-                localStorage.clear();
+                safeStorage.clear();
                 for (const key in data) {
-                    if (Object.hasOwnProperty.call(data, key)) localStorage.setItem(key, data[key]);
+                    if (Object.hasOwnProperty.call(data, key)) safeStorage.setItem(key, data[key]);
                 }
-                localStorage.removeItem('passwordHash');
+                safeStorage.removeItem('passwordHash');
                 showToast('กู้คืนข้อมูลสำเร็จ!');
                 setTimeout(() => location.reload(), 1500);
             });
@@ -857,15 +884,15 @@
 
     // ===== AI & Dashboard Modals =====
     function openAiSettingsModal() {
-        getEl('apiKeyInput').value = localStorage.getItem('geminiApiKey') || '';
+        getEl('apiKeyInput').value = safeStorage.getItem('geminiApiKey') || '';
         getEl('aiSettingsModal').classList.remove('hidden');
     }
     function closeAiSettingsModal() { getEl('aiSettingsModal').classList.add('hidden'); }
 
     function saveApiKey() {
         const apiKey = getEl('apiKeyInput').value.trim();
-        if (apiKey) { localStorage.setItem('geminiApiKey', apiKey); showToast('บันทึก API Key แล้ว'); }
-        else { localStorage.removeItem('geminiApiKey'); showToast('ล้าง API Key แล้ว'); }
+        if (apiKey) { safeStorage.setItem('geminiApiKey', apiKey); showToast('บันทึก API Key แล้ว'); }
+        else { safeStorage.removeItem('geminiApiKey'); showToast('ล้าง API Key แล้ว'); }
         closeAiSettingsModal();
     }
 
@@ -885,7 +912,7 @@
     function closeDashboardModal() { getEl('dashboardModal').classList.add('hidden'); }
 
     function openChatbotModal() {
-        if (!localStorage.getItem('geminiApiKey')) {
+        if (!safeStorage.getItem('geminiApiKey')) {
             showToast('กรุณาตั้งค่า Gemini API Key ก่อน', 'error');
             return openAiSettingsModal();
         }
@@ -988,10 +1015,10 @@
 
     function getAllShiftDataAsJSON() {
         const allData = {};
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
+        for (let i = 0; i < safeStorage.length; i++) {
+            const key = safeStorage.key(i);
             if (key.startsWith('shift_data_')) {
-                try { allData[key] = JSON.parse(localStorage.getItem(key)); } catch (e) { /* ignore */ }
+                try { allData[key] = JSON.parse(safeStorage.getItem(key)); } catch (e) { /* ignore */ }
             }
         }
         return JSON.stringify(allData, null, 2);
@@ -1025,7 +1052,7 @@ ${getSettingsAsJSON()}
 ${getAllShiftDataAsJSON()}
 
 กรุณาตอบคำถามต่อไปนี้: "${userMessage}"`;
-            const responseText = await callGeminiApi(prompt, localStorage.getItem('geminiApiKey'));
+            const responseText = await callGeminiApi(prompt, safeStorage.getItem('geminiApiKey'));
             chatHistory.pop();
             chatHistory.push({ role: 'ai', text: responseText });
         } catch (error) {
@@ -1074,7 +1101,7 @@ ${getAllShiftDataAsJSON()}
         themeToggle.addEventListener('click', () => {
             const isDark = document.documentElement.classList.toggle('dark');
             const newTheme = isDark ? 'dark' : 'light';
-            localStorage.setItem('theme', newTheme);
+            safeStorage.setItem('theme', newTheme);
             applyTheme(newTheme);
             updateCalculations();   // วาดกราฟใหม่ให้สีตรงกับธีม
             if (!getEl('dashboardModal').classList.contains('hidden')) {
