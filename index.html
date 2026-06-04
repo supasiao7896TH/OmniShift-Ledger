@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d9488" />
+    <title>ShiftPro Tracker V11.0 (OmniShift-Ledger)</title>
+    <!-- Content Security Policy: หากเปิดผ่าน file:// แล้วบางอย่างไม่โหลด สามารถลบ meta นี้ออกได้ -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src https://generativelanguage.googleapis.com; ">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #f8fafc; --bg-surface: #ffffff; --text-primary: #1e293b; --text-secondary: #64748b;
+            --border-color: #e2e8f0; --primary: #0d9488; --primary-hover: #0f766e; --danger: #ef4444;
+            --danger-hover: #dc2626; --success: #10b981; --neutral: #475569; --neutral-hover: #334155;
+            --primary-light: #f0fdfa;
+        }
+        .dark {
+            --bg-main: #0f172a; --bg-surface: #1e293b; --text-primary: #f1f5f9; --text-secondary: #94a3b8; --border-color: #334155;
+            --primary-light: #134e4a;
+        }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-main); color: var(--text-primary); transition: background-color 0.3s, color 0.3s; padding-bottom: env(safe-area-inset-bottom); }
+        .card { background-color: var(--bg-surface); border-radius: 0.75rem; border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05); }
+        .modal-box { background-color: var(--bg-surface); border-radius: 0.75rem; border: 1px solid var(--border-color); box-shadow: 0 12px 40px rgb(0 0 0 / 0.15); }
+        .form-input { border-radius: 0.5rem; border: 1px solid var(--border-color); padding: 0.5rem 0.75rem; transition: all 0.2s; background-color: var(--bg-main); color: var(--text-primary); }
+        .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.2); }
+        .btn-icon { padding: 0.75rem; border-radius: 9999px; background-color: transparent; color: var(--text-secondary); border: 1px solid transparent; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+        .btn-icon:hover { color: var(--text-primary); background-color: #f1f5f9; }
+        .dark .btn-icon:hover { background-color: var(--neutral-hover); }
+
+        .btn { padding: 0.6rem 1rem; border-radius: 0.5rem; font-weight: 500; color: white; transition: all 0.2s ease-in-out; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: none; cursor: pointer; min-height: 44px; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
+        .btn:active:not(:disabled) { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-primary { background-color: var(--primary); } .btn-primary:hover:not(:disabled) { background-color: var(--primary-hover); }
+        .btn-danger { background-color: var(--danger); } .btn-danger:hover:not(:disabled) { background-color: var(--danger-hover); }
+        .btn-neutral { background-color: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-neutral:hover:not(:disabled) { background-color: #f1f5f9; }
+        .dark .btn-neutral { background-color: var(--bg-surface); border-color: var(--border-color); color: var(--text-primary); }
+        .dark .btn-neutral:hover:not(:disabled) { background-color: var(--neutral-hover); }
+
+        thead th { background-color: #f1f5f9; color: var(--text-primary); font-weight: 600; border: 1px solid var(--border-color); border-bottom-width: 2px; padding: 0.75rem 0.5rem; }
+        .dark thead th { background-color: #334155; }
+        tbody td { padding: 0.5rem; border: 1px solid var(--border-color); }
+        .weekend { background-color: #f1f5f9; } .holiday { background-color: #fee2e2; }
+        .dark .weekend { background-color: #273347; } .dark .holiday { background-color: rgba(239, 68, 68, 0.15); }
+        tbody tr:hover { background-color: #f0fdfa; } .dark tbody tr:hover { background-color: rgba(13, 148, 136, 0.2); }
+        .table-input, .table-select { background-color: transparent; color: inherit; border-radius: 0.25rem; width: 100%; padding: 0.25rem; }
+        .table-input:focus, .table-select:focus { background-color: var(--bg-surface); outline: 2px solid var(--primary); box-shadow: none; }
+
+        .mobile-card-header { border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 0.75rem; }
+        .mobile-card-header.weekend { background-color: var(--bg-main); margin: -1rem -1rem 0.75rem -1rem; padding: 1rem 1rem 0.75rem 1rem; border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem; }
+        .mobile-card-header.holiday { background-color: rgba(239, 68, 68, 0.05); }
+        .dark .mobile-card-header.holiday { background-color: rgba(239, 68, 68, 0.15); }
+        .mobile-input-label { display: block; font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.25rem; }
+        .mobile-input { padding: 0.75rem 0.75rem; min-height: 44px; }
+
+        .fab { width: 3.5rem; height: 3.5rem; border-radius: 9999px; box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.2); margin-bottom: env(safe-area-inset-bottom); }
+        .fab:hover { box-shadow: 0 6px 16px 0 rgb(0 0 0 / 0.25); transform: translateY(-2px); }
+
+        .chat-message-container { max-height: 50vh; overflow-y: auto; }
+        .chat-bubble { max-width: 80%; padding: 0.75rem 1rem; border-radius: 1rem; word-break: break-word; overflow-wrap: anywhere; }
+        .user-bubble { background-color: var(--primary); color: white; border-bottom-right-radius: 0.25rem; }
+        .ai-bubble { background-color: var(--border-color); color: var(--text-primary); border-bottom-left-radius: 0.25rem; }
+        .dark .ai-bubble { background-color: var(--neutral-hover); }
+        .toast { padding: 1rem 1.5rem; border-radius: 0.5rem; color: white; font-weight: 500; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); opacity: 0; transform: translateX(100%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        .toast.show { opacity: 1; transform: translateX(0); }
+        .toast-success { background-color: var(--success); } .toast-error { background-color: var(--danger); }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+        }
+        @media print { body { background-color: #fff; color: #000; } .no-print { display: none !important; } .card { box-shadow: none; border: 1px solid #ccc; } .table-container { overflow: visible; } }
+    </style>
+</head>
+<body class="p-4 md:p-8 pb-24 md:pb-8">
+
+    <div id="app-container" class="max-w-7xl mx-auto">
+        <header class="text-center mb-6 md:mb-8 no-print">
+            <h1 class="text-3xl md:text-4xl font-bold">ShiftPro Tracker</h1>
+            <p class="text-slate-500 mt-1">Your AI-Powered Work &amp; Income Assistant.</p>
+            <nav class="mt-4 flex justify-center gap-2">
+                <button id="chatbot-button" onclick="openChatbotModal()" class="btn-icon bg-[var(--primary-light)] text-[var(--primary)]" title="Chat with AI" aria-label="แชทกับ AI">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                       <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Z"/>
+                       <path d="M11 4a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                    </svg>
+                </button>
+                <button id="dashboard-button" onclick="openDashboardModal()" class="btn-icon" title="Annual Dashboard" aria-label="แดชบอร์ดรายปี">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-4 0v-3H2v3h2z"/></svg>
+                </button>
+                <button id="ai-settings-button" onclick="openAiSettingsModal()" class="btn-icon" title="AI Settings" aria-label="ตั้งค่า AI">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.901 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zM8 13a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/></svg>
+                </button>
+                <button id="theme-toggle" class="btn-icon" title="Toggle Theme" aria-label="สลับธีมสว่าง/มืด">
+                    <svg id="theme-icon-light" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="hidden" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/></svg>
+                    <svg id="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="hidden" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278zM4.858 1.311A7.269 7.269 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.316 7.316 0 0 0 5.205-2.162c-.337.042-.68.063-1.029.063-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286z"/></svg>
+                </button>
+            </nav>
+        </header>
+
+        <div class="card p-4 mb-6 no-print">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                <div class="flex flex-wrap items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <label for="yearSelect" class="font-medium text-slate-600">ปี:</label>
+                        <select id="yearSelect" class="form-input"></select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="monthSelect" class="font-medium text-slate-600">เดือน:</label>
+                        <select id="monthSelect" class="form-input"></select>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 md:justify-end">
+                     <button onclick="openReasonManagerModal()" class="btn btn-neutral text-sm">🛠️ Edit Reasons</button>
+                     <button onclick="clearDataConfirm()" class="btn btn-danger text-sm">🧹 Clear Month</button>
+                </div>
+            </div>
+            <div class="w-full h-px my-4 bg-gradient-to-r from-transparent via-[var(--border-color)] to-transparent"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                 <div class="flex items-center gap-2">
+                    <span id="lastSavedTimestamp" class="text-sm text-slate-500 italic"></span>
+                 </div>
+                 <div class="flex flex-wrap items-center gap-2 md:justify-end">
+                    <button onclick="backupData()" class="btn btn-neutral text-sm">📤 Backup</button>
+                    <label for="restore-file-input" class="btn btn-neutral text-sm cursor-pointer">📥 Restore</label>
+                    <input type="file" id="restore-file-input" class="hidden" accept=".json">
+                    <button onclick="window.print()" class="btn btn-neutral text-sm">🖨️ Print</button>
+                    <button onclick="saveAllData()" class="btn btn-primary text-sm hidden md:inline-flex">💾 Save Data</button>
+                 </div>
+            </div>
+        </div>
+
+        <details class="card p-4 mb-6 no-print">
+            <summary class="font-bold text-lg cursor-pointer text-slate-700">Advanced Settings</summary>
+            <div id="settings-form" class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+                <div><label for="salaryInput" class="block text-sm font-medium text-slate-600">Base Salary</label><input type="number" id="salaryInput" inputmode="decimal" class="form-input mt-1 w-full"></div>
+                <div><label for="mRateInput" class="block text-sm font-medium text-slate-600">M-Shift Rate (THB)</label><input type="number" id="mRateInput" inputmode="decimal" class="form-input mt-1 w-full"></div>
+                <div><label for="nRateInput" class="block text-sm font-medium text-slate-600">N-Shift Rate (THB)</label><input type="number" id="nRateInput" inputmode="decimal" class="form-input mt-1 w-full"></div>
+                <div><label for="houseAllowanceRate" class="block text-sm font-medium text-slate-600">House Allowance (%)</label><input type="number" id="houseAllowanceRate" inputmode="decimal" class="form-input mt-1 w-full"></div>
+                <div><label for="holidayBonusRate" class="block text-sm font-medium text-slate-600">Holiday Bonus (%)</label><input type="number" id="holidayBonusRate" inputmode="decimal" class="form-input mt-1 w-full"></div>
+                <div><label for="monthlyHoursInput" class="block text-sm font-medium text-slate-600">Work Hours / Month</label><input type="number" id="monthlyHoursInput" inputmode="decimal" class="form-input mt-1 w-full"></div>
+            </div>
+        </details>
+
+        <div id="main-content">
+            <div class="card p-0 sm:p-0 md:p-1 md:p-2">
+                <div id="tableContainer" class="table-container min-h-[400px]"></div>
+            </div>
+            <div class="mt-6 card p-6 no-print">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1">
+                        <h2 class="text-xl font-bold mb-4">This Month's Summary</h2>
+                        <div id="summaryContainer"></div>
+                    </div>
+                    <div class="lg:col-span-2">
+                        <h2 class="text-xl font-bold mb-4">Data Overview</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                            <div class="relative h-64 sm:h-72"><h3 class="text-lg font-semibold text-center mb-2 text-slate-600">Income Breakdown</h3><canvas id="incomePieChart"></canvas></div>
+                            <div class="relative h-64 sm:h-72"><h3 class="text-lg font-semibold text-center mb-2 text-slate-600">Monthly OT Hours (<span id="chartYear"></span>)</h3><canvas id="otBarChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center py-8 mt-8 no-print">
+            <p class="text-sm text-slate-500">Developed in collaboration by Supasit A.@1981 TH &amp; AI Partner. · V11.0</p>
+        </footer>
+    </div>
+
+    <button onclick="saveAllData()" class="fab btn btn-primary fixed bottom-6 right-6 z-30 block md:hidden no-print" title="Save Data" aria-label="บันทึกข้อมูล">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L6.354 8.146a.5.5 0 0 0-.708.708l3 3z"/>
+        </svg>
+    </button>
+
+    <!-- Modals -->
+    <div id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" class="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden no-print"><div class="modal-box w-full max-w-md p-8 text-center"><h3 id="confirmTitle" class="text-xl font-bold mb-2">Confirm Action</h3><p id="confirmMessage" class="mb-6 text-slate-600"></p><div class="flex justify-center gap-4"><button id="cancelBtn" class="btn btn-neutral">Cancel</button><button id="confirmBtn" class="btn btn-danger">Confirm</button></div></div></div>
+    <div id="aiSettingsModal" role="dialog" aria-modal="true" aria-labelledby="aiSettingsTitle" class="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden no-print"><div class="modal-box w-full max-w-md p-6"><h3 id="aiSettingsTitle" class="text-lg font-bold mb-4">Gemini AI Settings</h3><label for="apiKeyInput" class="block text-sm font-medium text-slate-600">Your Gemini API Key</label><input type="password" id="apiKeyInput" class="form-input w-full mt-1" placeholder="Enter your key here" autocomplete="off"><p class="text-xs text-slate-400 mt-2">⚠️ คีย์ถูกเก็บแบบ plain text ใน localStorage ของเบราว์เซอร์เครื่องนี้เท่านั้น (ไม่ได้เข้ารหัส และไม่ถูกส่งไปที่อื่นนอกจาก Google) ไม่ควรใช้บนเครื่องสาธารณะ</p><div class="mt-4 flex justify-end gap-2"><button onclick="closeAiSettingsModal()" class="btn btn-neutral">Cancel</button><button onclick="saveApiKey()" class="btn btn-primary">Save Key</button></div></div></div>
+    <div id="dashboardModal" role="dialog" aria-modal="true" aria-labelledby="dashboardTitle" class="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 hidden no-print">
+        <div class="modal-box w-full max-w-4xl h-full sm:h-auto sm:max-h-[90vh] p-4 sm:p-6 flex flex-col" style="background-color: var(--bg-main);">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="dashboardTitle" class="text-xl sm:text-2xl font-bold">Annual Dashboard (<span id="dashboardYear"></span>)</h3>
+                <button onclick="closeDashboardModal()" class="btn-icon -mt-2 -mr-2 flex-shrink-0" aria-label="ปิด">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6 text-center">
+                <div class="card p-3 sm:p-4"><p class="text-xs sm:text-sm text-slate-500">Total Income</p><p id="dashboardTotalIncome" class="text-lg sm:text-2xl font-bold"></p></div>
+                <div class="card p-3 sm:p-4"><p class="text-xs sm:text-sm text-slate-500">Total OT Hours</p><p id="dashboardTotalOT" class="text-lg sm:text-2xl font-bold"></p></div>
+                <div class="card p-3 sm:p-4"><p class="text-xs sm:text-sm text-slate-500">Vacation Days</p><p id="dashboardVacation" class="text-lg sm:text-2xl font-bold"></p></div>
+                <div class="card p-3 sm:p-4"><p class="text-xs sm:text-sm text-slate-500">Sick Days</p><p id="dashboardSick" class="text-lg sm:text-2xl font-bold"></p></div>
+            </div>
+            <div class="flex-grow card p-2 sm:p-4 relative">
+                <canvas id="annualIncomeChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div id="chatbotModal" role="dialog" aria-modal="true" aria-labelledby="chatbotTitle" class="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 hidden no-print">
+        <div class="modal-box w-full max-w-lg h-full sm:h-auto sm:max-h-[90vh] p-4 sm:p-6 flex flex-col" style="background-color: var(--bg-main);">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="chatbotTitle" class="text-lg font-bold">Chat with Your Data</h3>
+                <button onclick="closeChatbotModal()" class="btn-icon -mt-2 -mr-2 flex-shrink-0" aria-label="ปิด">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+                </button>
+            </div>
+            <div id="chat-message-container" class="flex-grow space-y-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-900 chat-message-container" aria-live="polite"></div>
+            <div class="mt-4 flex gap-2">
+                <input type="text" id="chat-input" class="form-input w-full" placeholder="Ask about your data..." aria-label="พิมพ์คำถาม">
+                <button id="chat-send-btn" class="btn btn-primary">Send</button>
+            </div>
+        </div>
+    </div>
+    <div id="reasonManagerModal" role="dialog" aria-modal="true" aria-labelledby="reasonTitle" class="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 hidden no-print">
+        <div class="modal-box w-full max-w-lg h-full sm:h-auto sm:max-h-[90vh] p-4 sm:p-6 flex flex-col" style="background-color: var(--bg-main);">
+            <div class="flex justify-between items-center mb-4">
+                 <h3 id="reasonTitle" class="text-xl sm:text-2xl font-bold">Manage Reasons</h3>
+                 <button onclick="closeReasonManagerModal()" class="btn-icon -mt-2 -mr-2 flex-shrink-0" aria-label="ปิด">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+                 </button>
+            </div>
+            <div id="reasons-content" class="flex-grow space-y-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-900 overflow-y-auto">
+                <div id="reasons-list"></div>
+                <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="newReasonInputInModal" class="form-input w-full" placeholder="Enter new reason..." aria-label="เหตุผลใหม่">
+                    <button onclick="addNewReason()" class="btn btn-primary flex-shrink-0">➕ Add Reason</button>
+                </div>
+            </div>
+            <div id="reasons-confirm" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                <div class="modal-box w-full max-w-sm p-8 text-center" style="background-color: var(--bg-main);">
+                    <h3 class="text-xl font-bold mb-2">Confirm Action</h3>
+                    <p id="reasonsConfirmMessage" class="mb-6 text-slate-600"></p>
+                    <div class="flex justify-center gap-4">
+                        <button id="reasonsCancelBtn" onclick="closeReasonsConfirm()" class="btn btn-neutral">Cancel</button>
+                        <button id="reasonsConfirmBtn" onclick="confirmRemoveReason()" class="btn btn-danger">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] space-y-2" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+    'use strict';
+    // =================================================================================
+    // SHIFTPRO TRACKER V11.0 (OmniShift-Ledger) - APPLICATION LOGIC
+    // =================================================================================
+
+    // ===== Constants =====
+    const REASON_OPTIONS_VERSION = 2;
+    const DEFAULT_MONTHLY_HOURS = 176;   // ชั่วโมงทำงานมาตรฐานต่อเดือน (ใช้คำนวณ hourly rate)
+    const MAX_OT_HOURS = 48;             // เพดาน OT ต่อเดือน (เส้นเตือนในกราฟ)
+    const AUTOSAVE_DELAY_MS = 800;       // หน่วงเวลา autosave หลังหยุดพิมพ์
+    const GEMINI_MODEL = 'gemini-2.5-flash';
+
+    // ===== Global State =====
+    let shiftOptions = ['-', 'M', 'N'];
+    let reasonOptions = ['', 'แทนกะ', 'ลาพักร้อน', 'ลาป่วย', 'ลากิจ', 'แทนกะแอ้ว', 'ทำงานล่วงเวลากะ 4/2', 'ทำงานล่วงเวลากะ 3/3', 'แลกกะ', 'ช่วยงาน Shutdown PE1', 'ช่วยงาน Shutdown PE2', 'ช่วยงาน Shutdown PE3', 'ช่วยงาน Start up PE1', 'ช่วยงาน Start up PE2', 'ช่วยงาน Start up PE3', 'ช่วยงาน Shutdown PE1(LOTO)', 'ช่วยงาน Shutdown PE2(LOTO)', 'ช่วยงาน Shutdown PE3(LOTO)', 'แทนกะเก่ง', 'ทำงานต่อเนื่องเร่งด่วน'];
+    let incomePieChart, otBarChart, annualIncomeChart;
+    let chatHistory = [];
+    let reasonToRemoveIndex = -1;
+    let currentYear = null, currentMonth = null;   // เดือน/ปี ที่กำลัง render อยู่ (ใช้ save ให้ถูก key)
+    let autosaveTimer = null;
+
+    // วันหยุดราชการไทย (MM-DD)
+    // FIXED_HOLIDAYS = วันที่ตายตัว เกิดทุกปี -> ใช้กับทุกปีอัตโนมัติ (รวมปีที่ยังไม่ได้เติมข้อมูล)
+    const FIXED_HOLIDAYS = ['01-01', '04-06', '04-13', '04-14', '04-15', '05-01', '05-04', '06-03', '07-28', '08-12', '10-13', '10-23', '12-05', '12-10', '12-31'];
+    // VARIABLE_HOLIDAYS = วันหยุดที่เลื่อนทุกปี (จันทรคติ/ชดเชย/มติ ครม.) -> เพิ่มปีใหม่ที่นี่เมื่อมีประกาศราชการ
+    // อ้างอิง: ปฏิทินวันหยุด kapook / myhora / KU Library (ตรวจสอบ ก.ย. 2025–2026)
+    const VARIABLE_HOLIDAYS = {
+        '2025': ['02-10', '02-26', '04-07', '04-16', '05-05', '05-26', '07-24', '07-25', '07-29', '10-14'],
+        '2026': ['01-02', '03-03', '05-13', '05-31', '06-01', '07-29', '07-30', '10-16', '12-07'],
+        '2027': ['02-21', '02-22', '05-20', '07-18', '07-19', '07-20', '10-25', '12-06']
+    };
+
+    const getEl = id => document.getElementById(id);
+    const fieldId = (base, key) => `${base}_${key}`;
+    const getHolidays = year => [...FIXED_HOLIDAYS, ...(VARIABLE_HOLIDAYS[String(year)] || [])];
+    const cssVar = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    const mqDesktop = window.matchMedia('(min-width: 768px)');
+
+    // ===== Security helper =====
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function buildOptions(options, selected) {
+        return options.map(o => `<option value="${escapeHtml(o)}"${o === selected ? ' selected' : ''}>${escapeHtml(o)}</option>`).join('');
+    }
+
+    // ===== Application Initialization =====
+    window.onload = function () {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(savedTheme);
+        initializeApp();
+    };
+
+    function initializeApp() {
+        getEl('app-container').classList.remove('hidden');
+        setupEventListeners();
+        currentYear = getEl('yearSelect').value;
+        currentMonth = getEl('monthSelect').value;
+        renderAll();
+        displayLastSaved();
+        setupThemeToggle();
+    }
+
+    function setupEventListeners() {
+        const yearSel = getEl('yearSelect');
+        const monthSel = getEl('monthSelect');
+        const today = new Date();
+        const yearNow = today.getFullYear();
+        for (let y = yearNow - 5; y <= yearNow + 5; y++) {
+            yearSel.add(new Option(y, y, y === yearNow, y === yearNow));
+        }
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        months.forEach((m, i) => {
+            monthSel.add(new Option(m, i + 1, i === today.getMonth(), i === today.getMonth()));
+        });
+        loadSettings();
+        loadReasonOptions();
+
+        yearSel.onchange = handleDateChange;
+        monthSel.onchange = handleDateChange;
+        getEl('settings-form').oninput = () => { updateCalculations(); scheduleAutosave(); };
+        getEl('restore-file-input').onchange = restoreData;
+
+        const tableContainer = getEl('tableContainer');
+        tableContainer.oninput = () => { updateCalculations(); scheduleAutosave(); };
+        tableContainer.onchange = (event) => {
+            if (event.target.id && event.target.id.startsWith('shift_')) {
+                updateMNValues(event.target.id.substring(6));
+            }
+            updateCalculations();
+            scheduleAutosave();
+        };
+
+        // เปลี่ยน layout (table <-> card) เมื่อข้าม breakpoint: เซฟก่อนแล้ว render ใหม่ -> กันข้อมูลหาย
+        mqDesktop.addEventListener('change', () => { saveAllData(true); renderAll(); });
+
+        document.addEventListener('keydown', (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                event.preventDefault();
+                saveAllData();
+            }
+        });
+    }
+
+    // เปลี่ยนเดือน/ปี: เซฟเดือนเดิมก่อน แล้วค่อยสลับ -> กันข้อมูลที่ยังไม่เซฟหาย
+    function handleDateChange() {
+        saveAllData(true);
+        currentYear = getEl('yearSelect').value;
+        currentMonth = getEl('monthSelect').value;
+        renderAll();
+    }
+
+    function scheduleAutosave() {
+        clearTimeout(autosaveTimer);
+        autosaveTimer = setTimeout(() => saveAllData(true), AUTOSAVE_DELAY_MS);
+    }
+
+    // ===== Main Render Pipeline =====
+    function renderAll() {
+        renderTable();
+        updateCalculations();
+    }
+
+    function updateCalculations() {
+        const summaryData = calculateAndRenderSummary();
+        renderCharts(summaryData);
+    }
+
+    // ===== Table / Card Rendering (single set of inputs) =====
+    function renderTable() {
+        const year = getEl('yearSelect').value;
+        const month = getEl('monthSelect').value;
+        const data = getMonthData(year, month);
+        const tableContainer = getEl('tableContainer');
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const holidays = getHolidays(year);
+        const isDesktop = mqDesktop.matches;
+
+        let html;
+        if (isDesktop) {
+            html = `<div class="overflow-x-auto p-1 sm:p-2"><table class="w-full text-sm text-left">
+            <thead class="text-xs uppercase"><tr>
+                <th class="px-2 py-3">Date</th><th class="px-2 py-3">Day</th><th class="px-2 py-3">Shift</th>
+                <th class="px-2 py-3">OT 1.5</th><th class="px-2 py-3">OT 2.0</th><th class="px-2 py-3">OT 3.0</th>
+                <th class="px-2 py-3">Reason</th><th class="px-2 py-3">Details</th>
+                <th class="px-2 py-3">M</th><th class="px-2 py-3">N</th>
+            </tr></thead><tbody>`;
+            for (let d = 1; d <= daysInMonth; d++) {
+                const meta = dayMeta(year, month, d, holidays);
+                const rowData = data[meta.key] || {};
+                html += `<tr class="border-b border-[var(--border-color)] ${meta.rowClass}" id="row_${meta.key}">
+                <td class="px-2 py-1.5">${d}/${month}/${String(year).slice(-2)}</td><td class="px-2 py-1.5">${meta.dayName}</td>
+                <td class="px-2 py-1.5"><select id="shift_${meta.key}" class="table-select p-1" aria-label="กะวันที่ ${d}">${buildOptions(shiftOptions, rowData.shift)}</select></td>
+                <td class="px-2 py-1.5"><input type="number" inputmode="decimal" class="table-input p-1" id="ot15_${meta.key}" value="${escapeHtml(rowData.ot15 || '')}" min="0" step="0.25" aria-label="OT 1.5 วันที่ ${d}"></td>
+                <td class="px-2 py-1.5"><input type="number" inputmode="decimal" class="table-input p-1" id="ot20_${meta.key}" value="${escapeHtml(rowData.ot20 || '')}" min="0" step="0.25" aria-label="OT 2.0 วันที่ ${d}"></td>
+                <td class="px-2 py-1.5"><input type="number" inputmode="decimal" class="table-input p-1" id="ot30_${meta.key}" value="${escapeHtml(rowData.ot30 || '')}" min="0" step="0.25" aria-label="OT 3.0 วันที่ ${d}"></td>
+                <td class="px-2 py-1.5"><select id="reason_${meta.key}" class="table-select p-1" aria-label="เหตุผลวันที่ ${d}">${buildOptions(reasonOptions, rowData.reason)}</select></td>
+                <td class="px-2 py-1.5"><input type="text" class="table-input p-1" id="detail_${meta.key}" value="${escapeHtml(rowData.detail || '')}" aria-label="รายละเอียดวันที่ ${d}"></td>
+                <td class="px-2 py-1.5" id="m_val_${meta.key}"></td><td class="px-2 py-1.5" id="n_val_${meta.key}"></td>
+                </tr>`;
+            }
+            html += '</tbody></table></div>';
+        } else {
+            html = '<div class="space-y-4 p-2">';
+            for (let d = 1; d <= daysInMonth; d++) {
+                const meta = dayMeta(year, month, d, holidays);
+                const rowData = data[meta.key] || {};
+                html += `<div class="card p-4">
+                    <div class="mobile-card-header flex justify-between items-center text-lg font-bold ${meta.rowClass}">
+                        <span>${d} ${meta.dayName}</span>
+                        <div class="flex items-center gap-2">
+                            <span id="m_val_${meta.key}" class="text-sm font-medium text-blue-600"></span>
+                            <span id="n_val_${meta.key}" class="text-sm font-medium text-indigo-600"></span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label for="shift_${meta.key}" class="mobile-input-label">Shift</label>
+                            <select id="shift_${meta.key}" class="form-input mobile-input w-full">${buildOptions(shiftOptions, rowData.shift)}</select></div>
+                        <div><label for="ot15_${meta.key}" class="mobile-input-label">OT 1.5</label>
+                            <input type="number" inputmode="decimal" id="ot15_${meta.key}" value="${escapeHtml(rowData.ot15 || '')}" min="0" step="0.25" class="form-input mobile-input w-full"></div>
+                        <div><label for="ot20_${meta.key}" class="mobile-input-label">OT 2.0</label>
+                            <input type="number" inputmode="decimal" id="ot20_${meta.key}" value="${escapeHtml(rowData.ot20 || '')}" min="0" step="0.25" class="form-input mobile-input w-full"></div>
+                        <div><label for="ot30_${meta.key}" class="mobile-input-label">OT 3.0</label>
+                            <input type="number" inputmode="decimal" id="ot30_${meta.key}" value="${escapeHtml(rowData.ot30 || '')}" min="0" step="0.25" class="form-input mobile-input w-full"></div>
+                        <div class="col-span-2"><label for="reason_${meta.key}" class="mobile-input-label">Reason</label>
+                            <select id="reason_${meta.key}" class="form-input mobile-input w-full">${buildOptions(reasonOptions, rowData.reason)}</select></div>
+                        <div class="col-span-2"><label for="detail_${meta.key}" class="mobile-input-label">Details</label>
+                            <input type="text" id="detail_${meta.key}" value="${escapeHtml(rowData.detail || '')}" class="form-input mobile-input w-full"></div>
+                    </div>
+                </div>`;
+            }
+            html += '</div>';
+        }
+
+        tableContainer.innerHTML = html;
+        for (let d = 1; d <= daysInMonth; d++) {
+            updateMNValues(`${year}-${month}-${d}`);
+        }
+    }
+
+    function dayMeta(year, month, d, holidays) {
+        const date = new Date(year, month - 1, d);
+        const dayOfWeek = date.getDay();
+        const key = `${year}-${month}-${d}`;
+        const dateKey = `${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        let rowClass = '';
+        if (dayOfWeek === 0 || dayOfWeek === 6) rowClass += ' weekend';
+        if (holidays.includes(dateKey)) rowClass += ' holiday';
+        return { key, dayName: date.toLocaleDateString('en-US', { weekday: 'short' }), rowClass: rowClass.trim() };
+    }
+
+    function updateMNValues(key) {
+        const shiftEl = getEl(fieldId('shift', key));
+        if (!shiftEl) return;
+        const shift = shiftEl.value;
+        const mRate = parseFloat(getEl('mRateInput').value) || 0;
+        const nRate = parseFloat(getEl('nRateInput').value) || 0;
+        const mVal = getEl(`m_val_${key}`);
+        const nVal = getEl(`n_val_${key}`);
+        if (mVal) mVal.textContent = shift === 'M' ? (mqDesktop.matches ? mRate.toFixed(0) : `+${mRate.toFixed(0)}`) : '';
+        if (nVal) nVal.textContent = shift === 'N' ? (mqDesktop.matches ? nRate.toFixed(0) : `+${nRate.toFixed(0)}`) : '';
+    }
+
+    // ===== Summary =====
+    function readSettings() {
+        const monthlyHours = parseFloat(getEl('monthlyHoursInput').value);
+        return {
+            salary: parseFloat(getEl('salaryInput').value) || 0,
+            mRate: parseFloat(getEl('mRateInput').value) || 0,
+            nRate: parseFloat(getEl('nRateInput').value) || 0,
+            houseAllowanceRate: parseFloat(getEl('houseAllowanceRate').value) || 0,
+            holidayBonusRate: parseFloat(getEl('holidayBonusRate').value) || 0,
+            monthlyHours: monthlyHours > 0 ? monthlyHours : DEFAULT_MONTHLY_HOURS
+        };
+    }
+
+    function calculateAndRenderSummary() {
+        const s = readSettings();
+        const year = getEl('yearSelect').value;
+        const month = getEl('monthSelect').value;
+        const daysInMonth = new Date(year, month, 0).getDate();
+        let totals = { m: 0, n: 0, ot15: 0, ot20: 0, ot30: 0 };
+        let hasWork = false;
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const key = `${year}-${month}-${d}`;
+            const shiftEl = getEl(fieldId('shift', key));
+            if (!shiftEl) continue;
+            const shift = shiftEl.value;
+            if (shift === 'M') totals.m++;
+            if (shift === 'N') totals.n++;
+            const ot15 = parseFloat((getEl(fieldId('ot15', key)) || {}).value) || 0;
+            const ot20 = parseFloat((getEl(fieldId('ot20', key)) || {}).value) || 0;
+            const ot30 = parseFloat((getEl(fieldId('ot30', key)) || {}).value) || 0;
+            totals.ot15 += ot15; totals.ot20 += ot20; totals.ot30 += ot30;
+            const reason = (getEl(fieldId('reason', key)) || {}).value || '';
+            const detail = (getEl(fieldId('detail', key)) || {}).value || '';
+            if (shift !== '-' || ot15 || ot20 || ot30 || reason || detail) hasWork = true;
+        }
+
+        const hourlyRate = s.salary > 0 ? s.salary / s.monthlyHours : 0;
+        const ot15Income = totals.ot15 * hourlyRate * 1.5;
+        const ot20Income = totals.ot20 * hourlyRate * 2.0;
+        const ot30Income = totals.ot30 * hourlyRate * 3.0;
+        const mShiftIncome = totals.m * s.mRate;
+        const nShiftIncome = totals.n * s.nRate;
+        // allowance/bonus คิดเฉพาะเดือนที่มีการทำงาน (สอดคล้องกับ Annual Dashboard)
+        const houseAllowance = hasWork ? s.salary * (s.houseAllowanceRate / 100) : 0;
+        const holidayBonus = hasWork ? s.salary * (s.holidayBonusRate / 100) : 0;
+        const baseSalary = hasWork ? s.salary : 0;
+        const totalIncome = baseSalary + ot15Income + ot20Income + ot30Income + mShiftIncome + nShiftIncome + houseAllowance + holidayBonus;
+        const totalOtHours = totals.ot15 + totals.ot20 + totals.ot30;
+        const f = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        getEl('summaryContainer').innerHTML = `
+        <div class="space-y-3">
+            <div class="grid grid-cols-2 gap-2"><span class="text-slate-500">Base Salary:</span><span class="font-semibold text-right">${f(baseSalary)}</span></div>
+            <div class="grid grid-cols-2 gap-2"><span class="text-slate-500">M-Shift Pay (${totals.m} shifts):</span><span class="text-blue-600 text-right">+ ${f(mShiftIncome)}</span></div>
+            <div class="grid grid-cols-2 gap-2"><span class="text-slate-500">N-Shift Pay (${totals.n} shifts):</span><span class="text-indigo-600 text-right">+ ${f(nShiftIncome)}</span></div>
+            <div class="grid grid-cols-2 gap-2"><span class="text-slate-500">OT Pay (${totalOtHours} hrs):</span><span class="text-purple-600 text-right">+ ${f(ot15Income + ot20Income + ot30Income)}</span></div>
+            <div class="grid grid-cols-2 gap-2"><span class="text-slate-500">House Allowance:</span><span class="text-cyan-600 text-right">+ ${f(houseAllowance)}</span></div>
+            <div class="grid grid-cols-2 gap-2"><span class="text-slate-500">Holiday Bonus:</span><span class="text-orange-500 text-right">+ ${f(holidayBonus)}</span></div>
+            <hr class="my-3 border-dashed border-slate-200">
+            <div class="grid grid-cols-2 gap-2 text-lg"><span class="font-bold">Total Gross Income:</span><span class="text-xl font-bold text-right text-[var(--success)]">${f(totalIncome)}</span></div>
+        </div>`;
+        return { salary: baseSalary, mShiftIncome, nShiftIncome, ot15Income, ot20Income, ot30Income, houseAllowance, holidayBonus, totalIncome, totalOtHours };
+    }
+
+    // ===== Charts =====
+    function renderCharts(summaryData) {
+        if (!summaryData) return;
+        const year = getEl('yearSelect').value;
+        const currentMonthIdx = parseInt(getEl('monthSelect').value) - 1;
+        getEl('chartYear').textContent = year;
+        const textColor = cssVar('--text-secondary');
+        const surfaceColor = cssVar('--bg-surface');
+
+        const pieCtx = getEl('incomePieChart').getContext('2d');
+        if (incomePieChart) incomePieChart.destroy();
+        incomePieChart = new Chart(pieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ["Salary", "M-Shift", "N-Shift", "OT", "Allowance", "Holiday Bonus"],
+                datasets: [{
+                    data: [summaryData.salary, summaryData.mShiftIncome, summaryData.nShiftIncome, summaryData.ot15Income + summaryData.ot20Income + summaryData.ot30Income, summaryData.houseAllowance, summaryData.holidayBonus],
+                    backgroundColor: ["#3b82f6", "#6366f1", "#8b5cf6", "#db2777", "#14b8a6", "#f97316"],
+                    borderColor: surfaceColor, borderWidth: 4, hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '70%',
+                layout: { padding: { bottom: 20 } },
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, color: textColor } },
+                    tooltip: { callbacks: { label: ctx => `${ctx.label || ''}: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB' }).format(ctx.raw)}` } }
+                }
+            }
+        });
+
+        let otHoursPerMonth = [];
+        for (let m = 1; m <= 12; m++) {
+            const monthData = getMonthData(year, m);
+            let totalOT = 0;
+            for (const key in monthData) {
+                totalOT += (monthData[key].ot15 || 0) + (monthData[key].ot20 || 0) + (monthData[key].ot30 || 0);
+            }
+            otHoursPerMonth.push(totalOT);
+        }
+        const barCtx = getEl('otBarChart').getContext('2d');
+        if (otBarChart) otBarChart.destroy();
+        otBarChart = new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                datasets: [{
+                    label: 'OT Hours', data: otHoursPerMonth,
+                    backgroundColor: ctx => {
+                        const value = ctx.raw || 0;
+                        if (value > MAX_OT_HOURS) return cssVar('--danger');
+                        return ctx.dataIndex === currentMonthIdx ? cssVar('--primary') : '#99f6e4';
+                    },
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                layout: { padding: { bottom: 10 } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(100, 116, 139, 0.1)' }, ticks: { color: textColor } },
+                    x: { grid: { display: false }, ticks: { color: textColor } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    annotation: {
+                        annotations: {
+                            line1: {
+                                type: 'line', yMin: MAX_OT_HOURS, yMax: MAX_OT_HOURS,
+                                borderColor: 'rgb(239, 68, 68)', borderWidth: 2, borderDash: [6, 6],
+                                label: { content: `Max OT ${MAX_OT_HOURS} hr`, display: true, position: 'end', backgroundColor: 'rgba(239, 68, 68, 0.8)', font: { weight: 'bold' } }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function displayLastSaved() {
+        const timestamp = localStorage.getItem('last_saved');
+        const el = getEl('lastSavedTimestamp');
+        if (timestamp) {
+            const date = new Date(timestamp);
+            el.textContent = `Last saved: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+        } else {
+            el.textContent = 'Not saved yet.';
+        }
+    }
+
+    // ===== Data Persistence (localStorage) =====
+    function saveAllData(silent = false) {
+        if (currentYear == null || currentMonth == null) return;
+        const year = currentYear, month = currentMonth;
+        const daysInMonth = new Date(year, month, 0).getDate();
+        let data = {};
+        for (let d = 1; d <= daysInMonth; d++) {
+            const key = `${year}-${month}-${d}`;
+            const shiftEl = getEl(fieldId('shift', key));
+            if (!shiftEl) continue;
+            const shift = shiftEl.value;
+            const ot15 = parseFloat((getEl(fieldId('ot15', key)) || {}).value) || 0;
+            const ot20 = parseFloat((getEl(fieldId('ot20', key)) || {}).value) || 0;
+            const ot30 = parseFloat((getEl(fieldId('ot30', key)) || {}).value) || 0;
+            const reason = (getEl(fieldId('reason', key)) || {}).value || '';
+            const detail = (getEl(fieldId('detail', key)) || {}).value || '';
+            if (shift !== '-' || ot15 > 0 || ot20 > 0 || ot30 > 0 || reason || detail) {
+                data[key] = { shift, ot15, ot20, ot30, reason, detail };
+            }
+        }
+        localStorage.setItem(`shift_data_${year}_${month}`, JSON.stringify(data));
+        const settings = {
+            salary: getEl('salaryInput').value, mRate: getEl('mRateInput').value, nRate: getEl('nRateInput').value,
+            houseAllowanceRate: getEl('houseAllowanceRate').value, holidayBonusRate: getEl('holidayBonusRate').value,
+            monthlyHours: getEl('monthlyHoursInput').value
+        };
+        localStorage.setItem('settings', JSON.stringify(settings));
+        localStorage.setItem('last_saved', new Date().toISOString());
+        displayLastSaved();
+        if (!silent) showToast('บันทึกข้อมูลเรียบร้อย!');
+    }
+
+    function getMonthData(year, month) {
+        const dataString = localStorage.getItem(`shift_data_${year}_${month}`);
+        if (!dataString) return {};
+        try {
+            const parsed = JSON.parse(dataString);
+            return (parsed && typeof parsed === 'object') ? parsed : {};
+        } catch (error) {
+            console.error(`Error parsing data for ${year}-${month}:`, error);
+            showToast(`ข้อมูลของ ${year}-${month} เสียหาย`, 'error');
+            return {};
+        }
+    }
+
+    function loadSettings() {
+        let savedSettings = {};
+        try {
+            const settingsString = localStorage.getItem('settings');
+            if (settingsString) savedSettings = JSON.parse(settingsString);
+        } catch (error) {
+            console.error('Error parsing settings:', error);
+            showToast('ข้อมูลการตั้งค่าเสียหาย ใช้ค่าเริ่มต้นแทน', 'error');
+        }
+        const defaults = { salary: '', mRate: '150', nRate: '200', houseAllowanceRate: '15', holidayBonusRate: '16', monthlyHours: String(DEFAULT_MONTHLY_HOURS) };
+        const settings = { ...defaults, ...savedSettings };
+        getEl('salaryInput').value = settings.salary;
+        getEl('mRateInput').value = settings.mRate;
+        getEl('nRateInput').value = settings.nRate;
+        getEl('houseAllowanceRate').value = settings.houseAllowanceRate;
+        getEl('holidayBonusRate').value = settings.holidayBonusRate;
+        getEl('monthlyHoursInput').value = settings.monthlyHours || DEFAULT_MONTHLY_HOURS;
+    }
+
+    function loadReasonOptions() {
+        const savedVersion = localStorage.getItem('reasonOptionsVersion');
+        if (savedVersion && parseInt(savedVersion) === REASON_OPTIONS_VERSION) {
+            try {
+                const savedReasons = localStorage.getItem('reasonOptionsV2');
+                if (savedReasons) { reasonOptions = JSON.parse(savedReasons); return; }
+            } catch (error) { console.error('Error parsing reasons:', error); }
+        }
+        localStorage.setItem('reasonOptionsV2', JSON.stringify(reasonOptions));
+        localStorage.setItem('reasonOptionsVersion', REASON_OPTIONS_VERSION);
+    }
+
+    // ===== UI Interaction & Modals =====
+    function showToast(message, type = 'success', duration = 3000) {
+        const container = getEl('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, duration);
+    }
+
+    function showConfirmModal(message, onConfirm) {
+        getEl('confirmMessage').textContent = message;
+        const modal = getEl('confirmModal');
+        modal.classList.remove('hidden');
+        const confirmBtn = getEl('confirmBtn');
+        const cancelBtn = getEl('cancelBtn');
+        const close = () => { modal.classList.add('hidden'); confirmBtn.onclick = null; cancelBtn.onclick = null; };
+        confirmBtn.onclick = () => { onConfirm(); close(); };
+        cancelBtn.onclick = close;
+    }
+
+    function openReasonManagerModal() { renderReasonList(); getEl('reasonManagerModal').classList.remove('hidden'); }
+    function closeReasonManagerModal() { getEl('reasonManagerModal').classList.add('hidden'); renderAll(); }
+
+    function renderReasonList() {
+        const listContainer = getEl('reasons-list');
+        listContainer.innerHTML = '';
+        reasonOptions.forEach((reason, index) => {
+            if (reason === '') return;
+            const item = document.createElement('div');
+            item.className = 'flex items-center justify-between p-2 rounded-lg bg-[var(--bg-surface)] hover:bg-[var(--primary-light)] border border-[var(--border-color)] mb-2';
+            const span = document.createElement('span');
+            span.textContent = reason;                       // ใช้ textContent กัน XSS
+            span.className = 'break-words pr-2';
+            const btn = document.createElement('button');
+            btn.className = 'text-[var(--danger)] hover:text-[var(--danger-hover)] flex-shrink-0';
+            btn.setAttribute('aria-label', `ลบเหตุผล ${reason}`);
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>';
+            btn.onclick = () => showReasonsConfirm(index, reason);
+            item.append(span, btn);
+            listContainer.appendChild(item);
+        });
+    }
+
+    function showReasonsConfirm(index, reasonText) {
+        reasonToRemoveIndex = index;
+        getEl('reasonsConfirmMessage').textContent = `ต้องการลบ "${reasonText}" หรือไม่? การลบนี้ถาวร`;
+        getEl('reasons-confirm').classList.remove('hidden');
+    }
+
+    function closeReasonsConfirm() { reasonToRemoveIndex = -1; getEl('reasons-confirm').classList.add('hidden'); }
+
+    function confirmRemoveReason() {
+        if (reasonToRemoveIndex > -1) {
+            reasonOptions.splice(reasonToRemoveIndex, 1);
+            localStorage.setItem('reasonOptionsV2', JSON.stringify(reasonOptions));
+            renderReasonList();
+            showToast('ลบเหตุผลแล้ว');
+        }
+        closeReasonsConfirm();
+    }
+
+    function addNewReason() {
+        const input = getEl('newReasonInputInModal');
+        const newReason = input.value.trim();
+        if (newReason && !reasonOptions.includes(newReason)) {
+            reasonOptions.push(newReason);
+            localStorage.setItem('reasonOptionsV2', JSON.stringify(reasonOptions));
+            showToast('เพิ่มเหตุผลใหม่แล้ว');
+            input.value = '';
+            renderReasonList();
+        }
+    }
+
+    function clearDataConfirm() {
+        const monthSel = getEl('monthSelect');
+        const year = getEl('yearSelect').value;
+        const monthName = monthSel.options[monthSel.selectedIndex].text;
+        showConfirmModal(`ล้างข้อมูลทั้งหมดของ ${monthName} ${year}? ไม่สามารถย้อนกลับได้`, () => {
+            localStorage.removeItem(`shift_data_${year}_${monthSel.value}`);
+            renderAll();
+            showToast(`ล้างข้อมูล ${monthName} ${year} แล้ว`);
+        });
+    }
+
+    // ===== Data Import/Export =====
+    function backupData() {
+        const backupObject = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            backupObject[key] = localStorage.getItem(key);
+        }
+        const dataStr = JSON.stringify(backupObject, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        const date = new Date();
+        a.download = `shift-tracker-backup-${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}.json`;
+        a.click();
+        URL.revokeObjectURL(url);   // แก้ไข: เดิมส่ง element a (ไม่ปล่อย blob)
+        showToast('สร้างไฟล์สำรองแล้ว');
+    }
+
+    function restoreData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            showConfirmModal('การกู้คืนจะเขียนทับข้อมูลทั้งหมดที่มีอยู่ ยืนยันหรือไม่?', () => {
+                let data;
+                try {
+                    data = JSON.parse(e.target.result);
+                } catch (error) {
+                    showToast('ไฟล์สำรองไม่ถูกต้อง (JSON เสียหาย)', 'error');
+                    console.error('Restore parse error:', error);
+                    return;
+                }
+                // ตรวจโครงสร้างก่อนล้างของเดิม
+                if (!data || typeof data !== 'object' || Array.isArray(data)) {
+                    showToast('ไฟล์สำรองไม่ถูกต้อง (โครงสร้างผิด)', 'error');
+                    return;
+                }
+                const looksValid = Object.keys(data).some(k => k.startsWith('shift_data_') || k === 'settings' || k === 'reasonOptionsV2');
+                if (!looksValid) {
+                    showToast('ไฟล์นี้ไม่ใช่ไฟล์สำรองของ ShiftPro', 'error');
+                    return;
+                }
+                localStorage.clear();
+                for (const key in data) {
+                    if (Object.hasOwnProperty.call(data, key)) localStorage.setItem(key, data[key]);
+                }
+                localStorage.removeItem('passwordHash');
+                showToast('กู้คืนข้อมูลสำเร็จ!');
+                setTimeout(() => location.reload(), 1500);
+            });
+        };
+        reader.onerror = () => showToast('อ่านไฟล์ไม่สำเร็จ', 'error');
+        reader.readAsText(file);
+        event.target.value = '';
+    }
+
+    // ===== AI & Dashboard Modals =====
+    function openAiSettingsModal() {
+        getEl('apiKeyInput').value = localStorage.getItem('geminiApiKey') || '';
+        getEl('aiSettingsModal').classList.remove('hidden');
+    }
+    function closeAiSettingsModal() { getEl('aiSettingsModal').classList.add('hidden'); }
+
+    function saveApiKey() {
+        const apiKey = getEl('apiKeyInput').value.trim();
+        if (apiKey) { localStorage.setItem('geminiApiKey', apiKey); showToast('บันทึก API Key แล้ว'); }
+        else { localStorage.removeItem('geminiApiKey'); showToast('ล้าง API Key แล้ว'); }
+        closeAiSettingsModal();
+    }
+
+    function openDashboardModal() {
+        const year = getEl('yearSelect').value;
+        getEl('dashboardYear').textContent = year;
+        const annualData = calculateAnnualData(year);
+        const fNum = n => n.toLocaleString('en-US');
+        const fCurr = n => '฿' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
+        getEl('dashboardTotalIncome').textContent = fCurr(annualData.totalIncome);
+        getEl('dashboardTotalOT').textContent = fNum(annualData.totalOtHours) + ' hr';
+        getEl('dashboardVacation').textContent = fNum(annualData.vacationDays) + ' d';
+        getEl('dashboardSick').textContent = fNum(annualData.sickDays) + ' d';
+        renderAnnualChart(annualData.monthlyIncome);
+        getEl('dashboardModal').classList.remove('hidden');
+    }
+    function closeDashboardModal() { getEl('dashboardModal').classList.add('hidden'); }
+
+    function openChatbotModal() {
+        if (!localStorage.getItem('geminiApiKey')) {
+            showToast('กรุณาตั้งค่า Gemini API Key ก่อน', 'error');
+            return openAiSettingsModal();
+        }
+        chatHistory = [{ role: 'ai', text: 'สวัสดีครับ! มีอะไรให้ช่วยวิเคราะห์ข้อมูลการทำงานของคุณบ้างครับ?' }];
+        renderChatHistory();
+        getEl('chatbotModal').classList.remove('hidden');
+        const chatInput = getEl('chat-input');
+        chatInput.onkeydown = e => { if (e.key === 'Enter') handleSendMessage(); };
+        getEl('chat-send-btn').onclick = handleSendMessage;
+    }
+    function closeChatbotModal() { getEl('chatbotModal').classList.add('hidden'); }
+
+    // ===== Annual Dashboard Logic =====
+    function calculateAnnualData(year) {
+        const s = readSettings();
+        let annualTotals = { totalIncome: 0, totalOtHours: 0, vacationDays: 0, sickDays: 0 };
+        let monthlyIncome = Array(12).fill(0);
+        const hourlyRate = s.salary > 0 ? s.salary / s.monthlyHours : 0;
+        for (let m = 1; m <= 12; m++) {
+            const monthData = getMonthData(year, m);
+            let t = { m: 0, n: 0, ot15: 0, ot20: 0, ot30: 0, income: 0, vacation: 0, sick: 0 };
+            const hasWork = Object.keys(monthData).length > 0;
+            if (hasWork) t.income = s.salary;
+            for (const key in monthData) {
+                const entry = monthData[key];
+                if (entry.shift === 'M') t.m++;
+                if (entry.shift === 'N') t.n++;
+                t.ot15 += entry.ot15 || 0; t.ot20 += entry.ot20 || 0; t.ot30 += entry.ot30 || 0;
+                if (entry.reason === 'ลาพักร้อน') t.vacation++;
+                if (entry.reason === 'ลาป่วย') t.sick++;
+            }
+            t.income += (t.ot15 * hourlyRate * 1.5) + (t.ot20 * hourlyRate * 2.0) + (t.ot30 * hourlyRate * 3.0);
+            t.income += t.m * s.mRate + t.n * s.nRate;
+            if (hasWork) t.income += s.salary * (s.houseAllowanceRate / 100) + s.salary * (s.holidayBonusRate / 100);
+            monthlyIncome[m - 1] = t.income;
+            annualTotals.totalIncome += t.income;
+            annualTotals.totalOtHours += t.ot15 + t.ot20 + t.ot30;
+            annualTotals.vacationDays += t.vacation;
+            annualTotals.sickDays += t.sick;
+        }
+        return { ...annualTotals, monthlyIncome };
+    }
+
+    function renderAnnualChart(monthlyIncomeData) {
+        const ctx = getEl('annualIncomeChart').getContext('2d');
+        if (annualIncomeChart) annualIncomeChart.destroy();
+        const textColor = cssVar('--text-secondary');
+        annualIncomeChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                datasets: [{ label: 'Monthly Income', data: monthlyIncomeData, backgroundColor: 'rgba(13, 148, 136, 0.6)', borderColor: 'rgba(13, 148, 136, 1)', borderWidth: 1, borderRadius: 4 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { color: textColor, callback: v => v / 1000 + 'k' } },
+                    x: { ticks: { color: textColor } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: ctx => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB' }).format(ctx.raw) } }
+                }
+            }
+        });
+    }
+
+    // ===== AI Chatbot Logic =====
+    function formatChatText(text) {
+        // escape ก่อนเสมอ แล้วค่อยแปลง markdown แบบจำกัด -> กัน XSS
+        return escapeHtml(text)
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/\n/g, '<br>');
+    }
+
+    function renderChatHistory() {
+        const container = getEl('chat-message-container');
+        container.innerHTML = '';
+        for (const msg of chatHistory) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `w-full flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`;
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${msg.role === 'user' ? 'user-bubble' : 'ai-bubble'}`;
+            if (msg.role === 'user') bubble.textContent = msg.text;
+            else bubble.innerHTML = formatChatText(msg.text);
+            wrapper.appendChild(bubble);
+            container.appendChild(wrapper);
+        }
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function getSettingsAsJSON() {
+        return JSON.stringify({
+            salary: getEl('salaryInput').value, mRate: getEl('mRateInput').value, nRate: getEl('nRateInput').value,
+            houseAllowanceRate: getEl('houseAllowanceRate').value, holidayBonusRate: getEl('holidayBonusRate').value,
+            monthlyHours: getEl('monthlyHoursInput').value
+        }, null, 2);
+    }
+
+    function getAllShiftDataAsJSON() {
+        const allData = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('shift_data_')) {
+                try { allData[key] = JSON.parse(localStorage.getItem(key)); } catch (e) { /* ignore */ }
+            }
+        }
+        return JSON.stringify(allData, null, 2);
+    }
+
+    async function handleSendMessage() {
+        const input = getEl('chat-input');
+        const userMessage = input.value.trim();
+        if (!userMessage) return;
+        chatHistory.push({ role: 'user', text: userMessage });
+        input.value = '';
+        renderChatHistory();
+        chatHistory.push({ role: 'ai', text: 'กำลังคิด…' });
+        renderChatHistory();
+
+        try {
+            const prompt = `คุณคือ 'ShiftPro AI' สุดยอดผู้ช่วยวิเคราะห์ข้อมูลการทำงานที่มีความสามารถในการคำนวณและเปรียบเทียบข้อมูล
+ความสามารถของคุณคือ:
+1. คำนวณรายรับรวมของแต่ละเดือนได้ โดยใช้ 'ข้อมูลการตั้งค่า' และ 'ข้อมูลการทำงาน' ที่ให้มา
+2. เปรียบเทียบข้อมูลระหว่างเดือนต่างๆ เพื่อหาค่าสูงสุด/ต่ำสุดได้
+3. นับจำนวนวันตามเงื่อนไขต่างๆ ได้
+4. สรุปข้อมูลภาพรวมตามที่ผู้ใช้ต้องการได้
+5. นับจำนวนวันที่มีการ 'แทนกะ' จากช่อง 'reason' และระบุชื่อคนแทนจากช่อง 'detail' ได้
+
+ตอบโดยอ้างอิงจากข้อมูลที่ให้มาเท่านั้น ตอบเป็นภาษาไทยอย่างเป็นมิตรและเข้าใจง่าย
+
+ข้อมูลการตั้งค่า:
+${getSettingsAsJSON()}
+
+ข้อมูลการทำงานดิบทั้งหมด:
+${getAllShiftDataAsJSON()}
+
+กรุณาตอบคำถามต่อไปนี้: "${userMessage}"`;
+            const responseText = await callGeminiApi(prompt, localStorage.getItem('geminiApiKey'));
+            chatHistory.pop();
+            chatHistory.push({ role: 'ai', text: responseText });
+        } catch (error) {
+            chatHistory.pop();
+            chatHistory.push({ role: 'ai', text: `ขออภัยครับ เกิดข้อผิดพลาด: ${error.message}` });
+            console.error('Chatbot Error:', error);
+        }
+        renderChatHistory();
+    }
+
+    async function callGeminiApi(prompt, apiKey) {
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },  // ส่งคีย์ผ่าน header แทน query string
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        if (!response.ok) {
+            let message = response.statusText;
+            try { const err = await response.json(); message = err.error?.message || message; } catch (e) { /* ignore */ }
+            throw new Error(message);
+        }
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) throw new Error('โครงสร้างคำตอบจาก API ไม่ถูกต้อง');
+        return text;
+    }
+
+    // ===== Theme Management =====
+    function applyTheme(theme) {
+        const lightIcon = getEl('theme-icon-light');
+        const darkIcon = getEl('theme-icon-dark');
+        if (!lightIcon || !darkIcon) return;
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+            lightIcon.classList.remove('hidden'); darkIcon.classList.add('hidden');
+        } else {
+            document.documentElement.classList.remove('dark');
+            lightIcon.classList.add('hidden'); darkIcon.classList.remove('hidden');
+        }
+    }
+
+    function setupThemeToggle() {
+        const themeToggle = getEl('theme-toggle');
+        if (!themeToggle) return;
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            const newTheme = isDark ? 'dark' : 'light';
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+            updateCalculations();   // วาดกราฟใหม่ให้สีตรงกับธีม
+            if (!getEl('dashboardModal').classList.contains('hidden')) {
+                renderAnnualChart(calculateAnnualData(getEl('yearSelect').value).monthlyIncome);
+            }
+        });
+    }
+</script>
+</body>
+</html>
