@@ -249,7 +249,7 @@
     <!-- Summary income section (collapsible) -->
     <div class="cal-sum-wrap">
         <button class="cal-sum-tog" onclick="toggleCalSum()" aria-expanded="false" id="cal-sum-tog">
-            <span>สรุปรายได้เดือนนี้</span>
+            <span>This Month's Summary</span>
             <svg id="cal-sum-chev" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="transition:transform .3s"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
         </button>
         <div id="cal-sum-body" class="cal-sum-body" style="display:none">
@@ -279,7 +279,7 @@
         </div>
     </div>
     <div style="text-align:center;padding:5px 0 6px;background:var(--bg)">
-        <span style="font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:.04em">Supasit A. &amp; AI · ShiftPro Tracker</span>
+        <span style="font-size:10px;color:var(--text-muted);font-weight:500;letter-spacing:.02em">Developed in collaboration by Supasit A.@1981 TH &amp; AI Partner. · V11.0</span>
     </div>
 </div>
 
@@ -399,7 +399,7 @@
                 <svg width="16" height="16" fill="#EF4444" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
             </div>
         </div>
-        <p style="font-size:11px;color:var(--text-muted);text-align:center;padding:4px 0">Supasit A. &amp; AI · ShiftPro Tracker</p>
+        <p style="font-size:11px;color:var(--text-muted);text-align:center;padding:4px 0">Developed in collaboration by Supasit A.@1981 TH &amp; AI Partner. · V11.0</p>
     </div>
 </div>
 
@@ -1082,45 +1082,46 @@ function renderCalSum() {
         if (d.shift === 'M') mD++; else if (d.shift === 'N') nD++;
         ot15 += d.ot15 || 0; ot20 += d.ot20 || 0; ot30 += d.ot30 || 0;
     }
-    const baseInc = s.salary;
-    const shiftInc = mD * s.mRate + nD * s.nRate;
-    const otInc = ot15 * hr * 1.5 + ot20 * hr * 2 + ot30 * hr * 3;
+    const baseInc  = s.salary;
+    const mShiftInc = mD * s.mRate;
+    const nShiftInc = nD * s.nRate;
+    const ot15Inc  = ot15 * hr * 1.5;
+    const ot20Inc  = ot20 * hr * 2.0;
+    const ot30Inc  = ot30 * hr * 3.0;
+    const otInc    = ot15Inc + ot20Inc + ot30Inc;
     const houseInc = s.salary * (s.house / 100);
     const bonusInc = s.salary * (s.bonus / 100);
-    const totalInc = baseInc + shiftInc + otInc + houseInc + bonusInc;
-    const fmt = v => Math.round(v).toLocaleString('th-TH');
+    const totalInc = baseInc + mShiftInc + nShiftInc + otInc + houseInc + bonusInc;
+    const f2 = v => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const row = (lbl, val, col) => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0">
+        <span style="color:#6B7280">${lbl}</span>
+        <span style="font-weight:600;color:${col}">${val}</span></div>`;
+
+    let rows = row('Base Salary:', f2(baseInc), 'var(--text)');
+    if (mD > 0) rows += row(`M-Shift Pay (${mD} shifts):`, `+ ${f2(mShiftInc)}`, '#7C3AED');
+    if (nD > 0) rows += row(`N-Shift Pay (${nD} shifts):`, `+ ${f2(nShiftInc)}`, '#7C3AED');
+    if (ot15 > 0) rows += row(`OT 1.5× (${ot15.toFixed(1)} hrs):`, `+ ${f2(ot15Inc)}`, '#EC4899');
+    if (ot20 > 0) rows += row(`OT 2.0× (${ot20.toFixed(1)} hrs):`, `+ ${f2(ot20Inc)}`, '#EC4899');
+    if (ot30 > 0) rows += row(`OT 3.0× (${ot30.toFixed(1)} hrs):`, `+ ${f2(ot30Inc)}`, '#EC4899');
+    if (houseInc > 0) rows += row('House Allowance:', `+ ${f2(houseInc)}`, '#059669');
+    if (bonusInc > 0) rows += row('Holiday Bonus:', `+ ${f2(bonusInc)}`, '#F97316');
+
     $('cal-sum-breakdown').innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:6px">
-            <div style="display:flex;justify-content:space-between;font-size:13px">
-                <span style="color:var(--text-muted)">เงินเดือนพื้นฐาน</span>
-                <span style="font-weight:600">฿${fmt(baseInc)}</span>
+        <div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:10px">This Month's Summary</div>
+        <div style="display:flex;flex-direction:column">${rows}
+            <div style="border-top:1px dashed var(--border);margin:6px 0"></div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:800">
+                <span>Total Gross Income:</span>
+                <span style="color:#22C55E">${f2(totalInc)}</span>
             </div>
-            <div style="display:flex;justify-content:space-between;font-size:13px">
-                <span style="color:var(--text-muted)">ค่ากะ (เช้า ${mD}วัน / ดึก ${nD}วัน)</span>
-                <span style="font-weight:600">฿${fmt(shiftInc)}</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:13px">
-                <span style="color:var(--text-muted)">OT รวม (${(ot15+ot20+ot30).toFixed(1)} ชม.)</span>
-                <span style="font-weight:600">฿${fmt(otInc)}</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:13px">
-                <span style="color:var(--text-muted)">ค่าบ้าน</span>
-                <span style="font-weight:600">฿${fmt(houseInc)}</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:13px">
-                <span style="color:var(--text-muted)">โบนัสวันหยุด</span>
-                <span style="font-weight:600">฿${fmt(bonusInc)}</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;border-top:1px solid var(--border);padding-top:6px;margin-top:2px">
-                <span>รวมทั้งหมด</span>
-                <span style="color:var(--primary)">฿${fmt(totalInc)}</span>
-            </div>
-        </div>`;
-    // Pie: income breakdown
-    const pieValues = [baseInc, shiftInc, otInc, houseInc, bonusInc];
-    const allLabels = ['เงินเดือน', 'ค่ากะ', 'OT', 'ค่าบ้าน', 'โบนัส'];
-    const allColors = ['#F97316', '#22C55E', '#3B82F6', '#8B5CF6', '#F59E0B'];
-    const idx = pieValues.map((v,i) => v > 0 ? i : -1).filter(i => i >= 0);
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin:14px 0 4px">Data Overview</div>`;
+
+    // Pie: 6-segment income breakdown (match reference)
+    const pieValues = [baseInc, mShiftInc, nShiftInc, otInc, houseInc, bonusInc];
+    const allLabels = ['Salary', 'M-Shift', 'N-Shift', 'OT', 'Allowance', 'Holiday Bonus'];
+    const allColors = ['#3B82F6', '#7C3AED', '#A78BFA', '#EC4899', '#14B8A6', '#F97316'];
+    const idx = pieValues.map((v, i) => v > 0 ? i : -1).filter(i => i >= 0);
     if (calPieChart) calPieChart.destroy();
     calPieChart = new Chart($('cal-pie-chart').getContext('2d'), {
         type: 'doughnut',
@@ -1129,11 +1130,13 @@ function renderCalSum() {
             responsive: true, maintainAspectRatio: false, cutout: '55%',
             plugins: {
                 legend: { display: true, position: 'bottom', labels: { font: { size: 9 }, boxWidth: 10, padding: 5 } },
-                tooltip: { callbacks: { label: c => '฿' + Math.round(c.raw).toLocaleString('th-TH') } }
+                tooltip: { callbacks: { label: c => c.label + ': ' + c.raw.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) } }
             }
         }
     });
-    // Bar: 12-month OT
+
+    // Bar: Monthly OT Hours with English labels
+    const EN_MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const otArr = [];
     for (let m = 1; m <= 12; m++) {
         const md = getMonthData(curYear, m);
@@ -1144,11 +1147,16 @@ function renderCalSum() {
     if (calOTChart) calOTChart.destroy();
     calOTChart = new Chart($('cal-ot-chart').getContext('2d'), {
         type: 'bar',
-        data: { labels: TH_MONTHS_S, datasets: [{ data: otArr, backgroundColor: otArr.map(v => v > MAX_OT ? '#EF4444' : 'rgba(59,130,246,.75)'), borderRadius: 3 }] },
+        data: { labels: EN_MO, datasets: [{ data: otArr, backgroundColor: otArr.map(v => v > MAX_OT ? '#EF4444' : 'rgba(59,130,246,.75)'), borderRadius: 3 }] },
         options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.raw.toFixed(1)+' ชม.' } } },
-            scales: { y: { beginAtZero: true, ticks: { font: { size: 9 } }, grid: { color: 'rgba(0,0,0,.05)' } }, x: { grid: { display: false }, ticks: { font: { size: 8 } } } }
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: c => c.raw.toFixed(1) + ' hrs' } },
+                annotation: { annotations: { l1: { type:'line', yMin:MAX_OT, yMax:MAX_OT, borderColor:'#EF4444', borderWidth:2, borderDash:[6,4],
+                    label:{ content:`Max OT ${MAX_OT} hr`, display:true, position:'end', backgroundColor:'rgba(239,68,68,.85)', font:{size:10} } } } }
+            },
+            scales: { y: { beginAtZero:true, ticks:{ font:{size:9} }, grid:{ color:'rgba(0,0,0,.05)' } }, x: { grid:{ display:false }, ticks:{ font:{size:8} } } }
         }
     });
 }
