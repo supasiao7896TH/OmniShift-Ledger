@@ -648,6 +648,8 @@ function applyTheme(id) {
     r.setProperty('--cal-weekend',  t.calWeekend);
     r.setProperty('--cal-holiday',  t.calHoliday);
     r.setProperty('--focus-ring',   t.focusRing);
+    const tcMeta = document.querySelector('meta[name="theme-color"]');
+    if (tcMeta) tcMeta.content = t.hFrom;
     document.body.dataset.theme = id;
     SS.set('theme', id);
     if ($('theme-picker')) renderThemePicker();
