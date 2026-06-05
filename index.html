@@ -705,6 +705,7 @@ function renderCal() {
     }
     $('cal-body').innerHTML = html;
     updateSumBar(data);
+    if (calSumOpen) renderCalSum();
 }
 
 function updateSumBar(data) {
