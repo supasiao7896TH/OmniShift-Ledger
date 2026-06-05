@@ -390,7 +390,15 @@
                 <svg width="16" height="16" fill="#EF4444" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
             </div>
         </div>
-        <p style="font-size:11px;color:var(--text-muted);text-align:center;padding:4px 0">ShiftPro Tracker · Supasit A.@1981 TH</p>
+        <div style="text-align:center;padding:8px 0 4px">
+            <div style="display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 16px">
+                <span style="font-size:18px">🏭</span>
+                <div style="text-align:left">
+                    <div style="font-size:13px;font-weight:700;color:var(--primary)">Supasiao7896TH</div>
+                    <div style="font-size:10px;color:var(--text-muted)">ShiftPro Tracker · Made with ❤️</div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -826,13 +834,20 @@ function renderLeaveSwapStats() {
                 leaveCounts['ลาอื่นๆ']++;
             }
 
-            // Swap tracking
+            // Swap tracking — outgoing: I covered someone
             if (reason.startsWith('แทนกะ') && (d.shift === 'M' || d.shift === 'N')) {
                 let person = detail;
                 if (!person && reason.length > 4) person = reason.slice(4);
                 outSwaps.push({ dateLabel, person: person || '?', shift: d.shift });
-            } else if (reason === 'มีคนมาแทน') {
-                inSwaps.push({ dateLabel, person: detail || '?' });
+            }
+            // Incoming: someone covered for me
+            // Method A — explicit 'มีคนมาแทน' reason
+            if (reason === 'มีคนมาแทน') {
+                inSwaps.push({ dateLabel, person: detail || '?', leaveType: '' });
+            }
+            // Method B — leave type reason + detail has text (e.g. reason='ลาพักร้อน', detail='เก่งแทน')
+            else if (LEAVE_CATS.includes(reason) && detail) {
+                inSwaps.push({ dateLabel, person: detail, leaveType: reason });
             }
         }
     }
@@ -870,10 +885,10 @@ function renderLeaveSwapStats() {
     swapHTML += `<div style="border-top:1px solid var(--border);padding-top:14px">
         <div style="font-size:12px;font-weight:700;color:#7C3AED;margin-bottom:6px">ฉันลาแล้วมีคนมาแทน — ${inSwaps.length} ครั้ง</div>
         <div style="display:flex;flex-direction:column;gap:4px">
-            ${inSwaps.length ? inSwaps.map(s => `<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 10px;background:#F5F3FF;border-radius:8px">
-                <span style="color:var(--text-muted)">${s.dateLabel}</span>
+            ${inSwaps.length ? inSwaps.map(s => `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 10px;background:#F5F3FF;border-radius:8px">
+                <span style="color:var(--text-muted)">${s.dateLabel}${s.leaveType ? `<span style="margin-left:5px;font-size:10px;background:#EDE9FE;color:#7C3AED;border-radius:4px;padding:1px 5px">${s.leaveType}</span>` : ''}</span>
                 <span style="font-weight:600;color:#5B21B6">${s.person} มาแทน</span>
-            </div>`).join('') : '<div style="font-size:12px;color:var(--text-muted);padding:6px 0">ยังไม่มีข้อมูล · บันทึกโดยเลือก เหตุผล = "มีคนมาแทน" + ระบุชื่อในรายละเอียด</div>'}
+            </div>`).join('') : `<div style="font-size:12px;color:var(--text-muted);padding:6px 0">ยังไม่มีข้อมูล<br><span style="font-size:11px">💡 บันทึกโดย: เหตุผล = ลาป่วย/ลาพักร้อน/ลากิจ + รายละเอียด = ชื่อคนที่มาแทน</span></div>`}
         </div>
     </div>`;
     $('st-swap').innerHTML = swapHTML;
