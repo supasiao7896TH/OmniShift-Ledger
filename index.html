@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0d9488" />
-    <title>ShiftPro Tracker V11.0 (OmniShift-Ledger)</title>
-    <!-- Content Security Policy: หากเปิดผ่าน file:// แล้วบางอย่างไม่โหลด สามารถลบ meta นี้ออกได้ -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://generativelanguage.googleapis.com; manifest-src 'self'; worker-src 'self'; ">
-    <!-- PWA -->
+    <meta name="theme-color" content="#F97316" />
+    <title>ShiftPro Tracker</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://generativelanguage.googleapis.com; manifest-src 'self'; worker-src 'self';">
     <link rel="manifest" href="manifest.webmanifest">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,1131 +18,911 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-main: #f8fafc; --bg-surface: #ffffff; --text-primary: #1e293b; --text-secondary: #64748b;
-            --border-color: #e2e8f0; --primary: #0d9488; --primary-hover: #0f766e; --danger: #ef4444;
-            --danger-hover: #dc2626; --success: #10b981; --neutral: #475569; --neutral-hover: #334155;
-            --primary-light: #f0fdfa;
+            --primary: #F97316;
+            --primary-dark: #EA580C;
+            --primary-light: #FFF7ED;
+            --shift-m: #22C55E;
+            --shift-n: #3B82F6;
+            --shift-off-bg: #E5E7EB;
+            --shift-off-text: #6B7280;
+            --bg: #F3F4F6;
+            --surface: #FFFFFF;
+            --text: #111827;
+            --text-muted: #6B7280;
+            --border: #E5E7EB;
+            --nav-h: 60px;
         }
-        .dark {
-            --bg-main: #0f172a; --bg-surface: #1e293b; --text-primary: #f1f5f9; --text-secondary: #94a3b8; --border-color: #334155;
-            --primary-light: #134e4a;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+            min-height: 100vh;
         }
-        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-main); color: var(--text-primary); transition: background-color 0.3s, color 0.3s; padding-bottom: env(safe-area-inset-bottom); }
-        .card { background-color: var(--bg-surface); border-radius: 0.75rem; border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05); }
-        .modal-box { background-color: var(--bg-surface); border-radius: 0.75rem; border: 1px solid var(--border-color); box-shadow: 0 12px 40px rgb(0 0 0 / 0.15); }
-        .form-input { border-radius: 0.5rem; border: 1px solid var(--border-color); padding: 0.5rem 0.75rem; transition: all 0.2s; background-color: var(--bg-main); color: var(--text-primary); }
-        .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.2); }
-        .btn-icon { padding: 0.75rem; border-radius: 9999px; background-color: transparent; color: var(--text-secondary); border: 1px solid transparent; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-        .btn-icon:hover { color: var(--text-primary); background-color: #f1f5f9; }
-        .dark .btn-icon:hover { background-color: var(--neutral-hover); }
-
-        .btn { padding: 0.6rem 1rem; border-radius: 0.5rem; font-weight: 500; color: white; transition: all 0.2s ease-in-out; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border: none; cursor: pointer; min-height: 44px; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); }
-        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); }
-        .btn:active:not(:disabled) { transform: scale(0.97); }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .btn-primary { background-color: var(--primary); } .btn-primary:hover:not(:disabled) { background-color: var(--primary-hover); }
-        .btn-danger { background-color: var(--danger); } .btn-danger:hover:not(:disabled) { background-color: var(--danger-hover); }
-        .btn-neutral { background-color: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-color); }
-        .btn-neutral:hover:not(:disabled) { background-color: #f1f5f9; }
-        .dark .btn-neutral { background-color: var(--bg-surface); border-color: var(--border-color); color: var(--text-primary); }
-        .dark .btn-neutral:hover:not(:disabled) { background-color: var(--neutral-hover); }
-
-        thead th { background-color: #f1f5f9; color: var(--text-primary); font-weight: 600; border: 1px solid var(--border-color); border-bottom-width: 2px; padding: 0.75rem 0.5rem; }
-        .dark thead th { background-color: #334155; }
-        tbody td { padding: 0.5rem; border: 1px solid var(--border-color); }
-        .weekend { background-color: #f1f5f9; } .holiday { background-color: #fee2e2; }
-        .dark .weekend { background-color: #273347; } .dark .holiday { background-color: rgba(239, 68, 68, 0.15); }
-        tbody tr:hover { background-color: #f0fdfa; } .dark tbody tr:hover { background-color: rgba(13, 148, 136, 0.2); }
-        .table-input, .table-select { background-color: transparent; color: inherit; border-radius: 0.25rem; width: 100%; padding: 0.25rem; }
-        .table-input:focus, .table-select:focus { background-color: var(--bg-surface); outline: 2px solid var(--primary); box-shadow: none; }
-
-        .mobile-card-header { border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 0.75rem; }
-        .mobile-card-header.weekend { background-color: var(--bg-main); margin: -1rem -1rem 0.75rem -1rem; padding: 1rem 1rem 0.75rem 1rem; border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem; }
-        .mobile-card-header.holiday { background-color: rgba(239, 68, 68, 0.05); }
-        .dark .mobile-card-header.holiday { background-color: rgba(239, 68, 68, 0.15); }
-        .mobile-input-label { display: block; font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.25rem; }
-        .mobile-input { padding: 0.75rem 0.75rem; min-height: 44px; }
-
-        .fab { width: 3.5rem; height: 3.5rem; border-radius: 9999px; box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.2); margin-bottom: env(safe-area-inset-bottom); }
-        .fab:hover { box-shadow: 0 6px 16px 0 rgb(0 0 0 / 0.25); transform: translateY(-2px); }
-
-        .chat-message-container { max-height: 50vh; overflow-y: auto; }
-        .chat-bubble { max-width: 80%; padding: 0.75rem 1rem; border-radius: 1rem; word-break: break-word; overflow-wrap: anywhere; }
-        .user-bubble { background-color: var(--primary); color: white; border-bottom-right-radius: 0.25rem; }
-        .ai-bubble { background-color: var(--border-color); color: var(--text-primary); border-bottom-left-radius: 0.25rem; }
-        .dark .ai-bubble { background-color: var(--neutral-hover); }
-        .toast { padding: 1rem 1.5rem; border-radius: 0.5rem; color: white; font-weight: 500; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); opacity: 0; transform: translateX(100%); transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        .app-header {
+            background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+            color: #fff;
+            padding: 14px 16px 16px;
+            position: sticky; top: 0; z-index: 20;
+        }
+        /* Calendar grid */
+        .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+        .cal-dh { text-align: center; font-size: 11px; font-weight: 700; color: var(--text-muted); padding: 6px 0; }
+        .cal-day {
+            background: var(--surface);
+            border-radius: 8px;
+            min-height: 62px;
+            padding: 4px 3px;
+            cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+            position: relative;
+            transition: opacity .1s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .cal-day:active { opacity: .7; }
+        .cal-day.empty { background: transparent; pointer-events: none; }
+        .cal-day.weekend { background: #F8FAFC; }
+        .cal-day.holiday { background: #FEF2F2; }
+        .cal-day.today .d-num {
+            background: var(--primary); color: #fff;
+            border-radius: 50%; width: 22px; height: 22px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .d-num { font-size: 12px; font-weight: 700; line-height: 22px; width: 22px; text-align: center; }
+        .s-badge {
+            font-size: 9px; font-weight: 700;
+            padding: 2px 4px; border-radius: 4px;
+            width: 100%; text-align: center;
+            letter-spacing: .2px;
+        }
+        .s-m { background: var(--shift-m); color: #fff; }
+        .s-n { background: var(--shift-n); color: #fff; }
+        .s-off { background: var(--shift-off-bg); color: var(--shift-off-text); }
+        .ot-dot {
+            position: absolute; top: 3px; right: 3px;
+            width: 5px; height: 5px;
+            background: #F59E0B; border-radius: 50%;
+        }
+        /* Bottom nav */
+        .bot-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex; height: var(--nav-h);
+            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 30;
+        }
+        .nav-btn {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 2px;
+            background: none; border: none; cursor: pointer;
+            color: var(--text-muted); font-family: 'Sarabun', sans-serif;
+            font-size: 11px; font-weight: 600;
+        }
+        .nav-btn.active { color: var(--primary); }
+        .nav-btn svg { width: 22px; height: 22px; }
+        /* Tabs */
+        .tab { display: none; }
+        .tab.active { display: block; }
+        /* Summary footer bar */
+        .sum-bar {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex; justify-content: space-around;
+            padding: 10px 8px;
+            position: sticky;
+            bottom: var(--nav-h);
+        }
+        .sum-item { text-align: center; }
+        .sum-label { font-size: 10px; color: var(--text-muted); }
+        .sum-val { font-size: 15px; font-weight: 700; }
+        /* Modal */
+        .overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,.5); z-index: 50;
+            display: flex; align-items: flex-end; justify-content: center;
+        }
+        @media(min-width:540px){ .overlay { align-items: center; } }
+        .sheet {
+            background: var(--surface);
+            border-radius: 20px 20px 0 0;
+            width: 100%; max-width: 480px;
+            max-height: 92vh; overflow-y: auto;
+            padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
+        }
+        @media(min-width:540px){ .sheet { border-radius: 16px; margin: 16px; } }
+        .sheet-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 14px; }
+        /* Shift selector */
+        .shift-pick { display: flex; gap: 8px; }
+        .sp-btn {
+            flex: 1; padding: 10px 4px;
+            border-radius: 10px; border: 2px solid var(--border);
+            background: none; font-family: 'Sarabun', sans-serif;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            color: var(--text-muted); transition: all .15s;
+        }
+        .sp-m { background: #DCFCE7; border-color: #22C55E; color: #15803D; }
+        .sp-n { background: #DBEAFE; border-color: #3B82F6; color: #1D4ED8; }
+        .sp-off { background: #F3F4F6; border-color: #9CA3AF; color: #374151; }
+        /* Form */
+        .fl { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; display: block; }
+        .fi {
+            width: 100%; padding: 10px 12px;
+            border: 1px solid var(--border); border-radius: 10px;
+            font-family: 'Sarabun', sans-serif; font-size: 15px;
+            background: var(--bg); color: var(--text);
+        }
+        .fi:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(249,115,22,.15); }
+        /* Buttons */
+        .btn-p {
+            background: var(--primary); color: #fff; border: none;
+            border-radius: 12px; padding: 14px;
+            font-family: 'Sarabun', sans-serif; font-size: 16px; font-weight: 700;
+            cursor: pointer; width: 100%; transition: background .2s;
+        }
+        .btn-p:active { background: var(--primary-dark); }
+        .btn-s {
+            background: var(--bg); color: var(--text);
+            border: 1px solid var(--border); border-radius: 12px;
+            padding: 12px; font-family: 'Sarabun', sans-serif;
+            font-size: 15px; font-weight: 600; cursor: pointer; width: 100%;
+        }
+        /* Stats card */
+        .s-card {
+            background: var(--surface); border-radius: 14px;
+            padding: 14px 16px; border: 1px solid var(--border);
+        }
+        /* Settings rows */
+        .set-sec { background: var(--surface); border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
+        .set-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 13px 16px; border-bottom: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .set-row:last-child { border-bottom: none; }
+        .set-row-label { font-size: 15px; }
+        .set-inp { width: 110px; text-align: right; padding: 6px 8px; }
+        /* Toast */
+        .toast {
+            padding: 11px 18px; border-radius: 10px; color: #fff;
+            font-weight: 600; font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.15);
+            opacity: 0; transform: translateX(110%);
+            transition: all .4s cubic-bezier(.68,-.55,.27,1.55);
+        }
         .toast.show { opacity: 1; transform: translateX(0); }
-        .toast-success { background-color: var(--success); } .toast-error { background-color: var(--danger); }
-
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
-        }
-        @media print { body { background-color: #fff; color: #000; } .no-print { display: none !important; } .card { box-shadow: none; border: 1px solid #ccc; } .table-container { overflow: visible; } }
+        .t-ok { background: #22C55E; }
+        .t-err { background: #EF4444; }
+        /* Legend dots */
+        .leg { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; opacity: .9; }
+        .leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+        @media print { .bot-nav, .overlay { display: none !important; } }
     </style>
 </head>
-<body class="p-4 md:p-8 pb-24 md:pb-8">
+<body>
 
-    <div id="app-container" class="max-w-7xl mx-auto">
-        <header class="text-center mb-6 md:mb-8 no-print">
-            <h1 class="text-3xl md:text-4xl font-bold">ShiftPro Tracker</h1>
-            <p class="text-slate-500 mt-1">Your AI-Powered Work &amp; Income Assistant.</p>
-            <nav class="mt-4 flex justify-center gap-2">
-                <button id="install-button" onclick="promptInstall()" class="btn-icon bg-[var(--primary-light)] text-[var(--primary)] hidden" title="ติดตั้งแอป" aria-label="ติดตั้งแอป">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L6.354 8.146a.5.5 0 0 0-.708.708l3 3z"/></svg>
-                </button>
-                <button id="chatbot-button" onclick="openChatbotModal()" class="btn-icon bg-[var(--primary-light)] text-[var(--primary)]" title="Chat with AI" aria-label="แชทกับ AI">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                       <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Z"/>
-                       <path d="M11 4a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
-                    </svg>
-                </button>
-                <button id="dashboard-button" onclick="openDashboardModal()" class="btn-icon" title="Annual Dashboard" aria-label="แดชบอร์ดรายปี">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-4 0v-3H2v3h2z"/></svg>
-                </button>
-                <button id="ai-settings-button" onclick="openAiSettingsModal()" class="btn-icon" title="AI Settings" aria-label="ตั้งค่า AI">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.901 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zM8 13a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/></svg>
-                </button>
-                <button id="theme-toggle" class="btn-icon" title="Toggle Theme" aria-label="สลับธีมสว่าง/มืด">
-                    <svg id="theme-icon-light" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="hidden" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/></svg>
-                    <svg id="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="hidden" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278zM4.858 1.311A7.269 7.269 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.316 7.316 0 0 0 5.205-2.162c-.337.042-.68.063-1.029.063-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286z"/></svg>
-                </button>
-            </nav>
-        </header>
-
-        <div class="card p-4 mb-6 no-print">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                <div class="flex flex-wrap items-center gap-4">
-                    <div class="flex items-center gap-2">
-                        <label for="yearSelect" class="font-medium text-slate-600">ปี:</label>
-                        <select id="yearSelect" class="form-input"></select>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <label for="monthSelect" class="font-medium text-slate-600">เดือน:</label>
-                        <select id="monthSelect" class="form-input"></select>
-                    </div>
-                </div>
-                <div class="flex flex-wrap items-center gap-2 md:justify-end">
-                     <button onclick="openReasonManagerModal()" class="btn btn-neutral text-sm">🛠️ Edit Reasons</button>
-                     <button onclick="clearDataConfirm()" class="btn btn-danger text-sm">🧹 Clear Month</button>
-                </div>
+<!-- ======== TAB: ปฏิทิน ======== -->
+<div id="tab-calendar" class="tab active">
+    <div class="app-header">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <button onclick="changeMonth(-1)" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;opacity:.9" aria-label="เดือนก่อน">
+                <svg width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>
+            </button>
+            <div style="text-align:center">
+                <div id="cal-title" style="font-size:20px;font-weight:700"></div>
+                <div id="cal-be" style="font-size:12px;opacity:.8"></div>
             </div>
-            <div class="w-full h-px my-4 bg-gradient-to-r from-transparent via-[var(--border-color)] to-transparent"></div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-                 <div class="flex items-center gap-2">
-                    <span id="lastSavedTimestamp" class="text-sm text-slate-500 italic"></span>
-                 </div>
-                 <div class="flex flex-wrap items-center gap-2 md:justify-end">
-                    <button onclick="backupData()" class="btn btn-neutral text-sm">📤 Backup</button>
-                    <label for="restore-file-input" class="btn btn-neutral text-sm cursor-pointer">📥 Restore</label>
-                    <input type="file" id="restore-file-input" class="hidden" accept=".json">
-                    <button onclick="window.print()" class="btn btn-neutral text-sm">🖨️ Print</button>
-                    <button onclick="saveAllData()" class="btn btn-primary text-sm hidden md:inline-flex">💾 Save Data</button>
-                 </div>
-            </div>
+            <button onclick="changeMonth(1)" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;opacity:.9" aria-label="เดือนถัดไป">
+                <svg width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
+            </button>
         </div>
-
-        <details class="card p-4 mb-6 no-print">
-            <summary class="font-bold text-lg cursor-pointer text-slate-700">Advanced Settings</summary>
-            <div id="settings-form" class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-                <div><label for="salaryInput" class="block text-sm font-medium text-slate-600">Base Salary</label><input type="number" id="salaryInput" inputmode="decimal" class="form-input mt-1 w-full"></div>
-                <div><label for="mRateInput" class="block text-sm font-medium text-slate-600">M-Shift Rate (THB)</label><input type="number" id="mRateInput" inputmode="decimal" class="form-input mt-1 w-full"></div>
-                <div><label for="nRateInput" class="block text-sm font-medium text-slate-600">N-Shift Rate (THB)</label><input type="number" id="nRateInput" inputmode="decimal" class="form-input mt-1 w-full"></div>
-                <div><label for="houseAllowanceRate" class="block text-sm font-medium text-slate-600">House Allowance (%)</label><input type="number" id="houseAllowanceRate" inputmode="decimal" class="form-input mt-1 w-full"></div>
-                <div><label for="holidayBonusRate" class="block text-sm font-medium text-slate-600">Holiday Bonus (%)</label><input type="number" id="holidayBonusRate" inputmode="decimal" class="form-input mt-1 w-full"></div>
-                <div><label for="monthlyHoursInput" class="block text-sm font-medium text-slate-600">Work Hours / Month</label><input type="number" id="monthlyHoursInput" inputmode="decimal" class="form-input mt-1 w-full"></div>
-            </div>
-        </details>
-
-        <div id="main-content">
-            <div class="card p-0 sm:p-0 md:p-1 md:p-2">
-                <div id="tableContainer" class="table-container min-h-[400px]"></div>
-            </div>
-            <div class="mt-6 card p-6 no-print">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-1">
-                        <h2 class="text-xl font-bold mb-4">This Month's Summary</h2>
-                        <div id="summaryContainer"></div>
-                    </div>
-                    <div class="lg:col-span-2">
-                        <h2 class="text-xl font-bold mb-4">Data Overview</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                            <div class="relative h-64 sm:h-72"><h3 class="text-lg font-semibold text-center mb-2 text-slate-600">Income Breakdown</h3><canvas id="incomePieChart"></canvas></div>
-                            <div class="relative h-64 sm:h-72"><h3 class="text-lg font-semibold text-center mb-2 text-slate-600">Monthly OT Hours (<span id="chartYear"></span>)</h3><canvas id="otBarChart"></canvas></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div style="display:flex;justify-content:center;gap:16px">
+            <span class="leg"><span class="leg-dot" style="background:#22C55E"></span>เช้า</span>
+            <span class="leg"><span class="leg-dot" style="background:#3B82F6"></span>ดึก</span>
+            <span class="leg"><span class="leg-dot" style="background:#D1D5DB;border:1px solid rgba(255,255,255,.4)"></span>หยุด</span>
         </div>
-
-        <footer class="text-center py-8 mt-8 no-print">
-            <p class="text-sm text-slate-500">Developed in collaboration by Supasit A.@1981 TH &amp; AI Partner. · V11.0</p>
-        </footer>
     </div>
+    <div style="padding:8px">
+        <div class="cal-grid" style="margin-bottom:2px">
+            <div class="cal-dh">จ</div><div class="cal-dh">อ</div><div class="cal-dh">พ</div>
+            <div class="cal-dh">พฤ</div><div class="cal-dh">ศ</div><div class="cal-dh">ส</div><div class="cal-dh">อา</div>
+        </div>
+        <div id="cal-body" class="cal-grid"></div>
+    </div>
+    <div class="sum-bar">
+        <div class="sum-item">
+            <div class="sum-label">วันทำงาน</div>
+            <div class="sum-val" id="s-days">0 วัน</div>
+        </div>
+        <div class="sum-item">
+            <div class="sum-label">ชั่วโมงรวม</div>
+            <div class="sum-val" id="s-hours">0 ชม.</div>
+        </div>
+        <div class="sum-item">
+            <div class="sum-label">รายได้เดือนนี้</div>
+            <div class="sum-val" id="s-income" style="color:var(--primary)">฿0</div>
+        </div>
+    </div>
+</div>
 
-    <button onclick="saveAllData()" class="fab btn btn-primary fixed bottom-6 right-6 z-30 block md:hidden no-print" title="Save Data" aria-label="บันทึกข้อมูล">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L6.354 8.146a.5.5 0 0 0-.708.708l3 3z"/>
-        </svg>
+<!-- ======== TAB: สถิติ ======== -->
+<div id="tab-stats" class="tab">
+    <div class="app-header">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+            <button onclick="changeStatsYear(-1)" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;opacity:.9">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>
+            </button>
+            <div style="font-size:20px;font-weight:700">สถิติ <span id="stats-yr"></span></div>
+            <button onclick="changeStatsYear(1)" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;opacity:.9">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
+            </button>
+        </div>
+    </div>
+    <div style="padding:14px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <div class="s-card" style="text-align:center">
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">วันทำงาน</div>
+                <div id="st-days" style="font-size:22px;font-weight:700">0</div>
+                <div style="font-size:10px;color:var(--text-muted)">วัน</div>
+            </div>
+            <div class="s-card" style="text-align:center">
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">OT รวม</div>
+                <div id="st-ot" style="font-size:22px;font-weight:700">0</div>
+                <div style="font-size:10px;color:var(--text-muted)">ชม.</div>
+            </div>
+            <div class="s-card" style="text-align:center">
+                <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">รายได้รวม</div>
+                <div id="st-income" style="font-size:18px;font-weight:700;color:var(--primary)">฿0</div>
+                <div style="font-size:10px;color:var(--text-muted)">ปี</div>
+            </div>
+        </div>
+        <div class="s-card">
+            <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:10px">รายได้รายเดือน</div>
+            <div style="position:relative;height:160px"><canvas id="chart-income"></canvas></div>
+        </div>
+        <div class="s-card">
+            <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:10px">OT รายเดือน (ชั่วโมง)</div>
+            <div style="position:relative;height:130px"><canvas id="chart-ot"></canvas></div>
+        </div>
+        <div class="s-card">
+            <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:12px">สรุปตามประเภทกะ — <span id="st-cur-month"></span></div>
+            <div id="st-breakdown"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ======== TAB: การตั้งค่า ======== -->
+<div id="tab-settings" class="tab">
+    <div class="app-header">
+        <div style="font-size:20px;font-weight:700;text-align:center">การตั้งค่า</div>
+    </div>
+    <div style="padding:14px;display:flex;flex-direction:column;gap:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;padding:0 2px">เงินเดือนและอัตรา</div>
+        <div class="set-sec">
+            <div class="set-row" style="cursor:default">
+                <span class="set-row-label">เงินเดือน (บาท)</span>
+                <input type="number" inputmode="decimal" id="salaryInput" class="fi set-inp" placeholder="0">
+            </div>
+            <div class="set-row" style="cursor:default">
+                <span class="set-row-label">ค่ากะเช้า (บาท/วัน)</span>
+                <input type="number" inputmode="decimal" id="mRateInput" class="fi set-inp" placeholder="150">
+            </div>
+            <div class="set-row" style="cursor:default">
+                <span class="set-row-label">ค่ากะดึก (บาท/วัน)</span>
+                <input type="number" inputmode="decimal" id="nRateInput" class="fi set-inp" placeholder="200">
+            </div>
+            <div class="set-row" style="cursor:default">
+                <span class="set-row-label">ค่าบ้าน (%)</span>
+                <input type="number" inputmode="decimal" id="houseAllowanceRate" class="fi set-inp" placeholder="15">
+            </div>
+            <div class="set-row" style="cursor:default">
+                <span class="set-row-label">โบนัสวันหยุด (%)</span>
+                <input type="number" inputmode="decimal" id="holidayBonusRate" class="fi set-inp" placeholder="16">
+            </div>
+            <div class="set-row" style="cursor:default">
+                <span class="set-row-label">ชม.ทำงาน/เดือน</span>
+                <input type="number" inputmode="decimal" id="monthlyHoursInput" class="fi set-inp" placeholder="176">
+            </div>
+        </div>
+        <button onclick="saveSettings()" class="btn-p">บันทึกการตั้งค่า</button>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;padding:0 2px">การจัดการ</div>
+        <div class="set-sec">
+            <div class="set-row" onclick="openRotationModal()">
+                <span class="set-row-label">ตั้งค่าการหมุนเวียนกะ</span>
+                <svg width="16" height="16" fill="#9CA3AF" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
+            </div>
+            <div class="set-row" onclick="openReasonModal()">
+                <span class="set-row-label">จัดการเหตุผล</span>
+                <svg width="16" height="16" fill="#9CA3AF" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
+            </div>
+            <div class="set-row" onclick="backupData()">
+                <span class="set-row-label">สำรองข้อมูล (Backup)</span>
+                <svg width="16" height="16" fill="#9CA3AF" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L6.354 8.146a.5.5 0 0 0-.708.708l3 3z"/></svg>
+            </div>
+            <div class="set-row">
+                <label for="restore-file" class="set-row-label" style="cursor:pointer;width:100%">กู้คืนข้อมูล (Restore)</label>
+                <input type="file" id="restore-file" class="hidden" accept=".json">
+                <svg width="16" height="16" fill="#9CA3AF" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
+            </div>
+            <div class="set-row" onclick="openAiModal()">
+                <span class="set-row-label">ตั้งค่า Gemini AI</span>
+                <svg width="16" height="16" fill="#9CA3AF" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
+            </div>
+            <div class="set-row" onclick="clearMonthConfirm()">
+                <span class="set-row-label" style="color:#EF4444">ล้างข้อมูลเดือนนี้</span>
+                <svg width="16" height="16" fill="#EF4444" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+            </div>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);text-align:center;padding:4px 0">ShiftPro Tracker · Supasit A.@1981 TH</p>
+    </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bot-nav">
+    <button class="nav-btn active" id="nav-calendar" onclick="switchTab('calendar')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        ปฏิทิน
     </button>
+    <button class="nav-btn" id="nav-stats" onclick="switchTab('stats')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        สถิติ
+    </button>
+    <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        การตั้งค่า
+    </button>
+</nav>
 
-    <!-- Modals -->
-    <div id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" class="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden no-print"><div class="modal-box w-full max-w-md p-8 text-center"><h3 id="confirmTitle" class="text-xl font-bold mb-2">Confirm Action</h3><p id="confirmMessage" class="mb-6 text-slate-600"></p><div class="flex justify-center gap-4"><button id="cancelBtn" class="btn btn-neutral">Cancel</button><button id="confirmBtn" class="btn btn-danger">Confirm</button></div></div></div>
-    <div id="aiSettingsModal" role="dialog" aria-modal="true" aria-labelledby="aiSettingsTitle" class="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden no-print"><div class="modal-box w-full max-w-md p-6"><h3 id="aiSettingsTitle" class="text-lg font-bold mb-4">Gemini AI Settings</h3><label for="apiKeyInput" class="block text-sm font-medium text-slate-600">Your Gemini API Key</label><input type="password" id="apiKeyInput" class="form-input w-full mt-1" placeholder="Enter your key here" autocomplete="off"><p class="text-xs text-slate-400 mt-2">⚠️ คีย์ถูกเก็บแบบ plain text ใน localStorage ของเบราว์เซอร์เครื่องนี้เท่านั้น (ไม่ได้เข้ารหัส และไม่ถูกส่งไปที่อื่นนอกจาก Google) ไม่ควรใช้บนเครื่องสาธารณะ</p><div class="mt-4 flex justify-end gap-2"><button onclick="closeAiSettingsModal()" class="btn btn-neutral">Cancel</button><button onclick="saveApiKey()" class="btn btn-primary">Save Key</button></div></div></div>
-    <div id="dashboardModal" role="dialog" aria-modal="true" aria-labelledby="dashboardTitle" class="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 hidden no-print">
-        <div class="modal-box w-full max-w-4xl h-full sm:h-auto sm:max-h-[90vh] p-4 sm:p-6 flex flex-col" style="background-color: var(--bg-main);">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="dashboardTitle" class="text-xl sm:text-2xl font-bold">Annual Dashboard (<span id="dashboardYear"></span>)</h3>
-                <button onclick="closeDashboardModal()" class="btn-icon -mt-2 -mr-2 flex-shrink-0" aria-label="ปิด">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
-                </button>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6 text-center">
-                <div class="card p-3 sm:p-4"><p class="text-xs sm:text-sm text-slate-500">Total Income</p><p id="dashboardTotalIncome" class="text-lg sm:text-2xl font-bold"></p></div>
-                <div class="card p-3 sm:p-4"><p class="text-xs sm:text-sm text-slate-500">Total OT Hours</p><p id="dashboardTotalOT" class="text-lg sm:text-2xl font-bold"></p></div>
-                <div class="card p-3 sm:p-4"><p class="text-xs sm:text-sm text-slate-500">Vacation Days</p><p id="dashboardVacation" class="text-lg sm:text-2xl font-bold"></p></div>
-                <div class="card p-3 sm:p-4"><p class="text-xs sm:text-sm text-slate-500">Sick Days</p><p id="dashboardSick" class="text-lg sm:text-2xl font-bold"></p></div>
-            </div>
-            <div class="flex-grow card p-2 sm:p-4 relative">
-                <canvas id="annualIncomeChart"></canvas>
+<!-- ===== MODAL: แก้ไขวัน ===== -->
+<div id="modal-day" class="overlay" style="display:none" onclick="overlayClose('modal-day',event)">
+    <div class="sheet" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div id="modal-day-title" style="font-size:17px;font-weight:700"></div>
+            <button onclick="closeModal('modal-day')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+            </button>
+        </div>
+        <div style="margin-bottom:14px">
+            <label class="fl">กะทำงาน</label>
+            <div class="shift-pick">
+                <button class="sp-btn" id="sp-m" onclick="pickShift('M')">เช้า</button>
+                <button class="sp-btn" id="sp-n" onclick="pickShift('N')">ดึก</button>
+                <button class="sp-btn" id="sp-off" onclick="pickShift('-')">หยุด</button>
             </div>
         </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+            <div><label class="fl">OT 1.5× (ชม.)</label><input type="number" inputmode="decimal" id="mi-ot15" class="fi" min="0" step="0.25" placeholder="0"></div>
+            <div><label class="fl">OT 2.0× (ชม.)</label><input type="number" inputmode="decimal" id="mi-ot20" class="fi" min="0" step="0.25" placeholder="0"></div>
+            <div><label class="fl">OT 3.0× (ชม.)</label><input type="number" inputmode="decimal" id="mi-ot30" class="fi" min="0" step="0.25" placeholder="0"></div>
+        </div>
+        <div style="margin-bottom:12px"><label class="fl">เหตุผล</label><select id="mi-reason" class="fi"></select></div>
+        <div style="margin-bottom:18px"><label class="fl">รายละเอียด</label><input type="text" id="mi-detail" class="fi" placeholder="เพิ่มรายละเอียด..."></div>
+        <button onclick="saveDayModal()" class="btn-p">บันทึก</button>
     </div>
-    <div id="chatbotModal" role="dialog" aria-modal="true" aria-labelledby="chatbotTitle" class="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 hidden no-print">
-        <div class="modal-box w-full max-w-lg h-full sm:h-auto sm:max-h-[90vh] p-4 sm:p-6 flex flex-col" style="background-color: var(--bg-main);">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="chatbotTitle" class="text-lg font-bold">Chat with Your Data</h3>
-                <button onclick="closeChatbotModal()" class="btn-icon -mt-2 -mr-2 flex-shrink-0" aria-label="ปิด">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
-                </button>
-            </div>
-            <div id="chat-message-container" class="flex-grow space-y-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-900 chat-message-container" aria-live="polite"></div>
-            <div class="mt-4 flex gap-2">
-                <input type="text" id="chat-input" class="form-input w-full" placeholder="Ask about your data..." aria-label="พิมพ์คำถาม">
-                <button id="chat-send-btn" class="btn btn-primary">Send</button>
-            </div>
+</div>
+
+<!-- ===== MODAL: การหมุนเวียนกะ ===== -->
+<div id="modal-rotation" class="overlay" style="display:none" onclick="overlayClose('modal-rotation',event)">
+    <div class="sheet" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-size:17px;font-weight:700">การหมุนเวียนกะ</div>
+            <button onclick="closeModal('modal-rotation')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+            </button>
+        </div>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">ระบุวันเริ่มกะเช้า แล้วระบบจะเติมปฏิทินอัตโนมัติตามรูปแบบ <strong>เช้า 3 วัน → หยุด 3 วัน → ดึก 3 วัน</strong> วนซ้ำ</p>
+        <div style="margin-bottom:12px"><label class="fl">วันเริ่มต้นกะเช้า</label><input type="date" id="rot-start" class="fi"></div>
+        <div style="margin-bottom:14px">
+            <label class="fl">จำนวนเดือนที่ต้องการเติม</label>
+            <select id="rot-months" class="fi">
+                <option value="1">1 เดือน</option>
+                <option value="2">2 เดือน</option>
+                <option value="3" selected>3 เดือน</option>
+                <option value="6">6 เดือน</option>
+                <option value="12">12 เดือน</option>
+            </select>
+        </div>
+        <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:12px;margin-bottom:18px;font-size:13px">
+            <div style="font-weight:700;color:#C2410C;margin-bottom:4px">⚠️ หมายเหตุ</div>
+            <div style="color:#9A3412">จะเขียนทับข้อมูลกะที่มีอยู่ แต่ OT / เหตุผล / รายละเอียด จะไม่ถูกลบ</div>
+        </div>
+        <button onclick="applyRotation()" class="btn-p">นำไปใส่ในปฏิทิน</button>
+    </div>
+</div>
+
+<!-- ===== MODAL: AI Settings ===== -->
+<div id="modal-ai" class="overlay" style="display:none" onclick="overlayClose('modal-ai',event)">
+    <div class="sheet" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <div style="font-size:17px;font-weight:700;margin-bottom:14px">ตั้งค่า Gemini AI</div>
+        <div style="margin-bottom:8px"><label class="fl">Gemini API Key</label><input type="password" id="ai-key" class="fi" placeholder="ใส่ API Key ที่นี่" autocomplete="off"></div>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:18px">⚠️ คีย์เก็บใน localStorage เท่านั้น ไม่ส่งไปที่อื่นนอกจาก Google</p>
+        <div style="display:flex;gap:10px">
+            <button onclick="closeModal('modal-ai')" class="btn-s" style="flex:1">ยกเลิก</button>
+            <button onclick="saveApiKey()" class="btn-p" style="flex:1">บันทึก</button>
         </div>
     </div>
-    <div id="reasonManagerModal" role="dialog" aria-modal="true" aria-labelledby="reasonTitle" class="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 hidden no-print">
-        <div class="modal-box w-full max-w-lg h-full sm:h-auto sm:max-h-[90vh] p-4 sm:p-6 flex flex-col" style="background-color: var(--bg-main);">
-            <div class="flex justify-between items-center mb-4">
-                 <h3 id="reasonTitle" class="text-xl sm:text-2xl font-bold">Manage Reasons</h3>
-                 <button onclick="closeReasonManagerModal()" class="btn-icon -mt-2 -mr-2 flex-shrink-0" aria-label="ปิด">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
-                 </button>
-            </div>
-            <div id="reasons-content" class="flex-grow space-y-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-900 overflow-y-auto">
-                <div id="reasons-list"></div>
-                <div class="mt-4 flex flex-col sm:flex-row gap-2">
-                    <input type="text" id="newReasonInputInModal" class="form-input w-full" placeholder="Enter new reason..." aria-label="เหตุผลใหม่">
-                    <button onclick="addNewReason()" class="btn btn-primary flex-shrink-0">➕ Add Reason</button>
-                </div>
-            </div>
-            <div id="reasons-confirm" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-                <div class="modal-box w-full max-w-sm p-8 text-center" style="background-color: var(--bg-main);">
-                    <h3 class="text-xl font-bold mb-2">Confirm Action</h3>
-                    <p id="reasonsConfirmMessage" class="mb-6 text-slate-600"></p>
-                    <div class="flex justify-center gap-4">
-                        <button id="reasonsCancelBtn" onclick="closeReasonsConfirm()" class="btn btn-neutral">Cancel</button>
-                        <button id="reasonsConfirmBtn" onclick="confirmRemoveReason()" class="btn btn-danger">Confirm</button>
-                    </div>
-                </div>
-            </div>
+</div>
+
+<!-- ===== MODAL: Reason Manager ===== -->
+<div id="modal-reason" class="overlay" style="display:none" onclick="overlayClose('modal-reason',event)">
+    <div class="sheet" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="font-size:17px;font-weight:700">จัดการเหตุผล</div>
+            <button onclick="closeModal('modal-reason')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+            </button>
+        </div>
+        <div id="reasons-list" style="max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+        <div style="display:flex;gap:8px">
+            <input type="text" id="new-reason" class="fi" style="flex:1" placeholder="เหตุผลใหม่...">
+            <button onclick="addReason()" class="btn-p" style="width:auto;padding:10px 16px;font-size:14px">เพิ่ม</button>
         </div>
     </div>
-    <div id="toast-container" class="fixed top-5 right-5 z-[100] space-y-2" aria-live="polite" aria-atomic="true"></div>
+</div>
+
+<!-- ===== MODAL: Confirm ===== -->
+<div id="modal-confirm" class="overlay" style="display:none">
+    <div class="sheet" style="max-width:360px" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <div id="confirm-msg" style="font-size:15px;text-align:center;color:var(--text-muted);margin-bottom:20px;line-height:1.6"></div>
+        <div style="display:flex;gap:10px">
+            <button id="confirm-cancel" class="btn-s" style="flex:1">ยกเลิก</button>
+            <button id="confirm-ok" class="btn-p" style="flex:1;background:#EF4444">ยืนยัน</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast-box" style="position:fixed;top:16px;right:16px;z-index:100;display:flex;flex-direction:column;gap:8px" aria-live="polite"></div>
 
 <script>
-    'use strict';
-    // =================================================================================
-    // SHIFTPRO TRACKER V11.0 (OmniShift-Ledger) - APPLICATION LOGIC
-    // =================================================================================
+'use strict';
 
-    // ===== Constants =====
-    const REASON_OPTIONS_VERSION = 2;
-    const DEFAULT_MONTHLY_HOURS = 176;   // ชั่วโมงทำงานมาตรฐานต่อเดือน (ใช้คำนวณ hourly rate)
-    const MAX_OT_HOURS = 48;             // เพดาน OT ต่อเดือน (เส้นเตือนในกราฟ)
-    const AUTOSAVE_DELAY_MS = 800;       // หน่วงเวลา autosave หลังหยุดพิมพ์
-    const GEMINI_MODEL = 'gemini-2.5-flash';
+// ===== Constants =====
+const REASON_VER = 2;
+const DEFAULT_HOURS = 176;
+const MAX_OT = 48;
+const GEMINI_MODEL = 'gemini-2.5-flash';
+const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const TH_MONTHS_S = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const TH_DAYS = ['อา','จ','อ','พ','พฤ','ศ','ส'];
 
-    // ===== Global State =====
-    let shiftOptions = ['-', 'M', 'N'];
-    let reasonOptions = ['', 'แทนกะ', 'ลาพักร้อน', 'ลาป่วย', 'ลากิจ', 'แทนกะแอ้ว', 'ทำงานล่วงเวลากะ 4/2', 'ทำงานล่วงเวลากะ 3/3', 'แลกกะ', 'ช่วยงาน Shutdown PE1', 'ช่วยงาน Shutdown PE2', 'ช่วยงาน Shutdown PE3', 'ช่วยงาน Start up PE1', 'ช่วยงาน Start up PE2', 'ช่วยงาน Start up PE3', 'ช่วยงาน Shutdown PE1(LOTO)', 'ช่วยงาน Shutdown PE2(LOTO)', 'ช่วยงาน Shutdown PE3(LOTO)', 'แทนกะเก่ง', 'ทำงานต่อเนื่องเร่งด่วน'];
-    let incomePieChart, otBarChart, annualIncomeChart;
-    let chatHistory = [];
-    let reasonToRemoveIndex = -1;
-    let currentYear = null, currentMonth = null;   // เดือน/ปี ที่กำลัง render อยู่ (ใช้ save ให้ถูก key)
-    let autosaveTimer = null;
+// ===== State =====
+let curYear, curMonth, statsYear;
+let activeKey = null, activePick = '-';
+let reasonOpts = ['','แทนกะ','ลาพักร้อน','ลาป่วย','ลากิจ','แทนกะแอ้ว','ทำงานล่วงเวลากะ 4/2','ทำงานล่วงเวลากะ 3/3','แลกกะ','ช่วยงาน Shutdown PE1','ช่วยงาน Shutdown PE2','ช่วยงาน Shutdown PE3','ช่วยงาน Start up PE1','ช่วยงาน Start up PE2','ช่วยงาน Start up PE3','ช่วยงาน Shutdown PE1(LOTO)','ช่วยงาน Shutdown PE2(LOTO)','ช่วยงาน Shutdown PE3(LOTO)','แทนกะเก่ง','ทำงานต่อเนื่องเร่งด่วน'];
+let chartIncome = null, chartOT = null;
 
-    // วันหยุดราชการไทย (MM-DD)
-    // FIXED_HOLIDAYS = วันที่ตายตัว เกิดทุกปี -> ใช้กับทุกปีอัตโนมัติ (รวมปีที่ยังไม่ได้เติมข้อมูล)
-    const FIXED_HOLIDAYS = ['01-01', '04-06', '04-13', '04-14', '04-15', '05-01', '05-04', '06-03', '07-28', '08-12', '10-13', '10-23', '12-05', '12-10', '12-31'];
-    // VARIABLE_HOLIDAYS = วันหยุดที่เลื่อนทุกปี (จันทรคติ/ชดเชย/มติ ครม.) -> เพิ่มปีใหม่ที่นี่เมื่อมีประกาศราชการ
-    // อ้างอิง: ปฏิทินวันหยุด kapook / myhora / KU Library (ตรวจสอบ ก.ย. 2025–2026)
-    const VARIABLE_HOLIDAYS = {
-        '2025': ['02-10', '02-26', '04-07', '04-16', '05-05', '05-26', '07-24', '07-25', '07-29', '10-14'],
-        '2026': ['01-02', '03-03', '05-13', '05-31', '06-01', '07-29', '07-30', '10-16', '12-07'],
-        '2027': ['02-21', '02-22', '05-20', '07-18', '07-19', '07-20', '10-25', '12-06']
-    };
+const FIXED_HOL = ['01-01','04-06','04-13','04-14','04-15','05-01','05-04','06-03','07-28','08-12','10-13','10-23','12-05','12-10','12-31'];
+const VAR_HOL = {
+    '2025':['02-10','02-26','04-07','04-16','05-05','05-26','07-24','07-25','07-29','10-14'],
+    '2026':['01-02','03-03','05-13','05-31','06-01','07-29','07-30','10-16','12-07'],
+    '2027':['02-21','02-22','05-20','07-18','07-19','07-20','10-25','12-06']
+};
+const getHols = yr => [...FIXED_HOL, ...(VAR_HOL[String(yr)] || [])];
 
-    const getEl = id => document.getElementById(id);
-    const fieldId = (base, key) => `${base}_${key}`;
-    const getHolidays = year => [...FIXED_HOLIDAYS, ...(VARIABLE_HOLIDAYS[String(year)] || [])];
-    const cssVar = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    const mqDesktop = window.matchMedia('(min-width: 768px)');
+// ===== Safe Storage =====
+const _LS = (() => { try { const s = window['local'+'Storage']; s.setItem('__t','1'); s.removeItem('__t'); return s; } catch(e) { return null; } })();
+const _mem = {};
+const SS = {
+    get(k) { if(_LS) try{return _LS.getItem(k);}catch(e){} return _mem[k]??null; },
+    set(k,v) { if(_LS) try{_LS.setItem(k,String(v));return;}catch(e){} _mem[k]=String(v); },
+    del(k) { if(_LS) try{_LS.removeItem(k);return;}catch(e){} delete _mem[k]; },
+    clear() { if(_LS) try{_LS.clear();}catch(e){} for(const k in _mem) delete _mem[k]; },
+    key(i) { if(_LS) try{return _LS.key(i);}catch(e){} return Object.keys(_mem)[i]??null; },
+    get len() { if(_LS) try{return _LS.length;}catch(e){} return Object.keys(_mem).length; }
+};
 
-    // ===== Safe storage =====
-    // บางเบราว์เซอร์มือถือบล็อก localStorage เมื่อเปิดผ่าน file:// -> fallback เป็น in-memory
-    // เพื่อให้แอปไม่ตาย (แต่ข้อมูลจะไม่ถูกบันทึกถาวร จนกว่าจะเปิดผ่าน https เช่น GitHub Pages)
-    const _LS = (() => {
-        try { const s = window['local' + 'Storage']; const t = '__ls_test__'; s.setItem(t, '1'); s.removeItem(t); return s; }
-        catch (e) { return null; }
-    })();
-    const _mem = {};
-    const safeStorage = {
-        getItem(k) { if (_LS) { try { return _LS.getItem(k); } catch (e) {} } return Object.prototype.hasOwnProperty.call(_mem, k) ? _mem[k] : null; },
-        setItem(k, v) { if (_LS) { try { _LS.setItem(k, String(v)); return; } catch (e) {} } _mem[k] = String(v); },
-        removeItem(k) { if (_LS) { try { _LS.removeItem(k); return; } catch (e) {} } delete _mem[k]; },
-        clear() { if (_LS) { try { _LS.clear(); } catch (e) {} } for (const k in _mem) delete _mem[k]; },
-        key(i) { if (_LS) { try { return _LS.key(i); } catch (e) {} } return Object.keys(_mem)[i] ?? null; },
-        get length() { if (_LS) { try { return _LS.length; } catch (e) {} } return Object.keys(_mem).length; }
-    };
-    const storageAvailable = () => _LS !== null;
+function eh(v) { return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+const $ = id => document.getElementById(id);
 
-    // ===== Security helper =====
-    function escapeHtml(value) {
-        return String(value ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
+// ===== Init =====
+window.onload = function() {
+    const t = new Date();
+    curYear = t.getFullYear(); curMonth = t.getMonth()+1; statsYear = curYear;
+    loadSettings(); loadReasons();
+    $('restore-file').onchange = restoreData;
+    renderCal();
+};
+
+// ===== Tabs =====
+function switchTab(tab) {
+    ['calendar','stats','settings'].forEach(t => {
+        $('tab-'+t).classList.toggle('active', t===tab);
+        $('nav-'+t).classList.toggle('active', t===tab);
+    });
+    if (tab==='stats') renderStats();
+}
+
+// ===== Calendar =====
+function changeMonth(d) {
+    curMonth += d;
+    if (curMonth>12){curMonth=1;curYear++;}
+    if (curMonth<1){curMonth=12;curYear--;}
+    renderCal();
+}
+
+function renderCal() {
+    $('cal-title').textContent = `${TH_MONTHS[curMonth-1]} ${curYear}`;
+    $('cal-be').textContent = `พ.ศ. ${curYear+543}`;
+    const data = getMonthData(curYear, curMonth);
+    const hols = getHols(curYear);
+    const today = new Date();
+    const isCurMonth = today.getFullYear()===curYear && today.getMonth()+1===curMonth;
+    const firstDow = (new Date(curYear, curMonth-1, 1).getDay()+6)%7;
+    const daysInMonth = new Date(curYear, curMonth, 0).getDate();
+    let html = '';
+    for (let i=0; i<firstDow; i++) html += '<div class="cal-day empty"></div>';
+    for (let d=1; d<=daysInMonth; d++) {
+        const key = `${curYear}-${curMonth}-${d}`;
+        const dd = data[key]||{};
+        const shift = dd.shift||'-';
+        const hasOT = (dd.ot15||0)+(dd.ot20||0)+(dd.ot30||0)>0;
+        const dt = new Date(curYear, curMonth-1, d);
+        const dow = dt.getDay();
+        const dk = `${String(curMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isHol = hols.includes(dk);
+        const isWE = dow===0||dow===6;
+        const isTd = isCurMonth && d===today.getDate();
+        let cls = 'cal-day';
+        if (isHol) cls+=' holiday'; else if (isWE) cls+=' weekend';
+        if (isTd) cls+=' today';
+        let badge = '';
+        if (shift==='M') badge = '<span class="s-badge s-m">เช้า</span>';
+        else if (shift==='N') badge = '<span class="s-badge s-n">ดึก</span>';
+        else badge = '<span class="s-badge s-off">หยุด</span>';
+        html += `<div class="${cls}" onclick="openDayModal('${key}',${d})">
+            ${hasOT?'<span class="ot-dot"></span>':''}
+            <span class="d-num">${d}</span>${badge}</div>`;
     }
+    $('cal-body').innerHTML = html;
+    updateSumBar(data);
+}
 
-    function buildOptions(options, selected) {
-        return options.map(o => `<option value="${escapeHtml(o)}"${o === selected ? ' selected' : ''}>${escapeHtml(o)}</option>`).join('');
+function updateSumBar(data) {
+    const s = readSettings();
+    let mD=0, nD=0, ot15=0, ot20=0, ot30=0;
+    for (const k in data) {
+        const d=data[k];
+        if(d.shift==='M') mD++; else if(d.shift==='N') nD++;
+        ot15+=d.ot15||0; ot20+=d.ot20||0; ot30+=d.ot30||0;
     }
+    const hrs = (mD+nD)*8;
+    const hr = s.salary>0 ? s.salary/s.mhours : 0;
+    const inc = s.salary
+        + mD*s.mRate + nD*s.nRate
+        + ot15*hr*1.5 + ot20*hr*2 + ot30*hr*3
+        + s.salary*(s.house/100) + s.salary*(s.bonus/100);
+    $('s-days').textContent = `${mD+nD} วัน`;
+    $('s-hours').textContent = `${hrs} ชม.`;
+    $('s-income').textContent = '฿'+Math.round(inc).toLocaleString('th-TH');
+}
 
-    // ===== Application Initialization =====
-    window.onload = function () {
-        try {
-            const savedTheme = safeStorage.getItem('theme') || 'light';
-            applyTheme(savedTheme);
-            initializeApp();
-            if (!storageAvailable()) {
-                showToast('เบราว์เซอร์นี้ไม่อนุญาตให้บันทึกข้อมูลถาวร (แนะนำให้เปิดผ่านลิงก์ https)', 'error', 6000);
-            }
-        } catch (e) {
-            console.error('Init failed:', e);
-            try { showToast('เริ่มแอปไม่สำเร็จ: ' + e.message, 'error', 6000); } catch (_) {}
+// ===== Day Modal =====
+function openDayModal(key, day) {
+    activeKey = key;
+    const [yr, mo] = key.split('-');
+    const dt = new Date(parseInt(yr), parseInt(mo)-1, day);
+    $('modal-day-title').textContent = `${TH_DAYS[dt.getDay()]} ${day} ${TH_MONTHS_S[parseInt(mo)-1]} ${yr}`;
+    const data = getMonthData(yr, mo);
+    const d = data[key]||{};
+    activePick = d.shift||'-';
+    refreshShiftBtns(activePick);
+    $('mi-ot15').value = d.ot15||'';
+    $('mi-ot20').value = d.ot20||'';
+    $('mi-ot30').value = d.ot30||'';
+    $('mi-detail').value = d.detail||'';
+    $('mi-reason').innerHTML = reasonOpts.map(r=>`<option value="${eh(r)}"${r===(d.reason||'')?'selected':''}>${eh(r)}</option>`).join('');
+    openModal('modal-day');
+}
+
+function pickShift(s) { activePick=s; refreshShiftBtns(s); }
+function refreshShiftBtns(s) {
+    $('sp-m').className='sp-btn'+(s==='M'?' sp-m':'');
+    $('sp-n').className='sp-btn'+(s==='N'?' sp-n':'');
+    $('sp-off').className='sp-btn'+(s==='-'?' sp-off':'');
+}
+
+function saveDayModal() {
+    if (!activeKey) return;
+    const [yr, mo] = activeKey.split('-');
+    const data = getMonthData(yr, mo);
+    const ot15=parseFloat($('mi-ot15').value)||0;
+    const ot20=parseFloat($('mi-ot20').value)||0;
+    const ot30=parseFloat($('mi-ot30').value)||0;
+    const reason=$('mi-reason').value;
+    const detail=$('mi-detail').value.trim();
+    if (activePick!=='-'||ot15||ot20||ot30||reason||detail) {
+        data[activeKey]={shift:activePick,ot15,ot20,ot30,reason,detail};
+    } else {
+        delete data[activeKey];
+    }
+    SS.set(`shift_data_${yr}_${mo}`, JSON.stringify(data));
+    SS.set('last_saved', new Date().toISOString());
+    closeModal('modal-day');
+    renderCal();
+    showToast('บันทึกแล้ว');
+}
+
+// ===== Stats =====
+function changeStatsYear(d) { statsYear+=d; renderStats(); }
+
+function renderStats() {
+    $('stats-yr').textContent = statsYear;
+    $('st-cur-month').textContent = `${TH_MONTHS[curMonth-1]} ${curYear}`;
+    const s = readSettings();
+    const hr = s.salary>0 ? s.salary/s.mhours : 0;
+    let totDays=0, totOT=0, totInc=0;
+    const incArr=[], otArr=[];
+    for (let m=1; m<=12; m++) {
+        const data = getMonthData(statsYear, m);
+        let mD=0, nD=0, ot15=0, ot20=0, ot30=0;
+        const hasWork = Object.keys(data).length>0;
+        for (const k in data) {
+            const d=data[k];
+            if(d.shift==='M') mD++; else if(d.shift==='N') nD++;
+            ot15+=d.ot15||0; ot20+=d.ot20||0; ot30+=d.ot30||0;
         }
-    };
-
-    function initializeApp() {
-        getEl('app-container').classList.remove('hidden');
-        setupEventListeners();
-        currentYear = getEl('yearSelect').value;
-        currentMonth = getEl('monthSelect').value;
-        renderAll();
-        displayLastSaved();
-        setupThemeToggle();
+        const mOT = ot15+ot20+ot30;
+        const mInc = hasWork ? s.salary+mD*s.mRate+nD*s.nRate+ot15*hr*1.5+ot20*hr*2+ot30*hr*3+s.salary*(s.house/100)+s.salary*(s.bonus/100) : 0;
+        incArr.push(mInc); otArr.push(mOT);
+        totDays+=mD+nD; totOT+=mOT; totInc+=mInc;
     }
-
-    function setupEventListeners() {
-        const yearSel = getEl('yearSelect');
-        const monthSel = getEl('monthSelect');
-        const today = new Date();
-        const yearNow = today.getFullYear();
-        for (let y = yearNow - 5; y <= yearNow + 5; y++) {
-            yearSel.add(new Option(y, y, y === yearNow, y === yearNow));
-        }
-        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        months.forEach((m, i) => {
-            monthSel.add(new Option(m, i + 1, i === today.getMonth(), i === today.getMonth()));
-        });
-        loadSettings();
-        loadReasonOptions();
-
-        yearSel.onchange = handleDateChange;
-        monthSel.onchange = handleDateChange;
-        getEl('settings-form').oninput = () => { updateCalculations(); scheduleAutosave(); };
-        getEl('restore-file-input').onchange = restoreData;
-
-        const tableContainer = getEl('tableContainer');
-        tableContainer.oninput = () => { updateCalculations(); scheduleAutosave(); };
-        tableContainer.onchange = (event) => {
-            if (event.target.id && event.target.id.startsWith('shift_')) {
-                updateMNValues(event.target.id.substring(6));
-            }
-            updateCalculations();
-            scheduleAutosave();
-        };
-
-        // เปลี่ยน layout (table <-> card) เมื่อข้าม breakpoint: เซฟก่อนแล้ว render ใหม่ -> กันข้อมูลหาย
-        mqDesktop.addEventListener('change', () => { saveAllData(true); renderAll(); });
-
-        document.addEventListener('keydown', (event) => {
-            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-                event.preventDefault();
-                saveAllData();
-            }
-        });
+    $('st-days').textContent = totDays;
+    $('st-ot').textContent = totOT.toFixed(1);
+    $('st-income').textContent = '฿'+Math.round(totInc).toLocaleString('th-TH');
+    // Breakdown for current month
+    const curData = getMonthData(curYear, curMonth);
+    const dim = new Date(curYear, curMonth, 0).getDate();
+    let mC=0, nC=0, offC=0;
+    for (let d=1; d<=dim; d++) {
+        const e = curData[`${curYear}-${curMonth}-${d}`];
+        if (!e||e.shift==='-') offC++; else if(e.shift==='M') mC++; else if(e.shift==='N') nC++;
     }
-
-    // เปลี่ยนเดือน/ปี: เซฟเดือนเดิมก่อน แล้วค่อยสลับ -> กันข้อมูลที่ยังไม่เซฟหาย
-    function handleDateChange() {
-        saveAllData(true);
-        currentYear = getEl('yearSelect').value;
-        currentMonth = getEl('monthSelect').value;
-        renderAll();
-    }
-
-    function scheduleAutosave() {
-        clearTimeout(autosaveTimer);
-        autosaveTimer = setTimeout(() => saveAllData(true), AUTOSAVE_DELAY_MS);
-    }
-
-    // ===== Main Render Pipeline =====
-    function renderAll() {
-        renderTable();
-        updateCalculations();
-    }
-
-    function updateCalculations() {
-        const summaryData = calculateAndRenderSummary();
-        // กราฟพังไม่ควรทำให้การคำนวณ/บันทึกพัง (เช่น Chart.js โหลดไม่ทันบนเน็ตช้า)
-        try { renderCharts(summaryData); } catch (e) { console.error('Chart render failed:', e); }
-    }
-
-    // ===== Table / Card Rendering (single set of inputs) =====
-    function renderTable() {
-        const year = getEl('yearSelect').value;
-        const month = getEl('monthSelect').value;
-        const data = getMonthData(year, month);
-        const tableContainer = getEl('tableContainer');
-        const daysInMonth = new Date(year, month, 0).getDate();
-        const holidays = getHolidays(year);
-        const isDesktop = mqDesktop.matches;
-
-        let html;
-        if (isDesktop) {
-            html = `<div class="overflow-x-auto p-1 sm:p-2"><table class="w-full text-sm text-left">
-            <thead class="text-xs uppercase"><tr>
-                <th class="px-2 py-3">Date</th><th class="px-2 py-3">Day</th><th class="px-2 py-3">Shift</th>
-                <th class="px-2 py-3">OT 1.5</th><th class="px-2 py-3">OT 2.0</th><th class="px-2 py-3">OT 3.0</th>
-                <th class="px-2 py-3">Reason</th><th class="px-2 py-3">Details</th>
-                <th class="px-2 py-3">M</th><th class="px-2 py-3">N</th>
-            </tr></thead><tbody>`;
-            for (let d = 1; d <= daysInMonth; d++) {
-                const meta = dayMeta(year, month, d, holidays);
-                const rowData = data[meta.key] || {};
-                html += `<tr class="border-b border-[var(--border-color)] ${meta.rowClass}" id="row_${meta.key}">
-                <td class="px-2 py-1.5">${d}/${month}/${String(year).slice(-2)}</td><td class="px-2 py-1.5">${meta.dayName}</td>
-                <td class="px-2 py-1.5"><select id="shift_${meta.key}" class="table-select p-1" aria-label="กะวันที่ ${d}">${buildOptions(shiftOptions, rowData.shift)}</select></td>
-                <td class="px-2 py-1.5"><input type="number" inputmode="decimal" class="table-input p-1" id="ot15_${meta.key}" value="${escapeHtml(rowData.ot15 || '')}" min="0" step="0.25" aria-label="OT 1.5 วันที่ ${d}"></td>
-                <td class="px-2 py-1.5"><input type="number" inputmode="decimal" class="table-input p-1" id="ot20_${meta.key}" value="${escapeHtml(rowData.ot20 || '')}" min="0" step="0.25" aria-label="OT 2.0 วันที่ ${d}"></td>
-                <td class="px-2 py-1.5"><input type="number" inputmode="decimal" class="table-input p-1" id="ot30_${meta.key}" value="${escapeHtml(rowData.ot30 || '')}" min="0" step="0.25" aria-label="OT 3.0 วันที่ ${d}"></td>
-                <td class="px-2 py-1.5"><select id="reason_${meta.key}" class="table-select p-1" aria-label="เหตุผลวันที่ ${d}">${buildOptions(reasonOptions, rowData.reason)}</select></td>
-                <td class="px-2 py-1.5"><input type="text" class="table-input p-1" id="detail_${meta.key}" value="${escapeHtml(rowData.detail || '')}" aria-label="รายละเอียดวันที่ ${d}"></td>
-                <td class="px-2 py-1.5" id="m_val_${meta.key}"></td><td class="px-2 py-1.5" id="n_val_${meta.key}"></td>
-                </tr>`;
-            }
-            html += '</tbody></table></div>';
-        } else {
-            html = '<div class="space-y-4 p-2">';
-            for (let d = 1; d <= daysInMonth; d++) {
-                const meta = dayMeta(year, month, d, holidays);
-                const rowData = data[meta.key] || {};
-                html += `<div class="card p-4">
-                    <div class="mobile-card-header flex justify-between items-center text-lg font-bold ${meta.rowClass}">
-                        <span>${d} ${meta.dayName}</span>
-                        <div class="flex items-center gap-2">
-                            <span id="m_val_${meta.key}" class="text-sm font-medium text-blue-600"></span>
-                            <span id="n_val_${meta.key}" class="text-sm font-medium text-indigo-600"></span>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div><label for="shift_${meta.key}" class="mobile-input-label">Shift</label>
-                            <select id="shift_${meta.key}" class="form-input mobile-input w-full">${buildOptions(shiftOptions, rowData.shift)}</select></div>
-                        <div><label for="ot15_${meta.key}" class="mobile-input-label">OT 1.5</label>
-                            <input type="number" inputmode="decimal" id="ot15_${meta.key}" value="${escapeHtml(rowData.ot15 || '')}" min="0" step="0.25" class="form-input mobile-input w-full"></div>
-                        <div><label for="ot20_${meta.key}" class="mobile-input-label">OT 2.0</label>
-                            <input type="number" inputmode="decimal" id="ot20_${meta.key}" value="${escapeHtml(rowData.ot20 || '')}" min="0" step="0.25" class="form-input mobile-input w-full"></div>
-                        <div><label for="ot30_${meta.key}" class="mobile-input-label">OT 3.0</label>
-                            <input type="number" inputmode="decimal" id="ot30_${meta.key}" value="${escapeHtml(rowData.ot30 || '')}" min="0" step="0.25" class="form-input mobile-input w-full"></div>
-                        <div class="col-span-2"><label for="reason_${meta.key}" class="mobile-input-label">Reason</label>
-                            <select id="reason_${meta.key}" class="form-input mobile-input w-full">${buildOptions(reasonOptions, rowData.reason)}</select></div>
-                        <div class="col-span-2"><label for="detail_${meta.key}" class="mobile-input-label">Details</label>
-                            <input type="text" id="detail_${meta.key}" value="${escapeHtml(rowData.detail || '')}" class="form-input mobile-input w-full"></div>
-                    </div>
-                </div>`;
-            }
-            html += '</div>';
-        }
-
-        tableContainer.innerHTML = html;
-        for (let d = 1; d <= daysInMonth; d++) {
-            updateMNValues(`${year}-${month}-${d}`);
-        }
-    }
-
-    function dayMeta(year, month, d, holidays) {
-        const date = new Date(year, month - 1, d);
-        const dayOfWeek = date.getDay();
-        const key = `${year}-${month}-${d}`;
-        const dateKey = `${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        let rowClass = '';
-        if (dayOfWeek === 0 || dayOfWeek === 6) rowClass += ' weekend';
-        if (holidays.includes(dateKey)) rowClass += ' holiday';
-        return { key, dayName: date.toLocaleDateString('en-US', { weekday: 'short' }), rowClass: rowClass.trim() };
-    }
-
-    function updateMNValues(key) {
-        const shiftEl = getEl(fieldId('shift', key));
-        if (!shiftEl) return;
-        const shift = shiftEl.value;
-        const mRate = parseFloat(getEl('mRateInput').value) || 0;
-        const nRate = parseFloat(getEl('nRateInput').value) || 0;
-        const mVal = getEl(`m_val_${key}`);
-        const nVal = getEl(`n_val_${key}`);
-        if (mVal) mVal.textContent = shift === 'M' ? (mqDesktop.matches ? mRate.toFixed(0) : `+${mRate.toFixed(0)}`) : '';
-        if (nVal) nVal.textContent = shift === 'N' ? (mqDesktop.matches ? nRate.toFixed(0) : `+${nRate.toFixed(0)}`) : '';
-    }
-
-    // ===== Summary =====
-    function readSettings() {
-        const monthlyHours = parseFloat(getEl('monthlyHoursInput').value);
-        return {
-            salary: parseFloat(getEl('salaryInput').value) || 0,
-            mRate: parseFloat(getEl('mRateInput').value) || 0,
-            nRate: parseFloat(getEl('nRateInput').value) || 0,
-            houseAllowanceRate: parseFloat(getEl('houseAllowanceRate').value) || 0,
-            holidayBonusRate: parseFloat(getEl('holidayBonusRate').value) || 0,
-            monthlyHours: monthlyHours > 0 ? monthlyHours : DEFAULT_MONTHLY_HOURS
-        };
-    }
-
-    function calculateAndRenderSummary() {
-        const s = readSettings();
-        const year = getEl('yearSelect').value;
-        const month = getEl('monthSelect').value;
-        const daysInMonth = new Date(year, month, 0).getDate();
-        let totals = { m: 0, n: 0, ot15: 0, ot20: 0, ot30: 0 };
-
-        for (let d = 1; d <= daysInMonth; d++) {
-            const key = `${year}-${month}-${d}`;
-            const shiftEl = getEl(fieldId('shift', key));
-            if (!shiftEl) continue;
-            const shift = shiftEl.value;
-            if (shift === 'M') totals.m++;
-            if (shift === 'N') totals.n++;
-            totals.ot15 += parseFloat((getEl(fieldId('ot15', key)) || {}).value) || 0;
-            totals.ot20 += parseFloat((getEl(fieldId('ot20', key)) || {}).value) || 0;
-            totals.ot30 += parseFloat((getEl(fieldId('ot30', key)) || {}).value) || 0;
-        }
-
-        const hourlyRate = s.salary > 0 ? s.salary / s.monthlyHours : 0;
-        const ot15Income = totals.ot15 * hourlyRate * 1.5;
-        const ot20Income = totals.ot20 * hourlyRate * 2.0;
-        const ot30Income = totals.ot30 * hourlyRate * 3.0;
-        const mShiftIncome = totals.m * s.mRate;
-        const nShiftIncome = totals.n * s.nRate;
-        // เงินเดือน/ค่าบ้าน/โบนัส คิดทันทีจากเงินเดือนที่กรอก (ไม่ต้องรอบันทึกรายการกะ/OT)
-        const baseSalary = s.salary;
-        const houseAllowance = s.salary * (s.houseAllowanceRate / 100);
-        const holidayBonus = s.salary * (s.holidayBonusRate / 100);
-        const totalIncome = baseSalary + ot15Income + ot20Income + ot30Income + mShiftIncome + nShiftIncome + houseAllowance + holidayBonus;
-        const totalOtHours = totals.ot15 + totals.ot20 + totals.ot30;
-        const f = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-        getEl('summaryContainer').innerHTML = `
-        <div class="space-y-3">
-            <div class="grid grid-cols-2 gap-2"><span class="text-slate-500">Base Salary:</span><span class="font-semibold text-right">${f(baseSalary)}</span></div>
-            <div class="grid grid-cols-2 gap-2"><span class="text-slate-500">M-Shift Pay (${totals.m} shifts):</span><span class="text-blue-600 text-right">+ ${f(mShiftIncome)}</span></div>
-            <div class="grid grid-cols-2 gap-2"><span class="text-slate-500">N-Shift Pay (${totals.n} shifts):</span><span class="text-indigo-600 text-right">+ ${f(nShiftIncome)}</span></div>
-            <div class="grid grid-cols-2 gap-2"><span class="text-slate-500">OT Pay (${totalOtHours} hrs):</span><span class="text-purple-600 text-right">+ ${f(ot15Income + ot20Income + ot30Income)}</span></div>
-            <div class="grid grid-cols-2 gap-2"><span class="text-slate-500">House Allowance:</span><span class="text-cyan-600 text-right">+ ${f(houseAllowance)}</span></div>
-            <div class="grid grid-cols-2 gap-2"><span class="text-slate-500">Holiday Bonus:</span><span class="text-orange-500 text-right">+ ${f(holidayBonus)}</span></div>
-            <hr class="my-3 border-dashed border-slate-200">
-            <div class="grid grid-cols-2 gap-2 text-lg"><span class="font-bold">Total Gross Income:</span><span class="text-xl font-bold text-right text-[var(--success)]">${f(totalIncome)}</span></div>
+    const pct = v => dim>0 ? (v/dim*100).toFixed(0) : 0;
+    $('st-breakdown').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px">
+                <span class="s-badge s-m" style="width:44px;flex-shrink:0">เช้า</span>
+                <div style="flex:1;background:#F3F4F6;border-radius:99px;height:10px">
+                    <div style="background:#22C55E;width:${pct(mC)}%;height:10px;border-radius:99px;transition:width .4s"></div>
+                </div>
+                <span style="font-size:13px;font-weight:700;width:40px;text-align:right">${mC} วัน</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+                <span class="s-badge s-n" style="width:44px;flex-shrink:0">ดึก</span>
+                <div style="flex:1;background:#F3F4F6;border-radius:99px;height:10px">
+                    <div style="background:#3B82F6;width:${pct(nC)}%;height:10px;border-radius:99px;transition:width .4s"></div>
+                </div>
+                <span style="font-size:13px;font-weight:700;width:40px;text-align:right">${nC} วัน</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+                <span class="s-badge s-off" style="width:44px;flex-shrink:0">หยุด</span>
+                <div style="flex:1;background:#F3F4F6;border-radius:99px;height:10px">
+                    <div style="background:#9CA3AF;width:${pct(offC)}%;height:10px;border-radius:99px;transition:width .4s"></div>
+                </div>
+                <span style="font-size:13px;font-weight:700;width:40px;text-align:right">${offC} วัน</span>
+            </div>
         </div>`;
-        return { salary: baseSalary, mShiftIncome, nShiftIncome, ot15Income, ot20Income, ot30Income, houseAllowance, holidayBonus, totalIncome, totalOtHours };
-    }
+    renderStatsCharts(incArr, otArr);
+}
 
-    // ===== Charts =====
-    function renderCharts(summaryData) {
-        if (!summaryData) return;
-        const year = getEl('yearSelect').value;
-        const currentMonthIdx = parseInt(getEl('monthSelect').value) - 1;
-        getEl('chartYear').textContent = year;
-        const textColor = cssVar('--text-secondary');
-        const surfaceColor = cssVar('--bg-surface');
-
-        const pieCtx = getEl('incomePieChart').getContext('2d');
-        if (incomePieChart) incomePieChart.destroy();
-        incomePieChart = new Chart(pieCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ["Salary", "M-Shift", "N-Shift", "OT", "Allowance", "Holiday Bonus"],
-                datasets: [{
-                    data: [summaryData.salary, summaryData.mShiftIncome, summaryData.nShiftIncome, summaryData.ot15Income + summaryData.ot20Income + summaryData.ot30Income, summaryData.houseAllowance, summaryData.holidayBonus],
-                    backgroundColor: ["#3b82f6", "#6366f1", "#8b5cf6", "#db2777", "#14b8a6", "#f97316"],
-                    borderColor: surfaceColor, borderWidth: 4, hoverOffset: 8
-                }]
+function renderStatsCharts(incData, otData) {
+    if (chartIncome) chartIncome.destroy();
+    chartIncome = new Chart($('chart-income').getContext('2d'), {
+        type:'bar',
+        data:{ labels:TH_MONTHS_S, datasets:[{ label:'รายได้', data:incData, backgroundColor:'rgba(249,115,22,.75)', borderRadius:4 }] },
+        options:{ responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>'฿'+Math.round(c.raw).toLocaleString('th-TH')}} },
+            scales:{ y:{beginAtZero:true, ticks:{callback:v=>v>=1000?(v/1000)+'k':v, font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'}}, x:{grid:{display:false}, ticks:{font:{size:10}}} }
+        }
+    });
+    if (chartOT) chartOT.destroy();
+    chartOT = new Chart($('chart-ot').getContext('2d'), {
+        type:'bar',
+        data:{ labels:TH_MONTHS_S, datasets:[{ label:'OT', data:otData, backgroundColor:ctx=>otData[ctx.dataIndex]>MAX_OT?'#EF4444':'rgba(59,130,246,.75)', borderRadius:4 }] },
+        options:{ responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{display:false},
+                annotation:{annotations:{l1:{type:'line',yMin:MAX_OT,yMax:MAX_OT,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:`Max ${MAX_OT}ชม.`,display:true,position:'end',backgroundColor:'rgba(239,68,68,.8)',font:{size:10}}}}}
             },
-            options: {
-                responsive: true, maintainAspectRatio: false, cutout: '70%',
-                layout: { padding: { bottom: 20 } },
-                plugins: {
-                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, color: textColor } },
-                    tooltip: { callbacks: { label: ctx => `${ctx.label || ''}: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB' }).format(ctx.raw)}` } }
-                }
+            scales:{ y:{beginAtZero:true, ticks:{font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'}}, x:{grid:{display:false}, ticks:{font:{size:10}}} }
+        }
+    });
+}
+
+// ===== Rotation =====
+function openRotationModal() {
+    $('rot-start').value = new Date().toISOString().slice(0,10);
+    openModal('modal-rotation');
+}
+
+function applyRotation() {
+    const startStr = $('rot-start').value;
+    const numMo = parseInt($('rot-months').value);
+    if (!startStr) { showToast('กรุณาระบุวันเริ่มต้น','err'); return; }
+    const start = new Date(startStr+'T00:00:00');
+    const end = new Date(start); end.setMonth(end.getMonth()+numMo);
+    const daysDiff = Math.floor((end-start)/86400000);
+    const pattern = ['M','M','M','-','-','-','N','N','N','-','-','-'];
+    showConfirm(`เติมกะ ${numMo} เดือน ตั้งแต่ ${startStr}?`, () => {
+        const groups = {};
+        for (let i=0; i<daysDiff; i++) {
+            const d = new Date(start); d.setDate(d.getDate()+i);
+            const y=d.getFullYear(), mo=d.getMonth()+1, day=d.getDate();
+            const key=`${y}-${mo}-${day}`, ymk=`${y}_${mo}`;
+            if (!groups[ymk]) groups[ymk]={y,mo,ch:{}};
+            groups[ymk].ch[key]=pattern[i%12];
+        }
+        for (const ymk in groups) {
+            const {y,mo,ch}=groups[ymk];
+            const existing = getMonthData(y,mo);
+            for (const k in ch) {
+                const ex=existing[k]||{};
+                if (ch[k]==='-' && !ex.ot15 && !ex.ot20 && !ex.ot30 && !ex.reason && !ex.detail) { delete existing[k]; }
+                else existing[k]={shift:ch[k],ot15:ex.ot15||0,ot20:ex.ot20||0,ot30:ex.ot30||0,reason:ex.reason||'',detail:ex.detail||''};
             }
+            SS.set(`shift_data_${y}_${mo}`, JSON.stringify(existing));
+        }
+        SS.set('last_saved', new Date().toISOString());
+        closeModal('modal-rotation');
+        renderCal();
+        showToast('เติมกะเรียบร้อย!');
+    });
+}
+
+// ===== Settings =====
+function saveSettings() {
+    SS.set('settings', JSON.stringify({
+        salary:$('salaryInput').value, mRate:$('mRateInput').value, nRate:$('nRateInput').value,
+        house:$('houseAllowanceRate').value, bonus:$('holidayBonusRate').value, mhours:$('monthlyHoursInput').value
+    }));
+    SS.set('last_saved', new Date().toISOString());
+    renderCal();
+    showToast('บันทึกการตั้งค่าแล้ว');
+}
+
+function readSettings() {
+    const mh = parseFloat($('monthlyHoursInput')?.value);
+    return {
+        salary: parseFloat($('salaryInput')?.value)||0,
+        mRate: parseFloat($('mRateInput')?.value)||0,
+        nRate: parseFloat($('nRateInput')?.value)||0,
+        house: parseFloat($('houseAllowanceRate')?.value)||0,
+        bonus: parseFloat($('holidayBonusRate')?.value)||0,
+        mhours: mh>0?mh:DEFAULT_HOURS
+    };
+}
+
+function loadSettings() {
+    let s={};
+    try{ const str=SS.get('settings'); if(str) s=JSON.parse(str); }catch(e){}
+    const def={salary:'',mRate:'150',nRate:'200',house:'15',bonus:'16',mhours:String(DEFAULT_HOURS)};
+    const m={...def,...s};
+    $('salaryInput').value=m.salary;
+    $('mRateInput').value=m.mRate;
+    $('nRateInput').value=m.nRate;
+    $('houseAllowanceRate').value=m.house;
+    $('holidayBonusRate').value=m.bonus;
+    $('monthlyHoursInput').value=m.mhours;
+}
+
+// ===== Data =====
+function getMonthData(y,mo) {
+    const str=SS.get(`shift_data_${y}_${mo}`);
+    if (!str) return {};
+    try{ const p=JSON.parse(str); return(p&&typeof p==='object')?p:{}; }catch(e){return{};}
+}
+
+// ===== Reasons =====
+function loadReasons() {
+    if (SS.get('reasonOptionsVersion') && parseInt(SS.get('reasonOptionsVersion'))===REASON_VER) {
+        try{ const s=SS.get('reasonOptionsV2'); if(s){reasonOpts=JSON.parse(s);return;} }catch(e){}
+    }
+    SS.set('reasonOptionsV2', JSON.stringify(reasonOpts));
+    SS.set('reasonOptionsVersion', REASON_VER);
+}
+
+function openReasonModal() { renderReasonList(); openModal('modal-reason'); }
+
+function renderReasonList() {
+    const list=$('reasons-list'); list.innerHTML='';
+    reasonOpts.forEach((r,i) => {
+        if(!r) return;
+        const div=document.createElement('div');
+        div.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#F9FAFB;border-radius:10px';
+        const sp=document.createElement('span'); sp.textContent=r; sp.style.fontSize='14px';
+        const btn=document.createElement('button');
+        btn.style.cssText='background:none;border:none;cursor:pointer;color:#EF4444;padding:4px;flex-shrink:0';
+        btn.innerHTML='<svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>';
+        btn.onclick=()=>showConfirm(`ลบ "${r}"?`,()=>{reasonOpts.splice(i,1);SS.set('reasonOptionsV2',JSON.stringify(reasonOpts));renderReasonList();showToast('ลบแล้ว');});
+        div.append(sp,btn); list.appendChild(div);
+    });
+}
+
+function addReason() {
+    const inp=$('new-reason'), v=inp.value.trim();
+    if(v&&!reasonOpts.includes(v)){reasonOpts.push(v);SS.set('reasonOptionsV2',JSON.stringify(reasonOpts));inp.value='';renderReasonList();showToast('เพิ่มเหตุผลแล้ว');}
+}
+
+// ===== AI =====
+function openAiModal() { $('ai-key').value=SS.get('geminiApiKey')||''; openModal('modal-ai'); }
+function saveApiKey() { const k=$('ai-key').value.trim(); if(k)SS.set('geminiApiKey',k); else SS.del('geminiApiKey'); closeModal('modal-ai'); showToast(k?'บันทึก API Key แล้ว':'ล้าง API Key แล้ว'); }
+
+// ===== Backup / Restore =====
+function backupData() {
+    const obj={};
+    for(let i=0;i<SS.len;i++){const k=SS.key(i);obj[k]=SS.get(k);}
+    const url=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));
+    const a=document.createElement('a'); a.href=url;
+    const d=new Date();
+    a.download=`shiftpro-backup-${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.json`;
+    a.click(); URL.revokeObjectURL(url); showToast('สร้างไฟล์สำรองแล้ว');
+}
+
+function restoreData(ev) {
+    const file=ev.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+        showConfirm('กู้คืนข้อมูล? จะเขียนทับข้อมูลทั้งหมด',()=>{
+            let data; try{data=JSON.parse(e.target.result);}catch(err){showToast('ไฟล์เสียหาย','err');return;}
+            if(!data||typeof data!=='object'||Array.isArray(data)){showToast('ไฟล์ไม่ถูกต้อง','err');return;}
+            if(!Object.keys(data).some(k=>k.startsWith('shift_data_')||k==='settings')){showToast('ไม่ใช่ไฟล์สำรองของ ShiftPro','err');return;}
+            SS.clear();
+            for(const k in data) SS.set(k,data[k]);
+            showToast('กู้คืนสำเร็จ!');
+            setTimeout(()=>location.reload(),1200);
         });
+    };
+    reader.readAsText(file); ev.target.value='';
+}
 
-        let otHoursPerMonth = [];
-        for (let m = 1; m <= 12; m++) {
-            const monthData = getMonthData(year, m);
-            let totalOT = 0;
-            for (const key in monthData) {
-                totalOT += (monthData[key].ot15 || 0) + (monthData[key].ot20 || 0) + (monthData[key].ot30 || 0);
-            }
-            otHoursPerMonth.push(totalOT);
-        }
-        const barCtx = getEl('otBarChart').getContext('2d');
-        if (otBarChart) otBarChart.destroy();
-        otBarChart = new Chart(barCtx, {
-            type: 'bar',
-            data: {
-                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-                datasets: [{
-                    label: 'OT Hours', data: otHoursPerMonth,
-                    backgroundColor: ctx => {
-                        const value = ctx.raw || 0;
-                        if (value > MAX_OT_HOURS) return cssVar('--danger');
-                        return ctx.dataIndex === currentMonthIdx ? cssVar('--primary') : '#99f6e4';
-                    },
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                layout: { padding: { bottom: 10 } },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(100, 116, 139, 0.1)' }, ticks: { color: textColor } },
-                    x: { grid: { display: false }, ticks: { color: textColor } }
-                },
-                plugins: {
-                    legend: { display: false },
-                    annotation: {
-                        annotations: {
-                            line1: {
-                                type: 'line', yMin: MAX_OT_HOURS, yMax: MAX_OT_HOURS,
-                                borderColor: 'rgb(239, 68, 68)', borderWidth: 2, borderDash: [6, 6],
-                                label: { content: `Max OT ${MAX_OT_HOURS} hr`, display: true, position: 'end', backgroundColor: 'rgba(239, 68, 68, 0.8)', font: { weight: 'bold' } }
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
+// ===== Clear Month =====
+function clearMonthConfirm() {
+    showConfirm(`ล้างข้อมูลกะทั้งหมดของ ${TH_MONTHS[curMonth-1]} ${curYear}?`, ()=>{
+        SS.del(`shift_data_${curYear}_${curMonth}`);
+        renderCal(); showToast('ล้างข้อมูลแล้ว');
+    });
+}
 
-    function displayLastSaved() {
-        const timestamp = safeStorage.getItem('last_saved');
-        const el = getEl('lastSavedTimestamp');
-        if (timestamp) {
-            const date = new Date(timestamp);
-            el.textContent = `Last saved: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-        } else {
-            el.textContent = 'Not saved yet.';
-        }
-    }
+// ===== Modal helpers =====
+function openModal(id) { $(id).style.display='flex'; document.body.style.overflow='hidden'; }
+function closeModal(id) { $(id).style.display='none'; document.body.style.overflow=''; }
+function overlayClose(id, ev) { if(ev.target===$(id)) closeModal(id); }
 
-    // ===== Data Persistence (localStorage) =====
-    function saveAllData(silent = false) {
-        if (currentYear == null || currentMonth == null) return;
-        const year = currentYear, month = currentMonth;
-        const daysInMonth = new Date(year, month, 0).getDate();
-        let data = {};
-        for (let d = 1; d <= daysInMonth; d++) {
-            const key = `${year}-${month}-${d}`;
-            const shiftEl = getEl(fieldId('shift', key));
-            if (!shiftEl) continue;
-            const shift = shiftEl.value;
-            const ot15 = parseFloat((getEl(fieldId('ot15', key)) || {}).value) || 0;
-            const ot20 = parseFloat((getEl(fieldId('ot20', key)) || {}).value) || 0;
-            const ot30 = parseFloat((getEl(fieldId('ot30', key)) || {}).value) || 0;
-            const reason = (getEl(fieldId('reason', key)) || {}).value || '';
-            const detail = (getEl(fieldId('detail', key)) || {}).value || '';
-            if (shift !== '-' || ot15 > 0 || ot20 > 0 || ot30 > 0 || reason || detail) {
-                data[key] = { shift, ot15, ot20, ot30, reason, detail };
-            }
-        }
-        safeStorage.setItem(`shift_data_${year}_${month}`, JSON.stringify(data));
-        const settings = {
-            salary: getEl('salaryInput').value, mRate: getEl('mRateInput').value, nRate: getEl('nRateInput').value,
-            houseAllowanceRate: getEl('houseAllowanceRate').value, holidayBonusRate: getEl('holidayBonusRate').value,
-            monthlyHours: getEl('monthlyHoursInput').value
-        };
-        safeStorage.setItem('settings', JSON.stringify(settings));
-        safeStorage.setItem('last_saved', new Date().toISOString());
-        displayLastSaved();
-        if (!silent) showToast('บันทึกข้อมูลเรียบร้อย!');
-    }
+// ===== Confirm Modal =====
+function showConfirm(msg, onOk) {
+    $('confirm-msg').textContent = msg;
+    const modal = $('modal-confirm');
+    modal.style.display='flex'; document.body.style.overflow='hidden';
+    const ok=$('confirm-ok'), cancel=$('confirm-cancel');
+    const close=()=>{modal.style.display='none';document.body.style.overflow='';ok.onclick=null;cancel.onclick=null;};
+    ok.onclick=()=>{onOk();close();};
+    cancel.onclick=close;
+}
 
-    function getMonthData(year, month) {
-        const dataString = safeStorage.getItem(`shift_data_${year}_${month}`);
-        if (!dataString) return {};
-        try {
-            const parsed = JSON.parse(dataString);
-            return (parsed && typeof parsed === 'object') ? parsed : {};
-        } catch (error) {
-            console.error(`Error parsing data for ${year}-${month}:`, error);
-            showToast(`ข้อมูลของ ${year}-${month} เสียหาย`, 'error');
-            return {};
-        }
-    }
-
-    function loadSettings() {
-        let savedSettings = {};
-        try {
-            const settingsString = safeStorage.getItem('settings');
-            if (settingsString) savedSettings = JSON.parse(settingsString);
-        } catch (error) {
-            console.error('Error parsing settings:', error);
-            showToast('ข้อมูลการตั้งค่าเสียหาย ใช้ค่าเริ่มต้นแทน', 'error');
-        }
-        const defaults = { salary: '', mRate: '150', nRate: '200', houseAllowanceRate: '15', holidayBonusRate: '16', monthlyHours: String(DEFAULT_MONTHLY_HOURS) };
-        const settings = { ...defaults, ...savedSettings };
-        getEl('salaryInput').value = settings.salary;
-        getEl('mRateInput').value = settings.mRate;
-        getEl('nRateInput').value = settings.nRate;
-        getEl('houseAllowanceRate').value = settings.houseAllowanceRate;
-        getEl('holidayBonusRate').value = settings.holidayBonusRate;
-        getEl('monthlyHoursInput').value = settings.monthlyHours || DEFAULT_MONTHLY_HOURS;
-    }
-
-    function loadReasonOptions() {
-        const savedVersion = safeStorage.getItem('reasonOptionsVersion');
-        if (savedVersion && parseInt(savedVersion) === REASON_OPTIONS_VERSION) {
-            try {
-                const savedReasons = safeStorage.getItem('reasonOptionsV2');
-                if (savedReasons) { reasonOptions = JSON.parse(savedReasons); return; }
-            } catch (error) { console.error('Error parsing reasons:', error); }
-        }
-        safeStorage.setItem('reasonOptionsV2', JSON.stringify(reasonOptions));
-        safeStorage.setItem('reasonOptionsVersion', REASON_OPTIONS_VERSION);
-    }
-
-    // ===== UI Interaction & Modals =====
-    function showToast(message, type = 'success', duration = 3000) {
-        const container = getEl('toast-container');
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        toast.textContent = message;
-        container.appendChild(toast);
-        setTimeout(() => toast.classList.add('show'), 100);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            toast.addEventListener('transitionend', () => toast.remove());
-        }, duration);
-    }
-
-    function showConfirmModal(message, onConfirm) {
-        getEl('confirmMessage').textContent = message;
-        const modal = getEl('confirmModal');
-        modal.classList.remove('hidden');
-        const confirmBtn = getEl('confirmBtn');
-        const cancelBtn = getEl('cancelBtn');
-        const close = () => { modal.classList.add('hidden'); confirmBtn.onclick = null; cancelBtn.onclick = null; };
-        confirmBtn.onclick = () => { onConfirm(); close(); };
-        cancelBtn.onclick = close;
-    }
-
-    function openReasonManagerModal() { renderReasonList(); getEl('reasonManagerModal').classList.remove('hidden'); }
-    function closeReasonManagerModal() { getEl('reasonManagerModal').classList.add('hidden'); renderAll(); }
-
-    function renderReasonList() {
-        const listContainer = getEl('reasons-list');
-        listContainer.innerHTML = '';
-        reasonOptions.forEach((reason, index) => {
-            if (reason === '') return;
-            const item = document.createElement('div');
-            item.className = 'flex items-center justify-between p-2 rounded-lg bg-[var(--bg-surface)] hover:bg-[var(--primary-light)] border border-[var(--border-color)] mb-2';
-            const span = document.createElement('span');
-            span.textContent = reason;                       // ใช้ textContent กัน XSS
-            span.className = 'break-words pr-2';
-            const btn = document.createElement('button');
-            btn.className = 'text-[var(--danger)] hover:text-[var(--danger-hover)] flex-shrink-0';
-            btn.setAttribute('aria-label', `ลบเหตุผล ${reason}`);
-            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>';
-            btn.onclick = () => showReasonsConfirm(index, reason);
-            item.append(span, btn);
-            listContainer.appendChild(item);
-        });
-    }
-
-    function showReasonsConfirm(index, reasonText) {
-        reasonToRemoveIndex = index;
-        getEl('reasonsConfirmMessage').textContent = `ต้องการลบ "${reasonText}" หรือไม่? การลบนี้ถาวร`;
-        getEl('reasons-confirm').classList.remove('hidden');
-    }
-
-    function closeReasonsConfirm() { reasonToRemoveIndex = -1; getEl('reasons-confirm').classList.add('hidden'); }
-
-    function confirmRemoveReason() {
-        if (reasonToRemoveIndex > -1) {
-            reasonOptions.splice(reasonToRemoveIndex, 1);
-            safeStorage.setItem('reasonOptionsV2', JSON.stringify(reasonOptions));
-            renderReasonList();
-            showToast('ลบเหตุผลแล้ว');
-        }
-        closeReasonsConfirm();
-    }
-
-    function addNewReason() {
-        const input = getEl('newReasonInputInModal');
-        const newReason = input.value.trim();
-        if (newReason && !reasonOptions.includes(newReason)) {
-            reasonOptions.push(newReason);
-            safeStorage.setItem('reasonOptionsV2', JSON.stringify(reasonOptions));
-            showToast('เพิ่มเหตุผลใหม่แล้ว');
-            input.value = '';
-            renderReasonList();
-        }
-    }
-
-    function clearDataConfirm() {
-        const monthSel = getEl('monthSelect');
-        const year = getEl('yearSelect').value;
-        const monthName = monthSel.options[monthSel.selectedIndex].text;
-        showConfirmModal(`ล้างข้อมูลทั้งหมดของ ${monthName} ${year}? ไม่สามารถย้อนกลับได้`, () => {
-            safeStorage.removeItem(`shift_data_${year}_${monthSel.value}`);
-            renderAll();
-            showToast(`ล้างข้อมูล ${monthName} ${year} แล้ว`);
-        });
-    }
-
-    // ===== Data Import/Export =====
-    function backupData() {
-        const backupObject = {};
-        for (let i = 0; i < safeStorage.length; i++) {
-            const key = safeStorage.key(i);
-            backupObject[key] = safeStorage.getItem(key);
-        }
-        const dataStr = JSON.stringify(backupObject, null, 2);
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(dataBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        const date = new Date();
-        a.download = `shift-tracker-backup-${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}.json`;
-        a.click();
-        URL.revokeObjectURL(url);   // แก้ไข: เดิมส่ง element a (ไม่ปล่อย blob)
-        showToast('สร้างไฟล์สำรองแล้ว');
-    }
-
-    function restoreData(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            showConfirmModal('การกู้คืนจะเขียนทับข้อมูลทั้งหมดที่มีอยู่ ยืนยันหรือไม่?', () => {
-                let data;
-                try {
-                    data = JSON.parse(e.target.result);
-                } catch (error) {
-                    showToast('ไฟล์สำรองไม่ถูกต้อง (JSON เสียหาย)', 'error');
-                    console.error('Restore parse error:', error);
-                    return;
-                }
-                // ตรวจโครงสร้างก่อนล้างของเดิม
-                if (!data || typeof data !== 'object' || Array.isArray(data)) {
-                    showToast('ไฟล์สำรองไม่ถูกต้อง (โครงสร้างผิด)', 'error');
-                    return;
-                }
-                const looksValid = Object.keys(data).some(k => k.startsWith('shift_data_') || k === 'settings' || k === 'reasonOptionsV2');
-                if (!looksValid) {
-                    showToast('ไฟล์นี้ไม่ใช่ไฟล์สำรองของ ShiftPro', 'error');
-                    return;
-                }
-                safeStorage.clear();
-                for (const key in data) {
-                    if (Object.hasOwnProperty.call(data, key)) safeStorage.setItem(key, data[key]);
-                }
-                safeStorage.removeItem('passwordHash');
-                showToast('กู้คืนข้อมูลสำเร็จ!');
-                setTimeout(() => location.reload(), 1500);
-            });
-        };
-        reader.onerror = () => showToast('อ่านไฟล์ไม่สำเร็จ', 'error');
-        reader.readAsText(file);
-        event.target.value = '';
-    }
-
-    // ===== AI & Dashboard Modals =====
-    function openAiSettingsModal() {
-        getEl('apiKeyInput').value = safeStorage.getItem('geminiApiKey') || '';
-        getEl('aiSettingsModal').classList.remove('hidden');
-    }
-    function closeAiSettingsModal() { getEl('aiSettingsModal').classList.add('hidden'); }
-
-    function saveApiKey() {
-        const apiKey = getEl('apiKeyInput').value.trim();
-        if (apiKey) { safeStorage.setItem('geminiApiKey', apiKey); showToast('บันทึก API Key แล้ว'); }
-        else { safeStorage.removeItem('geminiApiKey'); showToast('ล้าง API Key แล้ว'); }
-        closeAiSettingsModal();
-    }
-
-    function openDashboardModal() {
-        const year = getEl('yearSelect').value;
-        getEl('dashboardYear').textContent = year;
-        const annualData = calculateAnnualData(year);
-        const fNum = n => n.toLocaleString('en-US');
-        const fCurr = n => '฿' + n.toLocaleString('en-US', { maximumFractionDigits: 0 });
-        getEl('dashboardTotalIncome').textContent = fCurr(annualData.totalIncome);
-        getEl('dashboardTotalOT').textContent = fNum(annualData.totalOtHours) + ' hr';
-        getEl('dashboardVacation').textContent = fNum(annualData.vacationDays) + ' d';
-        getEl('dashboardSick').textContent = fNum(annualData.sickDays) + ' d';
-        renderAnnualChart(annualData.monthlyIncome);
-        getEl('dashboardModal').classList.remove('hidden');
-    }
-    function closeDashboardModal() { getEl('dashboardModal').classList.add('hidden'); }
-
-    function openChatbotModal() {
-        if (!safeStorage.getItem('geminiApiKey')) {
-            showToast('กรุณาตั้งค่า Gemini API Key ก่อน', 'error');
-            return openAiSettingsModal();
-        }
-        chatHistory = [{ role: 'ai', text: 'สวัสดีครับ! มีอะไรให้ช่วยวิเคราะห์ข้อมูลการทำงานของคุณบ้างครับ?' }];
-        renderChatHistory();
-        getEl('chatbotModal').classList.remove('hidden');
-        const chatInput = getEl('chat-input');
-        chatInput.onkeydown = e => { if (e.key === 'Enter') handleSendMessage(); };
-        getEl('chat-send-btn').onclick = handleSendMessage;
-    }
-    function closeChatbotModal() { getEl('chatbotModal').classList.add('hidden'); }
-
-    // ===== Annual Dashboard Logic =====
-    function calculateAnnualData(year) {
-        const s = readSettings();
-        let annualTotals = { totalIncome: 0, totalOtHours: 0, vacationDays: 0, sickDays: 0 };
-        let monthlyIncome = Array(12).fill(0);
-        const hourlyRate = s.salary > 0 ? s.salary / s.monthlyHours : 0;
-        for (let m = 1; m <= 12; m++) {
-            const monthData = getMonthData(year, m);
-            let t = { m: 0, n: 0, ot15: 0, ot20: 0, ot30: 0, income: 0, vacation: 0, sick: 0 };
-            const hasWork = Object.keys(monthData).length > 0;
-            if (hasWork) t.income = s.salary;
-            for (const key in monthData) {
-                const entry = monthData[key];
-                if (entry.shift === 'M') t.m++;
-                if (entry.shift === 'N') t.n++;
-                t.ot15 += entry.ot15 || 0; t.ot20 += entry.ot20 || 0; t.ot30 += entry.ot30 || 0;
-                if (entry.reason === 'ลาพักร้อน') t.vacation++;
-                if (entry.reason === 'ลาป่วย') t.sick++;
-            }
-            t.income += (t.ot15 * hourlyRate * 1.5) + (t.ot20 * hourlyRate * 2.0) + (t.ot30 * hourlyRate * 3.0);
-            t.income += t.m * s.mRate + t.n * s.nRate;
-            if (hasWork) t.income += s.salary * (s.houseAllowanceRate / 100) + s.salary * (s.holidayBonusRate / 100);
-            monthlyIncome[m - 1] = t.income;
-            annualTotals.totalIncome += t.income;
-            annualTotals.totalOtHours += t.ot15 + t.ot20 + t.ot30;
-            annualTotals.vacationDays += t.vacation;
-            annualTotals.sickDays += t.sick;
-        }
-        return { ...annualTotals, monthlyIncome };
-    }
-
-    function renderAnnualChart(monthlyIncomeData) {
-        const ctx = getEl('annualIncomeChart').getContext('2d');
-        if (annualIncomeChart) annualIncomeChart.destroy();
-        const textColor = cssVar('--text-secondary');
-        annualIncomeChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-                datasets: [{ label: 'Monthly Income', data: monthlyIncomeData, backgroundColor: 'rgba(13, 148, 136, 0.6)', borderColor: 'rgba(13, 148, 136, 1)', borderWidth: 1, borderRadius: 4 }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true, ticks: { color: textColor, callback: v => v / 1000 + 'k' } },
-                    x: { ticks: { color: textColor } }
-                },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { callbacks: { label: ctx => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB' }).format(ctx.raw) } }
-                }
-            }
-        });
-    }
-
-    // ===== AI Chatbot Logic =====
-    function formatChatText(text) {
-        // escape ก่อนเสมอ แล้วค่อยแปลง markdown แบบจำกัด -> กัน XSS
-        return escapeHtml(text)
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/\n/g, '<br>');
-    }
-
-    function renderChatHistory() {
-        const container = getEl('chat-message-container');
-        container.innerHTML = '';
-        for (const msg of chatHistory) {
-            const wrapper = document.createElement('div');
-            wrapper.className = `w-full flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`;
-            const bubble = document.createElement('div');
-            bubble.className = `chat-bubble ${msg.role === 'user' ? 'user-bubble' : 'ai-bubble'}`;
-            if (msg.role === 'user') bubble.textContent = msg.text;
-            else bubble.innerHTML = formatChatText(msg.text);
-            wrapper.appendChild(bubble);
-            container.appendChild(wrapper);
-        }
-        container.scrollTop = container.scrollHeight;
-    }
-
-    function getSettingsAsJSON() {
-        return JSON.stringify({
-            salary: getEl('salaryInput').value, mRate: getEl('mRateInput').value, nRate: getEl('nRateInput').value,
-            houseAllowanceRate: getEl('houseAllowanceRate').value, holidayBonusRate: getEl('holidayBonusRate').value,
-            monthlyHours: getEl('monthlyHoursInput').value
-        }, null, 2);
-    }
-
-    function getAllShiftDataAsJSON() {
-        const allData = {};
-        for (let i = 0; i < safeStorage.length; i++) {
-            const key = safeStorage.key(i);
-            if (key.startsWith('shift_data_')) {
-                try { allData[key] = JSON.parse(safeStorage.getItem(key)); } catch (e) { /* ignore */ }
-            }
-        }
-        return JSON.stringify(allData, null, 2);
-    }
-
-    async function handleSendMessage() {
-        const input = getEl('chat-input');
-        const userMessage = input.value.trim();
-        if (!userMessage) return;
-        chatHistory.push({ role: 'user', text: userMessage });
-        input.value = '';
-        renderChatHistory();
-        chatHistory.push({ role: 'ai', text: 'กำลังคิด…' });
-        renderChatHistory();
-
-        try {
-            const prompt = `คุณคือ 'ShiftPro AI' สุดยอดผู้ช่วยวิเคราะห์ข้อมูลการทำงานที่มีความสามารถในการคำนวณและเปรียบเทียบข้อมูล
-ความสามารถของคุณคือ:
-1. คำนวณรายรับรวมของแต่ละเดือนได้ โดยใช้ 'ข้อมูลการตั้งค่า' และ 'ข้อมูลการทำงาน' ที่ให้มา
-2. เปรียบเทียบข้อมูลระหว่างเดือนต่างๆ เพื่อหาค่าสูงสุด/ต่ำสุดได้
-3. นับจำนวนวันตามเงื่อนไขต่างๆ ได้
-4. สรุปข้อมูลภาพรวมตามที่ผู้ใช้ต้องการได้
-5. นับจำนวนวันที่มีการ 'แทนกะ' จากช่อง 'reason' และระบุชื่อคนแทนจากช่อง 'detail' ได้
-
-ตอบโดยอ้างอิงจากข้อมูลที่ให้มาเท่านั้น ตอบเป็นภาษาไทยอย่างเป็นมิตรและเข้าใจง่าย
-
-ข้อมูลการตั้งค่า:
-${getSettingsAsJSON()}
-
-ข้อมูลการทำงานดิบทั้งหมด:
-${getAllShiftDataAsJSON()}
-
-กรุณาตอบคำถามต่อไปนี้: "${userMessage}"`;
-            const responseText = await callGeminiApi(prompt, safeStorage.getItem('geminiApiKey'));
-            chatHistory.pop();
-            chatHistory.push({ role: 'ai', text: responseText });
-        } catch (error) {
-            chatHistory.pop();
-            chatHistory.push({ role: 'ai', text: `ขออภัยครับ เกิดข้อผิดพลาด: ${error.message}` });
-            console.error('Chatbot Error:', error);
-        }
-        renderChatHistory();
-    }
-
-    async function callGeminiApi(prompt, apiKey) {
-        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },  // ส่งคีย์ผ่าน header แทน query string
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-        });
-        if (!response.ok) {
-            let message = response.statusText;
-            try { const err = await response.json(); message = err.error?.message || message; } catch (e) { /* ignore */ }
-            throw new Error(message);
-        }
-        const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!text) throw new Error('โครงสร้างคำตอบจาก API ไม่ถูกต้อง');
-        return text;
-    }
-
-    // ===== Theme Management =====
-    function applyTheme(theme) {
-        const lightIcon = getEl('theme-icon-light');
-        const darkIcon = getEl('theme-icon-dark');
-        if (!lightIcon || !darkIcon) return;
-        if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-            lightIcon.classList.remove('hidden'); darkIcon.classList.add('hidden');
-        } else {
-            document.documentElement.classList.remove('dark');
-            lightIcon.classList.add('hidden'); darkIcon.classList.remove('hidden');
-        }
-    }
-
-    function setupThemeToggle() {
-        const themeToggle = getEl('theme-toggle');
-        if (!themeToggle) return;
-        themeToggle.addEventListener('click', () => {
-            const isDark = document.documentElement.classList.toggle('dark');
-            const newTheme = isDark ? 'dark' : 'light';
-            safeStorage.setItem('theme', newTheme);
-            applyTheme(newTheme);
-            updateCalculations();   // วาดกราฟใหม่ให้สีตรงกับธีม
-            if (!getEl('dashboardModal').classList.contains('hidden')) {
-                renderAnnualChart(calculateAnnualData(getEl('yearSelect').value).monthlyIncome);
-            }
-        });
-    }
+// ===== Toast =====
+function showToast(msg, type='ok', dur=3000) {
+    const box=$('toast-box');
+    const t=document.createElement('div');
+    t.className=`toast t-${type}`;
+    t.textContent=msg;
+    box.appendChild(t);
+    setTimeout(()=>t.classList.add('show'),50);
+    setTimeout(()=>{t.classList.remove('show');t.addEventListener('transitionend',()=>t.remove());},dur);
+}
 </script>
-
 <script>
-    // ===== PWA: Service Worker + Install prompt =====
-    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').catch(err => console.warn('SW register failed:', err));
-        });
-    }
-
-    let deferredInstallPrompt = null;
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredInstallPrompt = e;
-        const btn = document.getElementById('install-button');
-        if (btn) btn.classList.remove('hidden');
-    });
-    function promptInstall() {
-        if (!deferredInstallPrompt) return;
-        deferredInstallPrompt.prompt();
-        deferredInstallPrompt.userChoice.finally(() => {
-            deferredInstallPrompt = null;
-            const btn = document.getElementById('install-button');
-            if (btn) btn.classList.add('hidden');
-        });
-    }
-    window.addEventListener('appinstalled', () => {
-        const btn = document.getElementById('install-button');
-        if (btn) btn.classList.add('hidden');
-    });
+if('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
 </script>
 </body>
 </html>
