@@ -991,7 +991,7 @@ function renderLeaveSwapStats() {
             // Leave counting
             if (LEAVE_CATS.includes(reason)) {
                 leaveCounts[reason]++;
-            } else if ((d.shift === '-' || !d.shift) && reason && !reason.startsWith('แทนกะ') && reason !== 'มีคนมาแทน') {
+            } else if (reason === 'ลาอื่นๆ') {
                 leaveCounts['ลาอื่นๆ']++;
             }
 
