@@ -51,7 +51,7 @@
         .app-header {
             background: linear-gradient(135deg, var(--header-from) 0%, var(--header-to) 100%);
             color: #fff;
-            padding: 14px 16px 16px;
+            padding: calc(14px + env(safe-area-inset-top)) 16px 16px;
             position: sticky; top: 0; z-index: 20;
         }
         /* Calendar grid */
