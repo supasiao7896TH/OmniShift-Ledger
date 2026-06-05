@@ -213,6 +213,16 @@
         .cal-sum-wrap { background:var(--surface);border-top:1px solid var(--border); }
         .cal-sum-tog { width:100%;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;color:var(--text); }
         .cal-sum-body { padding:0 14px 16px; }
+        .cal-sum-grid { display:flex;flex-direction:column;gap:16px; }
+        .cal-charts-wrap { flex:1; }
+        .cal-charts-inner { display:grid;grid-template-columns:1fr 1.4fr;gap:10px;align-items:start; }
+        .cal-chart-title { font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-align:center; }
+        .cal-ot-sub { font-size:11px;padding:1px 0 1px 12px;display:flex;justify-content:space-between; }
+        @media(min-width:600px){
+            .cal-sum-grid { flex-direction:row;align-items:start; }
+            #cal-sum-breakdown { flex:1.2;min-width:200px; }
+            .cal-charts-wrap { flex:2; }
+        }
         @media print { .bot-nav, .overlay { display: none !important; } }
     </style>
 </head>
@@ -253,14 +263,21 @@
             <svg id="cal-sum-chev" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="transition:transform .3s"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
         </button>
         <div id="cal-sum-body" class="cal-sum-body" style="display:none">
-            <div id="cal-sum-breakdown" style="margin-bottom:14px"></div>
-            <div style="margin-bottom:14px">
-                <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px">สัดส่วนรายได้</div>
-                <div style="position:relative;height:160px"><canvas id="cal-pie-chart"></canvas></div>
-            </div>
-            <div>
-                <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px">OT รายเดือน</div>
-                <div style="position:relative;height:140px"><canvas id="cal-ot-chart"></canvas></div>
+            <div class="cal-sum-grid">
+                <div id="cal-sum-breakdown"></div>
+                <div class="cal-charts-wrap">
+                    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">Data Overview</div>
+                    <div class="cal-charts-inner">
+                        <div>
+                            <div class="cal-chart-title">Income Breakdown</div>
+                            <div style="position:relative;height:160px"><canvas id="cal-pie-chart"></canvas></div>
+                        </div>
+                        <div>
+                            <div id="cal-ot-title" class="cal-chart-title"></div>
+                            <div style="position:relative;height:160px"><canvas id="cal-ot-chart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1092,45 +1109,52 @@ function renderCalSum() {
     const houseInc = s.salary * (s.house / 100);
     const bonusInc = s.salary * (s.bonus / 100);
     const totalInc = baseInc + mShiftInc + nShiftInc + otInc + houseInc + bonusInc;
+    const otTotalHrs = ot15 + ot20 + ot30;
     const f2 = v => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const row = (lbl, val, col) => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0">
         <span style="color:#6B7280">${lbl}</span>
         <span style="font-weight:600;color:${col}">${val}</span></div>`;
+    const subRow = (lbl, val) => `<div class="cal-ot-sub"><span style="color:#9CA3AF">${lbl}</span><span style="font-weight:500;color:#EC4899">${val}</span></div>`;
 
     let rows = row('Base Salary:', f2(baseInc), 'var(--text)');
-    if (mD > 0) rows += row(`M-Shift Pay (${mD} shifts):`, `+ ${f2(mShiftInc)}`, '#7C3AED');
-    if (nD > 0) rows += row(`N-Shift Pay (${nD} shifts):`, `+ ${f2(nShiftInc)}`, '#7C3AED');
-    if (ot15 > 0) rows += row(`OT 1.5× (${ot15.toFixed(1)} hrs):`, `+ ${f2(ot15Inc)}`, '#EC4899');
-    if (ot20 > 0) rows += row(`OT 2.0× (${ot20.toFixed(1)} hrs):`, `+ ${f2(ot20Inc)}`, '#EC4899');
-    if (ot30 > 0) rows += row(`OT 3.0× (${ot30.toFixed(1)} hrs):`, `+ ${f2(ot30Inc)}`, '#EC4899');
-    if (houseInc > 0) rows += row('House Allowance:', `+ ${f2(houseInc)}`, '#059669');
-    if (bonusInc > 0) rows += row('Holiday Bonus:', `+ ${f2(bonusInc)}`, '#F97316');
+    rows += row(`M-Shift Pay (${mD} shifts):`, `+ ${f2(mShiftInc)}`, '#7C3AED');
+    rows += row(`N-Shift Pay (${nD} shifts):`, `+ ${f2(nShiftInc)}`, '#7C3AED');
+    rows += row(`OT Pay (${otTotalHrs.toFixed(1)} hrs):`, `+ ${f2(otInc)}`, '#EC4899');
+    if (ot15 > 0) rows += subRow(`↳ 1.5× (${ot15.toFixed(1)} hrs)`, f2(ot15Inc));
+    if (ot20 > 0) rows += subRow(`↳ 2.0× (${ot20.toFixed(1)} hrs)`, f2(ot20Inc));
+    if (ot30 > 0) rows += subRow(`↳ 3.0× (${ot30.toFixed(1)} hrs)`, f2(ot30Inc));
+    rows += row('House Allowance:', `+ ${f2(houseInc)}`, '#059669');
+    rows += row('Holiday Bonus:', `+ ${f2(bonusInc)}`, '#F97316');
 
     $('cal-sum-breakdown').innerHTML = `
-        <div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:10px">This Month's Summary</div>
+        <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:10px">This Month's Summary</div>
         <div style="display:flex;flex-direction:column">${rows}
             <div style="border-top:1px dashed var(--border);margin:6px 0"></div>
             <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:800">
                 <span>Total Gross Income:</span>
                 <span style="color:#22C55E">${f2(totalInc)}</span>
             </div>
-        </div>
-        <div style="font-size:13px;font-weight:700;color:var(--text);margin:14px 0 4px">Data Overview</div>`;
+        </div>`;
+    $('cal-ot-title').textContent = `Monthly OT Hours (${curYear})`;
 
-    // Pie: 6-segment income breakdown (match reference)
+    // Pie: 6-segment income breakdown
     const pieValues = [baseInc, mShiftInc, nShiftInc, otInc, houseInc, bonusInc];
     const allLabels = ['Salary', 'M-Shift', 'N-Shift', 'OT', 'Allowance', 'Holiday Bonus'];
     const allColors = ['#3B82F6', '#7C3AED', '#A78BFA', '#EC4899', '#14B8A6', '#F97316'];
     const idx = pieValues.map((v, i) => v > 0 ? i : -1).filter(i => i >= 0);
+    const hasIncome = idx.length > 0;
+    const pieLbls  = hasIncome ? idx.map(i => allLabels[i]) : ['No Data'];
+    const pieData  = hasIncome ? idx.map(i => pieValues[i]) : [1];
+    const pieClrs  = hasIncome ? idx.map(i => allColors[i]) : ['#E5E7EB'];
     if (calPieChart) calPieChart.destroy();
     calPieChart = new Chart($('cal-pie-chart').getContext('2d'), {
         type: 'doughnut',
-        data: { labels: idx.map(i => allLabels[i]), datasets: [{ data: idx.map(i => pieValues[i]), backgroundColor: idx.map(i => allColors[i]), borderWidth: 0 }] },
+        data: { labels: pieLbls, datasets: [{ data: pieData, backgroundColor: pieClrs, borderWidth: 0 }] },
         options: {
             responsive: true, maintainAspectRatio: false, cutout: '55%',
             plugins: {
                 legend: { display: true, position: 'bottom', labels: { font: { size: 9 }, boxWidth: 10, padding: 5 } },
-                tooltip: { callbacks: { label: c => c.label + ': ' + c.raw.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) } }
+                tooltip: { callbacks: { label: c => hasIncome ? c.label + ': ' + Number(c.raw).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : 'No data' } }
             }
         }
     });
