@@ -856,31 +856,26 @@ function renderLeaveSwapStats() {
     // Swap stats card
     $('st-swap-yr').textContent = statsYear;
     let swapHTML = '';
-    if (outSwaps.length) {
-        swapHTML += `<div style="margin-bottom:12px">
-            <div style="font-size:12px;font-weight:700;color:#059669;margin-bottom:6px">ฉันไปแทนกะ — ${outSwaps.length} ครั้ง</div>
-            <div style="display:flex;flex-direction:column;gap:4px">
-                ${outSwaps.map(s => `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 10px;background:#F0FDF4;border-radius:8px">
-                    <span style="color:var(--text-muted)">${s.dateLabel}</span>
-                    <span style="font-weight:600;color:#065F46">แทน ${s.person}&ensp;<span class="s-badge ${s.shift==='M'?'s-m':'s-n'}" style="font-size:9px;padding:2px 5px">${s.shift==='M'?'เช้า':'ดึก'}</span></span>
-                </div>`).join('')}
-            </div>
-        </div>`;
-    }
-    if (inSwaps.length) {
-        swapHTML += `<div>
-            <div style="font-size:12px;font-weight:700;color:#7C3AED;margin-bottom:6px">มีคนมาแทนฉัน — ${inSwaps.length} ครั้ง</div>
-            <div style="display:flex;flex-direction:column;gap:4px">
-                ${inSwaps.map(s => `<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 10px;background:#F5F3FF;border-radius:8px">
-                    <span style="color:var(--text-muted)">${s.dateLabel}</span>
-                    <span style="font-weight:600;color:#5B21B6">${s.person} มาแทน</span>
-                </div>`).join('')}
-            </div>
-        </div>`;
-    }
-    if (!outSwaps.length && !inSwaps.length) {
-        swapHTML = '<div style="font-size:13px;color:var(--text-muted);text-align:center;padding:8px 0">ไม่มีข้อมูลการแทนกะในปีนี้</div>';
-    }
+    // Outgoing — always show
+    swapHTML += `<div style="margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:#059669;margin-bottom:6px">ฉันไปแทนกะ — ${outSwaps.length} ครั้ง</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+            ${outSwaps.length ? outSwaps.map(s => `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 10px;background:#F0FDF4;border-radius:8px">
+                <span style="color:var(--text-muted)">${s.dateLabel}</span>
+                <span style="font-weight:600;color:#065F46">แทน ${s.person}&ensp;<span class="s-badge ${s.shift==='M'?'s-m':'s-n'}" style="font-size:9px;padding:2px 5px">${s.shift==='M'?'เช้า':'ดึก'}</span></span>
+            </div>`).join('') : '<div style="font-size:12px;color:var(--text-muted);padding:6px 0">ยังไม่มีข้อมูล</div>'}
+        </div>
+    </div>`;
+    // Incoming — always show
+    swapHTML += `<div style="border-top:1px solid var(--border);padding-top:14px">
+        <div style="font-size:12px;font-weight:700;color:#7C3AED;margin-bottom:6px">ฉันลาแล้วมีคนมาแทน — ${inSwaps.length} ครั้ง</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+            ${inSwaps.length ? inSwaps.map(s => `<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 10px;background:#F5F3FF;border-radius:8px">
+                <span style="color:var(--text-muted)">${s.dateLabel}</span>
+                <span style="font-weight:600;color:#5B21B6">${s.person} มาแทน</span>
+            </div>`).join('') : '<div style="font-size:12px;color:var(--text-muted);padding:6px 0">ยังไม่มีข้อมูล · บันทึกโดยเลือก เหตุผล = "มีคนมาแทน" + ระบุชื่อในรายละเอียด</div>'}
+        </div>
+    </div>`;
     $('st-swap').innerHTML = swapHTML;
 }
 
