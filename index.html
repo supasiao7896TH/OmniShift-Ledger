@@ -279,6 +279,11 @@
                     </div>
                 </div>
             </div>
+            <div style="margin-top:14px;text-align:center">
+                <button onclick="askGeminiShiftAdvice()" style="background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;border:none;border-radius:12px;padding:10px 28px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;box-shadow:0 2px 8px rgba(79,70,229,.35)">
+                    🤖 AI วิเคราะห์กะ &amp; รายได้
+                </button>
+            </div>
         </div>
     </div>
     <div class="sum-bar">
@@ -532,6 +537,22 @@
     </div>
 </div>
 
+<!-- ===== MODAL: AI Result ===== -->
+<div id="modal-ai-result" class="overlay" style="display:none" onclick="overlayClose('modal-ai-result',event)">
+    <div class="sheet" onclick="event.stopPropagation()" style="max-height:82vh;display:flex;flex-direction:column">
+        <div class="sheet-handle"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-shrink:0">
+            <span style="font-size:20px">🤖</span>
+            <span style="font-size:16px;font-weight:700">AI วิเคราะห์กะ &amp; รายได้</span>
+        </div>
+        <div id="ai-result-body" style="flex:1;overflow-y:auto;font-size:14px;line-height:1.75;color:var(--text)"></div>
+        <div style="margin-top:14px;flex-shrink:0;display:flex;gap:8px">
+            <button onclick="closeModal('modal-ai-result')" class="btn-s" style="flex:1">ปิด</button>
+            <button onclick="askGeminiShiftAdvice(true)" class="btn-p" style="flex:1">🔄 วิเคราะห์ใหม่</button>
+        </div>
+    </div>
+</div>
+
 <!-- ===== MODAL: Reason Manager ===== -->
 <div id="modal-reason" class="overlay" style="display:none" onclick="overlayClose('modal-reason',event)">
     <div class="sheet" onclick="event.stopPropagation()">
@@ -705,6 +726,7 @@ function renderCal() {
     }
     $('cal-body').innerHTML = html;
     updateSumBar(data);
+    if (calSumOpen) renderCalSum();
 }
 
 function updateSumBar(data) {
@@ -1262,6 +1284,112 @@ function addReason() {
 // ===== AI =====
 function openAiModal() { $('ai-key').value=SS.get('geminiApiKey')||''; openModal('modal-ai'); }
 function saveApiKey() { const k=$('ai-key').value.trim(); if(k)SS.set('geminiApiKey',k); else SS.del('geminiApiKey'); closeModal('modal-ai'); showToast(k?'บันทึก API Key แล้ว':'ล้าง API Key แล้ว'); }
+
+function mdToHtml(text) {
+    return text
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g,'<em>$1</em>')
+        .replace(/^#{1,3} (.+)$/gm,'<div style="font-size:15px;font-weight:800;color:var(--text);margin:12px 0 4px">$1</div>')
+        .replace(/^[-*] (.+)$/gm,'<div style="padding:2px 0 2px 16px">• $1</div>')
+        .replace(/^\d+\. (.+)$/gm,'<div style="padding:2px 0 2px 16px">$1</div>')
+        .replace(/\n{2,}/g,'</p><p style="margin:0 0 8px">')
+        .replace(/\n/g,'<br>');
+}
+
+async function askGeminiShiftAdvice(refresh) {
+    const key = SS.get('geminiApiKey');
+    if (!key) {
+        showToast('กรุณาตั้งค่า Gemini API Key ในการตั้งค่าก่อน');
+        setTimeout(openAiModal, 600);
+        return;
+    }
+    const s = readSettings();
+    const hr = s.salary > 0 ? s.salary / s.mhours : 0;
+    const curData = getMonthData(curYear, curMonth);
+    let mD=0, nD=0, ot15=0, ot20=0, ot30=0, leaveDays=0, swapOut=0, swapIn=0;
+    const LEAVE_CATS = ['ลาป่วย','ลากิจ','ลาพักร้อน','ลาอื่นๆ'];
+    for (const k in curData) {
+        const d = curData[k];
+        if (d.shift==='M') mD++; else if (d.shift==='N') nD++;
+        ot15 += d.ot15||0; ot20 += d.ot20||0; ot30 += d.ot30||0;
+        if (LEAVE_CATS.includes(d.reason)) leaveDays++;
+        else if (d.reason==='แทนกะ') swapOut++;
+        else if (d.reason==='มีคนมาแทน' || (LEAVE_CATS.includes(d.reason) && d.detail)) swapIn++;
+    }
+    const otTotal = ot15+ot20+ot30;
+    const baseInc = s.salary;
+    const mShiftInc = mD*s.mRate;
+    const nShiftInc = nD*s.nRate;
+    const otInc = ot15*hr*1.5 + ot20*hr*2.0 + ot30*hr*3.0;
+    const houseInc = s.salary*(s.house/100);
+    const bonusInc = s.salary*(s.bonus/100);
+    const totalInc = baseInc+mShiftInc+nShiftInc+otInc+houseInc+bonusInc;
+
+    const prevInfo = [];
+    for (let i=1; i<=3; i++) {
+        let y=curYear, m=curMonth-i;
+        if (m<1){m+=12;y--;}
+        const pd=getMonthData(y,m);
+        let pm=0,pn=0,pot=0,pl=0;
+        for (const k in pd) {
+            const d=pd[k];
+            if(d.shift==='M')pm++; else if(d.shift==='N')pn++;
+            pot+=(d.ot15||0)+(d.ot20||0)+(d.ot30||0);
+            if(LEAVE_CATS.includes(d.reason))pl++;
+        }
+        const pBase=s.salary, pMInc=pm*s.mRate, pNInc=pn*s.nRate;
+        const pHr=pBase>0?pBase/s.mhours:0;
+        const pOtInc=pot*pHr*1.5;
+        const pTotal=pBase+pMInc+pNInc+pOtInc+pBase*(s.house/100)+pBase*(s.bonus/100);
+        prevInfo.push(`${TH_MONTHS[m-1]} ${y}: กะเช้า ${pm} ลา ${pl} OT ${pot.toFixed(1)}ชม. รายได้รวม ~${Math.round(pTotal).toLocaleString()} บาท`);
+    }
+
+    const f = v=>v.toLocaleString('th-TH',{minimumFractionDigits:2});
+    const prompt = `คุณเป็น AI ผู้ช่วยวางแผนการเงินสำหรับพนักงานโรงงาน ระบบกะหมุนเวียน 4 ทีม (A/B/C/D) กะละ 12 ชั่วโมง
+
+## ข้อมูลการตั้งค่าเงินเดือน
+- เงินเดือนฐาน: ${s.salary.toLocaleString()} บาท/เดือน
+- ค่ากะเช้า: ${s.mRate} บาท/กะ | ค่ากะดึก: ${s.nRate} บาท/กะ
+- อัตรา OT: ${hr>0?'ชม.ละ '+(hr*1.5).toFixed(0)+' (1.5×) / '+(hr*2).toFixed(0)+' (2.0×) / '+(hr*3).toFixed(0)+' (3.0×) บาท':'ยังไม่ได้ตั้งค่าเงินเดือน'}
+- เบี้ยที่พัก: ${s.house}% | โบนัสวันหยุด: ${s.bonus}%
+
+## ข้อมูลเดือน${TH_MONTHS[curMonth-1]} ${curYear} (เดือนปัจจุบัน)
+- กะเช้า: ${mD} กะ | กะดึก: ${nD} กะ | รวม: ${mD+nD} กะ
+- OT รวม: ${otTotal.toFixed(1)} ชม. (1.5×: ${ot15}ชม. | 2.0×: ${ot20}ชม. | 3.0×: ${ot30}ชม.)
+- วันลา: ${leaveDays} วัน | ไปแทนคนอื่น: ${swapOut} ครั้ง | มีคนมาแทน: ${swapIn} ครั้ง
+- รายได้รวมเดือนนี้: ${f(totalInc)} บาท
+
+## ข้อมูลย้อนหลัง 3 เดือน
+${prevInfo.join('\n')}
+
+## กรุณาวิเคราะห์และให้คำแนะนำ (ตอบภาษาไทย กระชับ อ่านง่าย)
+1. **สรุปภาพรวมเดือนนี้** — ผลการทำงาน vs เดือนก่อน
+2. **แนวโน้มรายได้** — เพิ่ม/ลดเท่าไร คิดเป็น%
+3. **คำแนะนำ OT เดือนหน้า** — ควรทำ OT กี่ชั่วโมงเพื่อเป้าหมายรายได้ที่ดีขึ้น (Max 48 ชม./เดือน)
+4. **เคล็ดลับเพิ่มรายได้** — 2-3 ข้อจริงๆที่ทำได้`;
+
+    $('ai-result-body').innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted)"><div style="font-size:28px;margin-bottom:8px">⏳</div>กำลังวิเคราะห์ข้อมูล...</div>';
+    if (!refresh) openModal('modal-ai-result');
+
+    try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(()=>({}));
+            throw new Error(err?.error?.message || `HTTP ${res.status}`);
+        }
+        const json = await res.json();
+        const raw = json?.candidates?.[0]?.content?.parts?.[0]?.text || 'ไม่ได้รับข้อมูลจาก AI';
+        $('ai-result-body').innerHTML = `<p style="margin:0 0 8px">${mdToHtml(raw)}</p>`;
+    } catch(e) {
+        $('ai-result-body').innerHTML = `<div style="color:#EF4444;padding:12px;background:#FEF2F2;border-radius:8px">
+            <strong>เกิดข้อผิดพลาด:</strong><br>${e.message}<br><br>
+            <span style="font-size:12px;color:#6B7280">กรุณาตรวจสอบ API Key ในการตั้งค่า</span></div>`;
+    }
+}
 
 // ===== Backup / Restore =====
 function backupData() {
