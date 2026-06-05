@@ -24,6 +24,8 @@
             --primary: #F97316;
             --primary-dark: #EA580C;
             --primary-light: #FFF7ED;
+            --header-from: #F97316;
+            --header-to:   #EA580C;
             --shift-m: #22C55E;
             --shift-n: #3B82F6;
             --shift-off-bg: #E5E7EB;
@@ -33,6 +35,9 @@
             --text: #111827;
             --text-muted: #6B7280;
             --border: #E5E7EB;
+            --cal-weekend: #F8FAFC;
+            --cal-holiday: #FEF2F2;
+            --focus-ring:  rgba(249,115,22,.18);
             --nav-h: 60px;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -44,7 +49,7 @@
             min-height: 100vh;
         }
         .app-header {
-            background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+            background: linear-gradient(135deg, var(--header-from) 0%, var(--header-to) 100%);
             color: #fff;
             padding: 14px 16px 16px;
             position: sticky; top: 0; z-index: 20;
@@ -65,8 +70,8 @@
         }
         .cal-day:active { opacity: .7; }
         .cal-day.empty { background: transparent; pointer-events: none; }
-        .cal-day.weekend { background: #F8FAFC; }
-        .cal-day.holiday { background: #FEF2F2; }
+        .cal-day.weekend { background: var(--cal-weekend); }
+        .cal-day.holiday { background: var(--cal-holiday); }
         .cal-day.today .d-num {
             background: var(--primary); color: #fff;
             border-radius: 50%; width: 26px; height: 26px;
@@ -156,7 +161,7 @@
             font-family: 'Sarabun', sans-serif; font-size: 15px;
             background: var(--bg); color: var(--text);
         }
-        .fi:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(249,115,22,.15); }
+        .fi:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--focus-ring); }
         /* Buttons */
         .btn-p {
             background: var(--primary); color: #fff; border: none;
@@ -365,6 +370,10 @@
         <div style="font-size:20px;font-weight:700;text-align:center">การตั้งค่า</div>
     </div>
     <div style="padding:14px;display:flex;flex-direction:column;gap:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;padding:0 2px">🎨 ธีมสี</div>
+        <div class="set-sec" style="padding:14px 10px">
+            <div id="theme-picker" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px"></div>
+        </div>
         <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;padding:0 2px">เงินเดือนและอัตรา</div>
         <div class="set-sec">
             <div class="set-row" style="cursor:default">
@@ -594,6 +603,78 @@ const REASON_VER = 2;
 const DEFAULT_HOURS = 176;
 const MAX_OT = 48;
 const GEMINI_MODEL = 'gemini-2.5-flash';
+
+const THEMES = [
+    { id:'orange', name:'Orange\nFlame',  emoji:'🔥',
+      primary:'#F97316', dark:'#EA580C', light:'#FFF7ED', focusRing:'rgba(249,115,22,.18)',
+      hFrom:'#F97316', hTo:'#EA580C',
+      bg:'#F3F4F6', surface:'#FFFFFF', text:'#111827', muted:'#6B7280', border:'#E5E7EB',
+      calWeekend:'#F8FAFC', calHoliday:'#FEF2F2' },
+    { id:'sky', name:'Sky\nBlue',         emoji:'🌤️',
+      primary:'#0EA5E9', dark:'#0284C7', light:'#E0F2FE', focusRing:'rgba(14,165,233,.18)',
+      hFrom:'#0369A1', hTo:'#0EA5E9',
+      bg:'#F0F9FF', surface:'#FFFFFF', text:'#0C1A2E', muted:'#4B6A8A', border:'#BAE6FD',
+      calWeekend:'#F0F9FF', calHoliday:'#FEF2F2' },
+    { id:'ocean', name:'Ocean\nDeep',     emoji:'🌊',
+      primary:'#2563EB', dark:'#1D4ED8', light:'#DBEAFE', focusRing:'rgba(37,99,235,.18)',
+      hFrom:'#1E3A5F', hTo:'#1D4ED8',
+      bg:'#F8FAFC', surface:'#FFFFFF', text:'#0F172A', muted:'#4A6180', border:'#BFDBFE',
+      calWeekend:'#F1F5F9', calHoliday:'#FEF2F2' },
+    { id:'frost', name:'Arctic\nFrost',   emoji:'❄️',
+      primary:'#0891B2', dark:'#0E7490', light:'#CFFAFE', focusRing:'rgba(8,145,178,.18)',
+      hFrom:'#164E63', hTo:'#06B6D4',
+      bg:'#F0FDFE', surface:'#FFFFFF', text:'#0C2A2F', muted:'#4A7580', border:'#A5F3FC',
+      calWeekend:'#E0FDFF', calHoliday:'#FEF2F2' },
+    { id:'midnight', name:'Midnight\nNavy', emoji:'🌙',
+      primary:'#60A5FA', dark:'#3B82F6', light:'#1E3A8A', focusRing:'rgba(96,165,250,.2)',
+      hFrom:'#1E3A8A', hTo:'#3B82F6',
+      bg:'#0F172A', surface:'#1E293B', text:'#F1F5F9', muted:'#94A3B8', border:'#334155',
+      calWeekend:'#172032', calHoliday:'#2D1515' },
+];
+
+function applyTheme(id) {
+    const t = THEMES.find(x => x.id === id) || THEMES[0];
+    const r = document.documentElement.style;
+    r.setProperty('--primary',      t.primary);
+    r.setProperty('--primary-dark', t.dark);
+    r.setProperty('--primary-light',t.light);
+    r.setProperty('--header-from',  t.hFrom);
+    r.setProperty('--header-to',    t.hTo);
+    r.setProperty('--bg',           t.bg);
+    r.setProperty('--surface',      t.surface);
+    r.setProperty('--text',         t.text);
+    r.setProperty('--text-muted',   t.muted);
+    r.setProperty('--border',       t.border);
+    r.setProperty('--cal-weekend',  t.calWeekend);
+    r.setProperty('--cal-holiday',  t.calHoliday);
+    r.setProperty('--focus-ring',   t.focusRing);
+    document.body.dataset.theme = id;
+    SS.set('theme', id);
+    if ($('theme-picker')) renderThemePicker();
+}
+
+function loadTheme() { applyTheme(SS.get('theme') || 'orange'); }
+
+function renderThemePicker() {
+    const cur = SS.get('theme') || 'orange';
+    $('theme-picker').innerHTML = THEMES.map(t => {
+        const sel = t.id === cur;
+        return `<button onclick="applyTheme('${t.id}')" style="
+            display:flex;flex-direction:column;align-items:center;gap:6px;
+            background:var(--surface);border:2.5px solid ${sel ? t.primary : 'var(--border)'};
+            border-radius:14px;padding:10px 4px;cursor:pointer;transition:all .2s;
+            box-shadow:${sel ? `0 0 0 3px ${t.focusRing}` : 'none'}">
+            <div style="width:38px;height:38px;border-radius:50%;
+                background:linear-gradient(135deg,${t.hFrom},${t.hTo});
+                box-shadow:0 3px 8px rgba(0,0,0,.25);
+                display:flex;align-items:center;justify-content:center;
+                font-size:${sel?'16':'20'}px;font-weight:800;color:#fff">
+                ${sel ? '✓' : ''}
+            </div>
+            <span style="font-size:9px;font-weight:700;color:var(--text-muted);text-align:center;line-height:1.3;white-space:pre-line">${t.name}</span>
+        </button>`;
+    }).join('');
+}
 const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 const TH_MONTHS_S = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 const TH_DAYS = ['อา','จ','อ','พ','พฤ','ศ','ส'];
@@ -664,7 +745,7 @@ const $ = id => document.getElementById(id);
 window.onload = function() {
     const t = new Date();
     curYear = t.getFullYear(); curMonth = t.getMonth()+1; statsYear = curYear;
-    loadSettings(); loadReasons(); loadRotConfig();
+    loadSettings(); loadReasons(); loadRotConfig(); loadTheme();
     $('restore-file').onchange = restoreData;
     renderCal();
 };
@@ -676,6 +757,7 @@ function switchTab(tab) {
         $('nav-'+t).classList.toggle('active', t===tab);
     });
     if (tab==='stats') renderStats();
+    if (tab==='settings') renderThemePicker();
 }
 
 // ===== Calendar =====
