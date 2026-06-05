@@ -698,7 +698,7 @@ function updateSumBar(data) {
         if(d.shift==='M') mD++; else if(d.shift==='N') nD++;
         ot15+=d.ot15||0; ot20+=d.ot20||0; ot30+=d.ot30||0;
     }
-    const hrs = (mD+nD)*8;
+    const hrs = (mD+nD)*12;
     const hr = s.salary>0 ? s.salary/s.mhours : 0;
     const inc = s.salary
         + mD*s.mRate + nD*s.nRate
