@@ -200,6 +200,13 @@
         /* Legend dots */
         .leg { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; opacity: .9; }
         .leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+        /* Rotation segment rows */
+        .seg-row { display:flex;align-items:flex-end;gap:8px;margin-bottom:8px; }
+        .seg-lbl { font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;display:block; }
+        /* Calendar summary section */
+        .cal-sum-wrap { background:var(--surface);border-top:1px solid var(--border); }
+        .cal-sum-tog { width:100%;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;color:var(--text); }
+        .cal-sum-body { padding:0 14px 16px; }
         @media print { .bot-nav, .overlay { display: none !important; } }
     </style>
 </head>
@@ -232,6 +239,26 @@
             <div class="cal-dh">พฤ</div><div class="cal-dh">ศ</div><div class="cal-dh">ส</div><div class="cal-dh">อา</div>
         </div>
         <div id="cal-body" class="cal-grid"></div>
+    </div>
+    <!-- Summary income section (collapsible) -->
+    <div class="cal-sum-wrap">
+        <button class="cal-sum-tog" onclick="toggleCalSum()" aria-expanded="false" id="cal-sum-tog">
+            <span>สรุปรายได้เดือนนี้</span>
+            <svg id="cal-sum-chev" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="transition:transform .3s"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+        </button>
+        <div id="cal-sum-body" class="cal-sum-body" style="display:none">
+            <div id="cal-sum-breakdown" style="margin-bottom:14px"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div>
+                    <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px">สัดส่วนรายได้</div>
+                    <div style="position:relative;height:140px"><canvas id="cal-pie-chart"></canvas></div>
+                </div>
+                <div>
+                    <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px">OT รายเดือน</div>
+                    <div style="position:relative;height:140px"><canvas id="cal-ot-chart"></canvas></div>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="sum-bar">
         <div class="sum-item">
@@ -410,15 +437,39 @@
 <div id="modal-rotation" class="overlay" style="display:none" onclick="overlayClose('modal-rotation',event)">
     <div class="sheet" onclick="event.stopPropagation()">
         <div class="sheet-handle"></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
             <div style="font-size:17px;font-weight:700">การหมุนเวียนกะ</div>
             <button onclick="closeModal('modal-rotation')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px">
                 <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
             </button>
         </div>
-        <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px">ระบุวันเริ่มกะเช้า แล้วระบบจะเติมปฏิทินอัตโนมัติตามรูปแบบ <strong>เช้า 3 วัน → หยุด 3 วัน → ดึก 3 วัน</strong> วนซ้ำ</p>
-        <div style="margin-bottom:12px"><label class="fl">วันเริ่มต้นกะเช้า</label><input type="date" id="rot-start" class="fi"></div>
+        <!-- Anchor date -->
+        <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:12px;margin-bottom:14px">
+            <div style="font-size:12px;font-weight:700;color:#166534;margin-bottom:4px">📍 วันอ้างอิงระบบ (ทีม A เริ่มกะเช้า)</div>
+            <div style="font-size:11px;color:#15803D;margin-bottom:8px">หาได้จากตารางกะโรงงาน — วันที่ทีม A เข้ากะเช้าวันแรกของรอบ</div>
+            <input type="date" id="rot-anchor" class="fi">
+        </div>
+        <!-- Team segments -->
         <div style="margin-bottom:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <label class="fl" style="margin:0">กะของฉัน (เพิ่มได้หลายช่วง)</label>
+                <button onclick="addRotSeg()" style="background:none;border:1px solid var(--primary);color:var(--primary);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif">+ เพิ่มช่วง</button>
+            </div>
+            <div id="rot-segs"></div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">ตัวอย่าง: ม.ค.–22 ก.พ. = ทีม A / 23 ก.พ.เป็นต้นไป = ทีม B</div>
+        </div>
+        <!-- Pattern reference -->
+        <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:10px;margin-bottom:12px;font-size:11px">
+            <div style="font-weight:700;color:#1D4ED8;margin-bottom:4px">รูปแบบวงรอบ 12 วัน</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:10px;text-align:center">
+                <div style="background:#DCFCE7;border-radius:4px;padding:4px"><div style="font-weight:700;color:#15803D">A=เช้า</div><div style="color:#6B7280">D=ดึก</div><div style="color:#9CA3AF">3 วัน</div></div>
+                <div style="background:#FEF9C3;border-radius:4px;padding:4px"><div style="font-weight:700;color:#166534">C=เช้า</div><div style="color:#6B7280">B=ดึก</div><div style="color:#9CA3AF">3 วัน</div></div>
+                <div style="background:#DBEAFE;border-radius:4px;padding:4px"><div style="font-weight:700;color:#1D4ED8">D=เช้า</div><div style="color:#6B7280">A=ดึก</div><div style="color:#9CA3AF">3 วัน</div></div>
+                <div style="background:#EDE9FE;border-radius:4px;padding:4px"><div style="font-weight:700;color:#5B21B6">B=เช้า</div><div style="color:#6B7280">C=ดึก</div><div style="color:#9CA3AF">3 วัน</div></div>
+            </div>
+        </div>
+        <!-- Months -->
+        <div style="margin-bottom:12px">
             <label class="fl">จำนวนเดือนที่ต้องการเติม</label>
             <select id="rot-months" class="fi">
                 <option value="1">1 เดือน</option>
@@ -428,9 +479,8 @@
                 <option value="12">12 เดือน</option>
             </select>
         </div>
-        <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:12px;margin-bottom:18px;font-size:13px">
-            <div style="font-weight:700;color:#C2410C;margin-bottom:4px">⚠️ หมายเหตุ</div>
-            <div style="color:#9A3412">จะเขียนทับข้อมูลกะที่มีอยู่ แต่ OT / เหตุผล / รายละเอียด จะไม่ถูกลบ</div>
+        <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:10px;margin-bottom:16px;font-size:12px;color:#9A3412">
+            ⚠️ จะเขียนทับข้อมูลกะที่มีอยู่ แต่ OT / เหตุผล / รายละเอียด จะไม่ถูกลบ
         </div>
         <button onclick="applyRotation()" class="btn-p">นำไปใส่ในปฏิทิน</button>
     </div>
@@ -501,6 +551,11 @@ let activeKey = null, activePick = '-';
 let reasonOpts = ['','แทนกะ','ลาพักร้อน','ลาป่วย','ลากิจ','แทนกะแอ้ว','ทำงานล่วงเวลากะ 4/2','ทำงานล่วงเวลากะ 3/3','แลกกะ','ช่วยงาน Shutdown PE1','ช่วยงาน Shutdown PE2','ช่วยงาน Shutdown PE3','ช่วยงาน Start up PE1','ช่วยงาน Start up PE2','ช่วยงาน Start up PE3','ช่วยงาน Shutdown PE1(LOTO)','ช่วยงาน Shutdown PE2(LOTO)','ช่วยงาน Shutdown PE3(LOTO)','แทนกะเก่ง','ทำงานต่อเนื่องเร่งด่วน'];
 let chartIncome = null, chartOT = null;
 
+const TEAM_OFFSETS = { A: 0, C: 3, D: 6, B: 9 };
+let rotConfig = { anchorDate: '', segments: [] };
+let calPieChart = null, calOTChart = null;
+let calSumOpen = false;
+
 const FIXED_HOL = ['01-01','04-06','04-13','04-14','04-15','05-01','05-04','06-03','07-28','08-12','10-13','10-23','12-05','12-10','12-31'];
 const VAR_HOL = {
     '2025':['02-10','02-26','04-07','04-16','05-05','05-26','07-24','07-25','07-29','10-14'],
@@ -528,7 +583,7 @@ const $ = id => document.getElementById(id);
 window.onload = function() {
     const t = new Date();
     curYear = t.getFullYear(); curMonth = t.getMonth()+1; statsYear = curYear;
-    loadSettings(); loadReasons();
+    loadSettings(); loadReasons(); loadRotConfig();
     $('restore-file').onchange = restoreData;
     renderCal();
 };
@@ -738,36 +793,126 @@ function renderStatsCharts(incData, otData) {
     });
 }
 
-// ===== Rotation =====
+// ===== Rotation (4-Team System) =====
+function loadRotConfig() {
+    try {
+        const str = SS.get('rotation_config');
+        if (str) {
+            const p = JSON.parse(str);
+            if (p && typeof p === 'object') {
+                rotConfig = { anchorDate: p.anchorDate || '', segments: Array.isArray(p.segments) ? p.segments : [] };
+                return;
+            }
+        }
+    } catch(e) {}
+    rotConfig = { anchorDate: '', segments: [] };
+}
+
+function saveRotConfig() {
+    SS.set('rotation_config', JSON.stringify(rotConfig));
+}
+
+function getShiftFromCycle(dateStr, anchorStr, team) {
+    const d1 = new Date(dateStr + 'T00:00:00');
+    const d0 = new Date(anchorStr + 'T00:00:00');
+    const daysDiff = Math.round((d1 - d0) / 86400000);
+    const cycleDay = ((daysDiff % 12) + 12) % 12;
+    const personalDay = ((cycleDay - (TEAM_OFFSETS[team] || 0)) % 12 + 12) % 12;
+    if (personalDay < 3) return 'M';
+    if (personalDay < 6) return '-';
+    if (personalDay < 9) return 'N';
+    return '-';
+}
+
+function getTeamForDate(dateStr, segments) {
+    const sorted = [...segments].sort((a, b) => a.fromDate.localeCompare(b.fromDate));
+    let team = sorted[0]?.team || 'A';
+    for (const seg of sorted) {
+        if (seg.fromDate <= dateStr) team = seg.team;
+        else break;
+    }
+    return team;
+}
+
 function openRotationModal() {
-    $('rot-start').value = new Date().toISOString().slice(0,10);
+    loadRotConfig();
+    $('rot-anchor').value = rotConfig.anchorDate || '';
+    renderRotSegs();
     openModal('modal-rotation');
 }
 
+function renderRotSegs() {
+    const c = $('rot-segs');
+    if (!rotConfig.segments.length) {
+        c.innerHTML = '<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:8px 0">กด "+ เพิ่มช่วง" เพื่อระบุช่วงเวลาและทีมของคุณ</div>';
+        return;
+    }
+    c.innerHTML = rotConfig.segments.map((seg, i) => `
+        <div class="seg-row">
+            <div style="flex:1">
+                <span class="seg-lbl">ตั้งแต่วันที่</span>
+                <input type="date" class="fi" value="${eh(seg.fromDate)}" oninput="rotConfig.segments[${i}].fromDate=this.value">
+            </div>
+            <div style="width:72px">
+                <span class="seg-lbl">ทีม</span>
+                <select class="fi" onchange="rotConfig.segments[${i}].team=this.value">
+                    ${['A','B','C','D'].map(t=>`<option value="${t}"${seg.team===t?' selected':''}>${t}</option>`).join('')}
+                </select>
+            </div>
+            <button onclick="removeRotSeg(${i})" style="background:none;border:none;cursor:pointer;color:#EF4444;padding:6px;flex-shrink:0;align-self:flex-end;margin-bottom:2px" aria-label="ลบ">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
+            </button>
+        </div>`).join('');
+}
+
+function addRotSeg() {
+    const today = new Date().toISOString().slice(0, 10);
+    rotConfig.segments.push({ fromDate: today, team: 'A' });
+    renderRotSegs();
+}
+
+function removeRotSeg(idx) {
+    rotConfig.segments.splice(idx, 1);
+    renderRotSegs();
+}
+
 function applyRotation() {
-    const startStr = $('rot-start').value;
+    const anchorStr = $('rot-anchor').value;
     const numMo = parseInt($('rot-months').value);
-    if (!startStr) { showToast('กรุณาระบุวันเริ่มต้น','err'); return; }
-    const start = new Date(startStr+'T00:00:00');
-    const end = new Date(start); end.setMonth(end.getMonth()+numMo);
-    const daysDiff = Math.floor((end-start)/86400000);
-    const pattern = ['M','M','M','-','-','-','N','N','N','-','-','-'];
+    if (!anchorStr) { showToast('กรุณาระบุวันอ้างอิง', 'err'); return; }
+    if (!rotConfig.segments.length) { showToast('กรุณาเพิ่มช่วงทีมอย่างน้อย 1 ช่วง', 'err'); return; }
+    rotConfig.anchorDate = anchorStr;
+    saveRotConfig();
+    const segs = [...rotConfig.segments].sort((a, b) => a.fromDate.localeCompare(b.fromDate));
+    const startStr = segs[0].fromDate;
+    const start = new Date(startStr + 'T00:00:00');
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + numMo);
+    const daysDiff = Math.round((end - start) / 86400000);
     showConfirm(`เติมกะ ${numMo} เดือน ตั้งแต่ ${startStr}?`, () => {
         const groups = {};
-        for (let i=0; i<daysDiff; i++) {
-            const d = new Date(start); d.setDate(d.getDate()+i);
-            const y=d.getFullYear(), mo=d.getMonth()+1, day=d.getDate();
-            const key=`${y}-${mo}-${day}`, ymk=`${y}_${mo}`;
-            if (!groups[ymk]) groups[ymk]={y,mo,ch:{}};
-            groups[ymk].ch[key]=pattern[i%12];
+        for (let i = 0; i < daysDiff; i++) {
+            const dt = new Date(start);
+            dt.setDate(dt.getDate() + i);
+            const y = dt.getFullYear(), mo = dt.getMonth() + 1, day = dt.getDate();
+            const dateStr = `${y}-${String(mo).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            const key = `${y}-${mo}-${day}`;
+            const ymk = `${y}_${mo}`;
+            const team = getTeamForDate(dateStr, rotConfig.segments);
+            const shift = getShiftFromCycle(dateStr, anchorStr, team);
+            if (!groups[ymk]) groups[ymk] = { y, mo, ch: {} };
+            groups[ymk].ch[key] = shift;
         }
         for (const ymk in groups) {
-            const {y,mo,ch}=groups[ymk];
-            const existing = getMonthData(y,mo);
+            const { y, mo, ch } = groups[ymk];
+            const existing = getMonthData(y, mo);
             for (const k in ch) {
-                const ex=existing[k]||{};
-                if (ch[k]==='-' && !ex.ot15 && !ex.ot20 && !ex.ot30 && !ex.reason && !ex.detail) { delete existing[k]; }
-                else existing[k]={shift:ch[k],ot15:ex.ot15||0,ot20:ex.ot20||0,ot30:ex.ot30||0,reason:ex.reason||'',detail:ex.detail||''};
+                const ex = existing[k] || {};
+                if (ch[k] === '-' && !ex.ot15 && !ex.ot20 && !ex.ot30 && !ex.reason && !ex.detail) {
+                    delete existing[k];
+                } else {
+                    existing[k] = { shift: ch[k], ot15: ex.ot15 || 0, ot20: ex.ot20 || 0, ot30: ex.ot30 || 0, reason: ex.reason || '', detail: ex.detail || '' };
+                }
             }
             SS.set(`shift_data_${y}_${mo}`, JSON.stringify(existing));
         }
@@ -775,6 +920,98 @@ function applyRotation() {
         closeModal('modal-rotation');
         renderCal();
         showToast('เติมกะเรียบร้อย!');
+    });
+}
+
+// ===== Calendar Summary =====
+function toggleCalSum() {
+    calSumOpen = !calSumOpen;
+    const body = $('cal-sum-body');
+    const chev = $('cal-sum-chev');
+    body.style.display = calSumOpen ? 'block' : 'none';
+    chev.style.transform = calSumOpen ? 'rotate(180deg)' : '';
+    $('cal-sum-tog').setAttribute('aria-expanded', String(calSumOpen));
+    if (calSumOpen) renderCalSum();
+}
+
+function renderCalSum() {
+    const s = readSettings();
+    const hr = s.salary > 0 ? s.salary / s.mhours : 0;
+    const data = getMonthData(curYear, curMonth);
+    let mD = 0, nD = 0, ot15 = 0, ot20 = 0, ot30 = 0;
+    for (const k in data) {
+        const d = data[k];
+        if (d.shift === 'M') mD++; else if (d.shift === 'N') nD++;
+        ot15 += d.ot15 || 0; ot20 += d.ot20 || 0; ot30 += d.ot30 || 0;
+    }
+    const baseInc = s.salary;
+    const shiftInc = mD * s.mRate + nD * s.nRate;
+    const otInc = ot15 * hr * 1.5 + ot20 * hr * 2 + ot30 * hr * 3;
+    const houseInc = s.salary * (s.house / 100);
+    const bonusInc = s.salary * (s.bonus / 100);
+    const totalInc = baseInc + shiftInc + otInc + houseInc + bonusInc;
+    const fmt = v => Math.round(v).toLocaleString('th-TH');
+    $('cal-sum-breakdown').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;justify-content:space-between;font-size:13px">
+                <span style="color:var(--text-muted)">เงินเดือนพื้นฐาน</span>
+                <span style="font-weight:600">฿${fmt(baseInc)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px">
+                <span style="color:var(--text-muted)">ค่ากะ (เช้า ${mD}วัน / ดึก ${nD}วัน)</span>
+                <span style="font-weight:600">฿${fmt(shiftInc)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px">
+                <span style="color:var(--text-muted)">OT รวม (${(ot15+ot20+ot30).toFixed(1)} ชม.)</span>
+                <span style="font-weight:600">฿${fmt(otInc)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px">
+                <span style="color:var(--text-muted)">ค่าบ้าน</span>
+                <span style="font-weight:600">฿${fmt(houseInc)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px">
+                <span style="color:var(--text-muted)">โบนัสวันหยุด</span>
+                <span style="font-weight:600">฿${fmt(bonusInc)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;border-top:1px solid var(--border);padding-top:6px;margin-top:2px">
+                <span>รวมทั้งหมด</span>
+                <span style="color:var(--primary)">฿${fmt(totalInc)}</span>
+            </div>
+        </div>`;
+    // Pie: income breakdown
+    const pieValues = [baseInc, shiftInc, otInc, houseInc, bonusInc];
+    const allLabels = ['เงินเดือน', 'ค่ากะ', 'OT', 'ค่าบ้าน', 'โบนัส'];
+    const allColors = ['#F97316', '#22C55E', '#3B82F6', '#8B5CF6', '#F59E0B'];
+    const idx = pieValues.map((v,i) => v > 0 ? i : -1).filter(i => i >= 0);
+    if (calPieChart) calPieChart.destroy();
+    calPieChart = new Chart($('cal-pie-chart').getContext('2d'), {
+        type: 'doughnut',
+        data: { labels: idx.map(i => allLabels[i]), datasets: [{ data: idx.map(i => pieValues[i]), backgroundColor: idx.map(i => allColors[i]), borderWidth: 0 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false, cutout: '55%',
+            plugins: {
+                legend: { display: true, position: 'bottom', labels: { font: { size: 9 }, boxWidth: 10, padding: 5 } },
+                tooltip: { callbacks: { label: c => '฿' + Math.round(c.raw).toLocaleString('th-TH') } }
+            }
+        }
+    });
+    // Bar: 12-month OT
+    const otArr = [];
+    for (let m = 1; m <= 12; m++) {
+        const md = getMonthData(curYear, m);
+        let tot = 0;
+        for (const k in md) { const d = md[k]; tot += (d.ot15||0)+(d.ot20||0)+(d.ot30||0); }
+        otArr.push(tot);
+    }
+    if (calOTChart) calOTChart.destroy();
+    calOTChart = new Chart($('cal-ot-chart').getContext('2d'), {
+        type: 'bar',
+        data: { labels: TH_MONTHS_S, datasets: [{ data: otArr, backgroundColor: otArr.map(v => v > MAX_OT ? '#EF4444' : 'rgba(59,130,246,.75)'), borderRadius: 3 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.raw.toFixed(1)+' ชม.' } } },
+            scales: { y: { beginAtZero: true, ticks: { font: { size: 9 } }, grid: { color: 'rgba(0,0,0,.05)' } }, x: { grid: { display: false }, ticks: { font: { size: 8 } } } }
+        }
     });
 }
 
