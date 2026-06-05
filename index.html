@@ -248,15 +248,13 @@
         </button>
         <div id="cal-sum-body" class="cal-sum-body" style="display:none">
             <div id="cal-sum-breakdown" style="margin-bottom:14px"></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                <div>
-                    <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px">สัดส่วนรายได้</div>
-                    <div style="position:relative;height:140px"><canvas id="cal-pie-chart"></canvas></div>
-                </div>
-                <div>
-                    <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px">OT รายเดือน</div>
-                    <div style="position:relative;height:140px"><canvas id="cal-ot-chart"></canvas></div>
-                </div>
+            <div style="margin-bottom:14px">
+                <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px">สัดส่วนรายได้</div>
+                <div style="position:relative;height:160px"><canvas id="cal-pie-chart"></canvas></div>
+            </div>
+            <div>
+                <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px">OT รายเดือน</div>
+                <div style="position:relative;height:140px"><canvas id="cal-ot-chart"></canvas></div>
             </div>
         </div>
     </div>
@@ -318,6 +316,14 @@
         <div class="s-card">
             <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:12px">สรุปตามประเภทกะ — <span id="st-cur-month"></span></div>
             <div id="st-breakdown"></div>
+        </div>
+        <div class="s-card">
+            <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:12px">สถิติการลา — <span id="st-leave-yr"></span></div>
+            <div id="st-leave"></div>
+        </div>
+        <div class="s-card">
+            <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:12px">การแทนกะ — <span id="st-swap-yr"></span></div>
+            <div id="st-swap"></div>
         </div>
     </div>
 </div>
@@ -548,7 +554,7 @@ const TH_DAYS = ['อา','จ','อ','พ','พฤ','ศ','ส'];
 // ===== State =====
 let curYear, curMonth, statsYear;
 let activeKey = null, activePick = '-';
-let reasonOpts = ['','แทนกะ','ลาพักร้อน','ลาป่วย','ลากิจ','แทนกะแอ้ว','ทำงานล่วงเวลากะ 4/2','ทำงานล่วงเวลากะ 3/3','แลกกะ','ช่วยงาน Shutdown PE1','ช่วยงาน Shutdown PE2','ช่วยงาน Shutdown PE3','ช่วยงาน Start up PE1','ช่วยงาน Start up PE2','ช่วยงาน Start up PE3','ช่วยงาน Shutdown PE1(LOTO)','ช่วยงาน Shutdown PE2(LOTO)','ช่วยงาน Shutdown PE3(LOTO)','แทนกะเก่ง','ทำงานต่อเนื่องเร่งด่วน'];
+let reasonOpts = ['','แทนกะ','มีคนมาแทน','ลาพักร้อน','ลาป่วย','ลากิจ','แทนกะแอ้ว','ทำงานล่วงเวลากะ 4/2','ทำงานล่วงเวลากะ 3/3','แลกกะ','ช่วยงาน Shutdown PE1','ช่วยงาน Shutdown PE2','ช่วยงาน Shutdown PE3','ช่วยงาน Start up PE1','ช่วยงาน Start up PE2','ช่วยงาน Start up PE3','ช่วยงาน Shutdown PE1(LOTO)','ช่วยงาน Shutdown PE2(LOTO)','ช่วยงาน Shutdown PE3(LOTO)','แทนกะเก่ง','ทำงานต่อเนื่องเร่งด่วน'];
 let chartIncome = null, chartOT = null;
 
 const TEAM_OFFSETS = { A: 0, C: 3, D: 6, B: 9 };
@@ -768,6 +774,7 @@ function renderStats() {
             </div>
         </div>`;
     renderStatsCharts(incArr, otArr);
+    renderLeaveSwapStats();
 }
 
 function renderStatsCharts(incData, otData) {
@@ -791,6 +798,90 @@ function renderStatsCharts(incData, otData) {
             scales:{ y:{beginAtZero:true, ticks:{font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'}}, x:{grid:{display:false}, ticks:{font:{size:10}}} }
         }
     });
+}
+
+// ===== Leave & Swap Stats =====
+function renderLeaveSwapStats() {
+    const LEAVE_CATS = ['ลาป่วย', 'ลากิจ', 'ลาพักร้อน'];
+    const leaveCounts = { 'ลาป่วย': 0, 'ลากิจ': 0, 'ลาพักร้อน': 0, 'ลาอื่นๆ': 0 };
+    const leaveColors = { 'ลาป่วย': '#EF4444', 'ลากิจ': '#F59E0B', 'ลาพักร้อน': '#22C55E', 'ลาอื่นๆ': '#9CA3AF' };
+    const outSwaps = [];
+    const inSwaps = [];
+
+    for (let m = 1; m <= 12; m++) {
+        const data = getMonthData(statsYear, m);
+        const daysInMo = new Date(statsYear, m, 0).getDate();
+        for (let day = 1; day <= daysInMo; day++) {
+            const key = `${statsYear}-${m}-${day}`;
+            const d = data[key];
+            if (!d) continue;
+            const reason = d.reason || '';
+            const detail = d.detail || '';
+            const dateLabel = `${day} ${TH_MONTHS_S[m-1]}`;
+
+            // Leave counting
+            if (LEAVE_CATS.includes(reason)) {
+                leaveCounts[reason]++;
+            } else if ((d.shift === '-' || !d.shift) && reason && !reason.startsWith('แทนกะ') && reason !== 'มีคนมาแทน') {
+                leaveCounts['ลาอื่นๆ']++;
+            }
+
+            // Swap tracking
+            if (reason.startsWith('แทนกะ') && (d.shift === 'M' || d.shift === 'N')) {
+                let person = detail;
+                if (!person && reason.length > 4) person = reason.slice(4);
+                outSwaps.push({ dateLabel, person: person || '?', shift: d.shift });
+            } else if (reason === 'มีคนมาแทน') {
+                inSwaps.push({ dateLabel, person: detail || '?' });
+            }
+        }
+    }
+
+    // Leave stats card
+    const leaveTotal = Object.values(leaveCounts).reduce((a, b) => a + b, 0);
+    $('st-leave-yr').textContent = statsYear;
+    $('st-leave').innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:8px">
+            ${Object.entries(leaveCounts).map(([type, count]) => `
+            <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;min-width:72px;text-align:center;background:${leaveColors[type]}22;color:${leaveColors[type]}">${type}</span>
+                <div style="flex:1;background:#F3F4F6;border-radius:99px;height:8px">
+                    <div style="background:${leaveColors[type]};width:${leaveTotal > 0 ? (count / leaveTotal * 100).toFixed(0) : 0}%;height:8px;border-radius:99px;transition:width .4s"></div>
+                </div>
+                <span style="font-size:13px;font-weight:700;min-width:36px;text-align:right">${count} วัน</span>
+            </div>`).join('')}
+            <div style="font-size:11px;color:var(--text-muted);text-align:right;margin-top:2px">รวมทั้งปี ${leaveTotal} วัน</div>
+        </div>`;
+
+    // Swap stats card
+    $('st-swap-yr').textContent = statsYear;
+    let swapHTML = '';
+    if (outSwaps.length) {
+        swapHTML += `<div style="margin-bottom:12px">
+            <div style="font-size:12px;font-weight:700;color:#059669;margin-bottom:6px">ฉันไปแทนกะ — ${outSwaps.length} ครั้ง</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+                ${outSwaps.map(s => `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 10px;background:#F0FDF4;border-radius:8px">
+                    <span style="color:var(--text-muted)">${s.dateLabel}</span>
+                    <span style="font-weight:600;color:#065F46">แทน ${s.person}&ensp;<span class="s-badge ${s.shift==='M'?'s-m':'s-n'}" style="font-size:9px;padding:2px 5px">${s.shift==='M'?'เช้า':'ดึก'}</span></span>
+                </div>`).join('')}
+            </div>
+        </div>`;
+    }
+    if (inSwaps.length) {
+        swapHTML += `<div>
+            <div style="font-size:12px;font-weight:700;color:#7C3AED;margin-bottom:6px">มีคนมาแทนฉัน — ${inSwaps.length} ครั้ง</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+                ${inSwaps.map(s => `<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 10px;background:#F5F3FF;border-radius:8px">
+                    <span style="color:var(--text-muted)">${s.dateLabel}</span>
+                    <span style="font-weight:600;color:#5B21B6">${s.person} มาแทน</span>
+                </div>`).join('')}
+            </div>
+        </div>`;
+    }
+    if (!outSwaps.length && !inSwaps.length) {
+        swapHTML = '<div style="font-size:13px;color:var(--text-muted);text-align:center;padding:8px 0">ไม่มีข้อมูลการแทนกะในปีนี้</div>';
+    }
+    $('st-swap').innerHTML = swapHTML;
 }
 
 // ===== Rotation (4-Team System) =====
@@ -931,7 +1022,10 @@ function toggleCalSum() {
     body.style.display = calSumOpen ? 'block' : 'none';
     chev.style.transform = calSumOpen ? 'rotate(180deg)' : '';
     $('cal-sum-tog').setAttribute('aria-expanded', String(calSumOpen));
-    if (calSumOpen) renderCalSum();
+    if (calSumOpen) {
+        renderCalSum();
+        setTimeout(() => $('cal-sum-tog').scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    }
 }
 
 function renderCalSum() {
