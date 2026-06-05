@@ -55,10 +55,10 @@
         .cal-day {
             background: var(--surface);
             border-radius: 8px;
-            min-height: 76px;
+            min-height: 86px;
             padding: 5px 3px;
             cursor: pointer;
-            display: flex; flex-direction: column; align-items: center; gap: 3px;
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
             position: relative;
             transition: opacity .1s;
             -webkit-tap-highlight-color: transparent;
@@ -200,6 +200,12 @@
         /* Legend dots */
         .leg { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; opacity: .9; }
         .leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+        /* Team pair badges in calendar cell */
+        .team-pair { display:flex;gap:2px;justify-content:center;width:100%; }
+        .tp-m { font-size:9px;font-weight:800;color:#15803D;background:#DCFCE7;border-radius:3px;padding:1px 3px;line-height:1.2; }
+        .tp-n { font-size:9px;font-weight:800;color:#1D4ED8;background:#DBEAFE;border-radius:3px;padding:1px 3px;line-height:1.2; }
+        /* Holiday name in calendar cell */
+        .hol-name { font-size:8px;font-weight:700;color:#DC2626;text-align:center;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2; }
         /* Rotation segment rows */
         .seg-row { display:flex;align-items:flex-end;gap:8px;margin-bottom:8px; }
         .seg-lbl { font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;display:block; }
@@ -271,6 +277,9 @@
             <div class="sum-label">รายได้เดือนนี้</div>
             <div class="sum-val" id="s-income" style="color:var(--primary)">฿0</div>
         </div>
+    </div>
+    <div style="text-align:center;padding:5px 0 6px;background:var(--bg)">
+        <span style="font-size:10px;color:var(--text-muted);font-weight:600;letter-spacing:.04em">Supasit A. &amp; AI · ShiftPro Tracker</span>
     </div>
 </div>
 
@@ -390,15 +399,7 @@
                 <svg width="16" height="16" fill="#EF4444" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg>
             </div>
         </div>
-        <div style="text-align:center;padding:8px 0 4px">
-            <div style="display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 16px">
-                <span style="font-size:18px">🏭</span>
-                <div style="text-align:left">
-                    <div style="font-size:13px;font-weight:700;color:var(--primary)">Supasiao7896TH</div>
-                    <div style="font-size:10px;color:var(--text-muted)">ShiftPro Tracker · Made with ❤️</div>
-                </div>
-            </div>
-        </div>
+        <p style="font-size:11px;color:var(--text-muted);text-align:center;padding:4px 0">Supasit A. &amp; AI · ShiftPro Tracker</p>
     </div>
 </div>
 
@@ -578,6 +579,34 @@ const VAR_HOL = {
 };
 const getHols = yr => [...FIXED_HOL, ...(VAR_HOL[String(yr)] || [])];
 
+// Holiday names (short, for calendar cells)
+const HOL_NAMES = {
+    '01-01':'ปีใหม่','04-06':'จักรี','04-13':'สงกรานต์','04-14':'สงกรานต์',
+    '04-15':'สงกรานต์','05-01':'แรงงาน','05-04':'ฉัตรมงคล','06-03':'พระราชินี',
+    '07-28':'ร.10','08-12':'แม่แห่งชาติ','10-13':'ร.9','10-23':'ปิยมหาราช',
+    '12-05':'พ่อแห่งชาติ','12-10':'รัฐธรรมนูญ','12-31':'สิ้นปี'
+};
+const VAR_HOL_NAMES = {
+    '2025':{'02-10':'ตรุษจีน','02-26':'มาฆบูชา','04-07':'ชดเชย','04-16':'ชดเชย','05-05':'วิสาขบูชา','05-26':'ชดเชย','07-24':'อาสาฬหบูชา','07-25':'เข้าพรรษา','07-29':'ชดเชย','10-14':'ชดเชย'},
+    '2026':{'01-02':'ชดเชย','03-03':'มาฆบูชา','05-13':'วิสาขบูชา','05-31':'อาสาฬหบูชา','06-01':'เข้าพรรษา','07-29':'ชดเชย','07-30':'ชดเชย','10-16':'ชดเชย','12-07':'ชดเชย'},
+    '2027':{'02-21':'มาฆบูชา','02-22':'ชดเชย','05-20':'วิสาขบูชา','07-18':'อาสาฬหบูชา','07-19':'เข้าพรรษา','07-20':'ชดเชย','10-25':'ชดเชย','12-06':'ชดเชย'}
+};
+function getHolName(dk, yr) {
+    return HOL_NAMES[dk] || (VAR_HOL_NAMES[String(yr)] || {})[dk] || '';
+}
+
+// 4-team pair lookup (which pair does เช้า/ดึก each cycle day)
+const PAIR_BY_CYCLE = [
+    {m:'A',n:'D'},{m:'A',n:'D'},{m:'A',n:'D'},
+    {m:'C',n:'B'},{m:'C',n:'B'},{m:'C',n:'B'},
+    {m:'D',n:'A'},{m:'D',n:'A'},{m:'D',n:'A'},
+    {m:'B',n:'C'},{m:'B',n:'C'},{m:'B',n:'C'},
+];
+function getPairForDate(dateStr, anchorStr) {
+    const diff = Math.round((new Date(dateStr+'T00:00:00') - new Date(anchorStr+'T00:00:00')) / 86400000);
+    return PAIR_BY_CYCLE[((diff % 12) + 12) % 12];
+}
+
 // ===== Safe Storage =====
 const _LS = (() => { try { const s = window['local'+'Storage']; s.setItem('__t','1'); s.removeItem('__t'); return s; } catch(e) { return null; } })();
 const _mem = {};
@@ -648,9 +677,14 @@ function renderCal() {
         if (shift==='M') badge = '<span class="s-badge s-m">เช้า</span>';
         else if (shift==='N') badge = '<span class="s-badge s-n">ดึก</span>';
         else badge = '<span class="s-badge s-off">หยุด</span>';
+        const holName = getHolName(dk, curYear);
+        const holBadge = holName ? `<div class="hol-name">${holName}</div>` : '';
+        const dateStr = `${curYear}-${String(curMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const pair = rotConfig.anchorDate ? getPairForDate(dateStr, rotConfig.anchorDate) : null;
+        const teamBadge = pair ? `<div class="team-pair"><span class="tp-m">☀${pair.m}</span><span class="tp-n">●${pair.n}</span></div>` : '';
         html += `<div class="${cls}" onclick="openDayModal('${key}',${d})">
             ${hasOT?'<span class="ot-dot"></span>':''}
-            <span class="d-num">${d}</span>${badge}</div>`;
+            <span class="d-num">${d}</span>${badge}${holBadge}${teamBadge}</div>`;
     }
     $('cal-body').innerHTML = html;
     updateSumBar(data);
