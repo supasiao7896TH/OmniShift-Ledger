@@ -57,6 +57,8 @@
         /* Calendar grid */
         .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
         .cal-dh { text-align: center; font-size: 12px; font-weight: 700; color: var(--text-muted); padding: 7px 0; }
+        .cal-dh.sun { color: #EF4444; }
+        .cal-day.sun-col .d-num { color: #EF4444; }
         .cal-day {
             background: var(--surface);
             border-radius: 8px;
@@ -266,8 +268,8 @@
     </div>
     <div id="cal-swipe-area" style="padding:8px;touch-action:pan-y">
         <div class="cal-grid" style="margin-bottom:2px">
-            <div class="cal-dh">Mon</div><div class="cal-dh">Tue</div><div class="cal-dh">Wed</div>
-            <div class="cal-dh">Thu</div><div class="cal-dh">Fri</div><div class="cal-dh">Sat</div><div class="cal-dh">Sun</div>
+            <div class="cal-dh sun">Sun</div><div class="cal-dh">Mon</div><div class="cal-dh">Tue</div>
+            <div class="cal-dh">Wed</div><div class="cal-dh">Thu</div><div class="cal-dh">Fri</div><div class="cal-dh">Sat</div>
         </div>
         <div id="cal-body" class="cal-grid"></div>
     </div>
@@ -961,7 +963,7 @@ function renderCal() {
     });
     const today = new Date();
     const isCurMonth = today.getFullYear()===curYear && today.getMonth()+1===curMonth;
-    const firstDow = (new Date(curYear, curMonth-1, 1).getDay()+6)%7;
+    const firstDow = new Date(curYear, curMonth-1, 1).getDay(); // 0=Sun … 6=Sat (Sunday-first)
     const daysInMonth = new Date(curYear, curMonth, 0).getDate();
     let html = '';
     for (let i=0; i<firstDow; i++) html += '<div class="cal-day empty"></div>';
@@ -982,6 +984,7 @@ function renderCal() {
         let cls = 'cal-day';
         if (isHol) cls+=' holiday'; else if (isCustomHol) cls+=' custom-hol'; else if (isWE) cls+=' weekend';
         if (isTd) cls+=' today';
+        if (dow===0) cls+=' sun-col';
         let badge = '';
         if (shift==='M') badge = '<span class="s-badge s-m">M</span>';
         else if (shift==='N') badge = '<span class="s-badge s-n">N</span>';
