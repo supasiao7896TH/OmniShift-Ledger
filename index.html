@@ -156,6 +156,7 @@
         }
         .sp-m { background: #DCFCE7; border-color: #22C55E; color: #15803D; }
         .sp-n { background: #DBEAFE; border-color: #3B82F6; color: #1D4ED8; }
+        .sp-d { background: #FFEDD5; border-color: #F97316; color: #C2410C; }
         .sp-off { background: #F3F4F6; border-color: #9CA3AF; color: #374151; }
         /* Form */
         .fl { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; display: block; }
@@ -257,9 +258,10 @@
             </button>
         </div>
         <div style="display:flex;justify-content:center;gap:16px">
-            <span class="leg"><span class="leg-dot" style="background:#22C55E"></span>เช้า</span>
-            <span class="leg"><span class="leg-dot" style="background:#3B82F6"></span>ดึก</span>
-            <span class="leg"><span class="leg-dot" style="background:#D1D5DB;border:1px solid rgba(255,255,255,.4)"></span>หยุด</span>
+            <span class="leg"><span class="leg-dot" style="background:#22C55E"></span>M</span>
+            <span class="leg"><span class="leg-dot" style="background:#3B82F6"></span>N</span>
+            <span class="leg"><span class="leg-dot" style="background:#F97316"></span>D</span>
+            <span class="leg"><span class="leg-dot" style="background:#D1D5DB;border:1px solid rgba(255,255,255,.4)"></span>OFF</span>
         </div>
     </div>
     <div id="cal-swipe-area" style="padding:8px;touch-action:pan-y">
@@ -482,10 +484,10 @@
         <div style="margin-bottom:14px">
             <label class="fl">กะทำงาน</label>
             <div class="shift-pick">
-                <button class="sp-btn" id="sp-m" onclick="pickShift('M')">เช้า</button>
-                <button class="sp-btn" id="sp-n" onclick="pickShift('N')">ดึก</button>
-                <button class="sp-btn" id="sp-d" onclick="pickShift('D')">เดย์</button>
-                <button class="sp-btn" id="sp-off" onclick="pickShift('-')">หยุด</button>
+                <button class="sp-btn" id="sp-m" onclick="pickShift('M')">M</button>
+                <button class="sp-btn" id="sp-n" onclick="pickShift('N')">N</button>
+                <button class="sp-btn" id="sp-d" onclick="pickShift('D')">D</button>
+                <button class="sp-btn" id="sp-off" onclick="pickShift('-')">OFF</button>
             </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
@@ -980,10 +982,10 @@ function renderCal() {
         if (isHol) cls+=' holiday'; else if (isCustomHol) cls+=' custom-hol'; else if (isWE) cls+=' weekend';
         if (isTd) cls+=' today';
         let badge = '';
-        if (shift==='M') badge = '<span class="s-badge s-m">เช้า</span>';
-        else if (shift==='N') badge = '<span class="s-badge s-n">ดึก</span>';
-        else if (shift==='D') badge = '<span class="s-badge s-d">เดย์</span>';
-        else badge = '<span class="s-badge s-off">หยุด</span>';
+        if (shift==='M') badge = '<span class="s-badge s-m">M</span>';
+        else if (shift==='N') badge = '<span class="s-badge s-n">N</span>';
+        else if (shift==='D') badge = '<span class="s-badge s-d">D</span>';
+        else badge = '<span class="s-badge s-off">OFF</span>';
         const holName = getHolName(dk, curYear) || (isCustomHol ? customHolMap[fullDateKey] : '');
         const holBadge = holName ? `<div class="hol-name${isCustomHol ? ' custom' : ''}">${holName}</div>` : '';
         const dateStr = `${curYear}-${String(curMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -1143,28 +1145,28 @@ function renderStats() {
     $('st-breakdown').innerHTML = `
         <div style="display:flex;flex-direction:column;gap:10px">
             <div style="display:flex;align-items:center;gap:10px">
-                <span class="s-badge s-m" style="width:44px;flex-shrink:0">เช้า</span>
+                <span class="s-badge s-m" style="width:44px;flex-shrink:0">M</span>
                 <div style="flex:1;background:#F3F4F6;border-radius:99px;height:10px">
                     <div style="background:#22C55E;width:${pct(mC)}%;height:10px;border-radius:99px;transition:width .4s"></div>
                 </div>
                 <span style="font-size:13px;font-weight:700;width:40px;text-align:right">${mC} วัน</span>
             </div>
             <div style="display:flex;align-items:center;gap:10px">
-                <span class="s-badge s-n" style="width:44px;flex-shrink:0">ดึก</span>
+                <span class="s-badge s-n" style="width:44px;flex-shrink:0">N</span>
                 <div style="flex:1;background:#F3F4F6;border-radius:99px;height:10px">
                     <div style="background:#3B82F6;width:${pct(nC)}%;height:10px;border-radius:99px;transition:width .4s"></div>
                 </div>
                 <span style="font-size:13px;font-weight:700;width:40px;text-align:right">${nC} วัน</span>
             </div>
             <div style="display:flex;align-items:center;gap:10px">
-                <span class="s-badge s-d" style="width:44px;flex-shrink:0">เดย์</span>
+                <span class="s-badge s-d" style="width:44px;flex-shrink:0">D</span>
                 <div style="flex:1;background:#F3F4F6;border-radius:99px;height:10px">
                     <div style="background:#F97316;width:${pct(dC)}%;height:10px;border-radius:99px;transition:width .4s"></div>
                 </div>
                 <span style="font-size:13px;font-weight:700;width:40px;text-align:right">${dC} วัน</span>
             </div>
             <div style="display:flex;align-items:center;gap:10px">
-                <span class="s-badge s-off" style="width:44px;flex-shrink:0">หยุด</span>
+                <span class="s-badge s-off" style="width:44px;flex-shrink:0">OFF</span>
                 <div style="flex:1;background:#F3F4F6;border-radius:99px;height:10px">
                     <div style="background:#9CA3AF;width:${pct(offC)}%;height:10px;border-radius:99px;transition:width .4s"></div>
                 </div>
@@ -1269,7 +1271,7 @@ function renderLeaveSwapStats() {
         <div style="display:flex;flex-direction:column;gap:4px">
             ${outSwaps.length ? outSwaps.map(s => `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 10px;background:#F0FDF4;border-radius:8px">
                 <span style="color:var(--text-muted)">${s.dateLabel}</span>
-                <span style="font-weight:600;color:#065F46">แทน ${s.person}${s.shift ? `&ensp;<span class="s-badge ${s.shift==='M'?'s-m':'s-n'}" style="font-size:9px;padding:2px 5px">${s.shift==='M'?'เช้า':'ดึก'}</span>` : ''}</span>
+                <span style="font-weight:600;color:#065F46">แทน ${s.person}${s.shift ? `&ensp;<span class="s-badge ${s.shift==='M'?'s-m':'s-n'}" style="font-size:9px;padding:2px 5px">${s.shift==='M'?'M':'N'}</span>` : ''}</span>
             </div>`).join('') : '<div style="font-size:12px;color:var(--text-muted);padding:6px 0">ยังไม่มีข้อมูล</div>'}
         </div>
     </div>`;
