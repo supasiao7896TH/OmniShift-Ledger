@@ -243,7 +243,10 @@
             </button>
             <div style="text-align:center">
                 <div id="cal-title" style="font-size:20px;font-weight:700"></div>
-                <div id="cal-be" style="font-size:12px;opacity:.8"></div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:2px">
+                    <div id="cal-be" style="font-size:12px;opacity:.8"></div>
+                    <button id="btn-go-today" onclick="goToday()" style="display:none;background:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.5);color:#fff;border-radius:10px;padding:1px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;line-height:1.8">วันนี้</button>
+                </div>
             </div>
             <button onclick="changeMonth(1)" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;opacity:.9" aria-label="เดือนถัดไป">
                 <svg width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
@@ -255,7 +258,7 @@
             <span class="leg"><span class="leg-dot" style="background:#D1D5DB;border:1px solid rgba(255,255,255,.4)"></span>หยุด</span>
         </div>
     </div>
-    <div style="padding:8px">
+    <div id="cal-swipe-area" style="padding:8px;touch-action:pan-y">
         <div class="cal-grid" style="margin-bottom:2px">
             <div class="cal-dh">จ</div><div class="cal-dh">อ</div><div class="cal-dh">พ</div>
             <div class="cal-dh">พฤ</div><div class="cal-dh">ศ</div><div class="cal-dh">ส</div><div class="cal-dh">อา</div>
@@ -632,12 +635,22 @@
             <button onclick="closeModal('modal-custom-hol')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px">✕</button>
         </div>
         <div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#6D28D9">
-            🟣 วันหยุดที่คุณกำหนดเองจะแสดงสีม่วงอ่อนในปฏิทิน
+            🟣 วันหยุดที่คุณกำหนดเองจะแสดงสีม่วงอ่อนในปฏิทิน — กำหนดเป็นวันเดียวหรือช่วงวันก็ได้
         </div>
         <!-- Add form -->
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
-            <input type="date" id="ch-date" class="fi">
             <input type="text" id="ch-name" class="fi" placeholder="ชื่อวันหยุด เช่น วันหยุดโรงงาน, วันพระราชทานพิเศษ" maxlength="30">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div style="flex:1">
+                    <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px">วันที่เริ่ม</div>
+                    <input type="date" id="ch-date-from" class="fi" style="width:100%">
+                </div>
+                <div style="color:var(--text-muted);padding-top:16px">—</div>
+                <div style="flex:1">
+                    <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px">วันที่สิ้นสุด <span style="opacity:.6">(ถ้ามีหลายวัน)</span></div>
+                    <input type="date" id="ch-date-to" class="fi" style="width:100%">
+                </div>
+            </div>
             <button onclick="addCustomHol()" class="btn-p" style="width:100%">+ เพิ่มวันหยุด</button>
         </div>
         <!-- List -->
@@ -771,12 +784,16 @@ function loadCustomHols() {
     try { customHols = JSON.parse(SS.get('custom_holidays') || '[]'); } catch(e) { customHols = []; }
 }
 function saveCustomHols() { SS.set('custom_holidays', JSON.stringify(customHols)); }
+const CH_MO = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+function chDateLabel(d) { const [yr,mo,dy]=d.split('-').map(Number); return `${dy} ${CH_MO[mo-1]} ${yr}`; }
+
 function openCustomHolModal() {
     loadCustomHols();
-    // default date to today
     const t = new Date();
     const pad = n => String(n).padStart(2,'0');
-    $('ch-date').value = `${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`;
+    const today = `${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`;
+    $('ch-date-from').value = today;
+    $('ch-date-to').value = '';
     $('ch-name').value = '';
     renderCustomHolList();
     openModal('modal-custom-hol');
@@ -788,29 +805,37 @@ function renderCustomHolList() {
         return;
     }
     el.innerHTML = customHols.map((h, i) => {
-        const [yr, mo, dy] = h.date.split('-').map(Number);
-        const label = `${dy} ${['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][mo-1]} ${yr}`;
-        return `<div style="display:flex;align-items:center;justify-content:space-between;background:#F5F3FF;border-radius:10px;padding:10px 12px">
-            <div>
-                <div style="font-size:12px;color:#6D28D9;font-weight:700">${label}</div>
-                <div style="font-size:14px;font-weight:600;color:var(--text)">${h.name}</div>
+        const from = h.dateFrom || h.date;
+        const to = h.dateTo || h.date || from;
+        const isRange = to && to !== from;
+        const dayCount = isRange ? Math.round((new Date(to)-new Date(from))/86400000)+1 : 1;
+        const rangeLabel = isRange
+            ? `${chDateLabel(from)} – ${chDateLabel(to)} <span style="color:#A78BFA">(${dayCount} วัน)</span>`
+            : chDateLabel(from);
+        return `<div style="display:flex;align-items:center;justify-content:space-between;background:#F5F3FF;border-radius:10px;padding:10px 12px;gap:8px">
+            <div style="flex:1;min-width:0">
+                <div style="font-size:11px;color:#6D28D9;font-weight:700;margin-bottom:2px">${rangeLabel}</div>
+                <div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.name}</div>
             </div>
-            <button onclick="deleteCustomHol(${i})" style="background:#EF4444;color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer">ลบ</button>
+            <button onclick="deleteCustomHol(${i})" style="background:#EF4444;color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;flex-shrink:0">ลบ</button>
         </div>`;
     }).join('');
 }
 function addCustomHol() {
-    const date = $('ch-date').value;
+    const dateFrom = $('ch-date-from').value;
+    const dateTo = $('ch-date-to').value || dateFrom;
     const name = $('ch-name').value.trim();
-    if (!date) { showToast('กรุณาเลือกวันที่', 'err'); return; }
+    if (!dateFrom) { showToast('กรุณาเลือกวันที่เริ่ม', 'err'); return; }
     if (!name) { showToast('กรุณาใส่ชื่อวันหยุด', 'err'); return; }
-    if (customHols.some(h => h.date === date)) { showToast('วันที่นี้มีอยู่แล้ว', 'err'); return; }
-    customHols.push({date, name});
-    customHols.sort((a, b) => a.date.localeCompare(b.date));
+    if (dateTo < dateFrom) { showToast('วันสิ้นสุดต้องไม่ก่อนวันเริ่ม', 'err'); return; }
+    customHols.push({ dateFrom, dateTo, name });
+    customHols.sort((a, b) => (a.dateFrom||a.date).localeCompare(b.dateFrom||b.date));
     saveCustomHols();
     renderCustomHolList();
     $('ch-name').value = '';
-    showToast('เพิ่มวันหยุดแล้ว');
+    $('ch-date-to').value = '';
+    const days = dateTo !== dateFrom ? ` (${Math.round((new Date(dateTo)-new Date(dateFrom))/86400000)+1} วัน)` : '';
+    showToast(`เพิ่มวันหยุดแล้ว${days}`);
     renderCal();
 }
 function deleteCustomHol(i) {
@@ -881,14 +906,51 @@ function changeMonth(d) {
     renderCal();
 }
 
+function goToday() {
+    const t = new Date();
+    curYear = t.getFullYear(); curMonth = t.getMonth() + 1;
+    renderCal();
+}
+
+// Horizontal swipe on calendar to change month (works on iOS & Android)
+(function() {
+    let _sx = 0, _sy = 0;
+    const area = () => document.getElementById('cal-swipe-area');
+    document.addEventListener('touchstart', e => {
+        if (!area() || !area().contains(e.target)) return;
+        _sx = e.touches[0].clientX; _sy = e.touches[0].clientY;
+    }, { passive: true });
+    document.addEventListener('touchend', e => {
+        if (!area() || !area().contains(e.changedTouches[0].target)) return;
+        const dx = e.changedTouches[0].clientX - _sx;
+        const dy = e.changedTouches[0].clientY - _sy;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+            changeMonth(dx < 0 ? 1 : -1);
+        }
+    }, { passive: true });
+})();
+
 function renderCal() {
     $('cal-title').textContent = `${TH_MONTHS[curMonth-1]} ${curYear}`;
     $('cal-be').textContent = `พ.ศ. ${curYear+543}`;
+    const _t = new Date();
+    const _isCurrentMonth = _t.getFullYear() === curYear && _t.getMonth() + 1 === curMonth;
+    $('btn-go-today').style.display = _isCurrentMonth ? 'none' : 'inline-block';
     const data = getMonthData(curYear, curMonth);
     const hols = getHols(curYear);
     loadCustomHols();
     const customHolMap = {};
-    customHols.forEach(h => { customHolMap[h.date] = h.name; });
+    customHols.forEach(h => {
+        const from = h.dateFrom || h.date;
+        const to = h.dateTo || h.date || from;
+        if (!from) return;
+        let cur = new Date(from);
+        const end = new Date(to);
+        while (cur <= end) {
+            customHolMap[cur.toISOString().slice(0, 10)] = h.name;
+            cur.setDate(cur.getDate() + 1);
+        }
+    });
     const today = new Date();
     const isCurMonth = today.getFullYear()===curYear && today.getMonth()+1===curMonth;
     const firstDow = (new Date(curYear, curMonth-1, 1).getDay()+6)%7;
