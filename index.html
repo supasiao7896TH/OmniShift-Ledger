@@ -1048,10 +1048,12 @@ function renderLeaveSwapStats() {
             }
 
             // Swap tracking — outgoing: I covered someone
-            if (reason.startsWith('แทนกะ') && (d.shift === 'M' || d.shift === 'N')) {
+            // ตรวจสอบเฉพาะ reason ไม่บังคับ shift เพราะ rotation อาจเขียนทับ shift ได้
+            if (reason.startsWith('แทนกะ')) {
                 let person = detail;
                 if (!person && reason.length > 4) person = reason.slice(4);
-                outSwaps.push({ dateLabel, person: person || '?', shift: d.shift });
+                const swapShift = (d.shift === 'M' || d.shift === 'N') ? d.shift : null;
+                outSwaps.push({ dateLabel, person: person || '?', shift: swapShift });
             }
             // Incoming: someone covered for me
             // Method A — explicit 'มีคนมาแทน' reason
@@ -1090,7 +1092,7 @@ function renderLeaveSwapStats() {
         <div style="display:flex;flex-direction:column;gap:4px">
             ${outSwaps.length ? outSwaps.map(s => `<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 10px;background:#F0FDF4;border-radius:8px">
                 <span style="color:var(--text-muted)">${s.dateLabel}</span>
-                <span style="font-weight:600;color:#065F46">แทน ${s.person}&ensp;<span class="s-badge ${s.shift==='M'?'s-m':'s-n'}" style="font-size:9px;padding:2px 5px">${s.shift==='M'?'เช้า':'ดึก'}</span></span>
+                <span style="font-weight:600;color:#065F46">แทน ${s.person}${s.shift ? `&ensp;<span class="s-badge ${s.shift==='M'?'s-m':'s-n'}" style="font-size:9px;padding:2px 5px">${s.shift==='M'?'เช้า':'ดึก'}</span>` : ''}</span>
             </div>`).join('') : '<div style="font-size:12px;color:var(--text-muted);padding:6px 0">ยังไม่มีข้อมูล</div>'}
         </div>
     </div>`;
@@ -1152,6 +1154,8 @@ function openRotationModal() {
     loadRotConfig();
     $('rot-anchor').value = rotConfig.anchorDate || '';
     renderRotSegs();
+    const savedMo = SS.get('rot_last_months');
+    if (savedMo) $('rot-months').value = savedMo;
     openModal('modal-rotation');
 }
 
@@ -1193,6 +1197,7 @@ function removeRotSeg(idx) {
 function applyRotation() {
     const anchorStr = $('rot-anchor').value;
     const numMo = parseInt($('rot-months').value);
+    SS.set('rot_last_months', String(numMo));
     if (!anchorStr) { showToast('กรุณาระบุวันอ้างอิง', 'err'); return; }
     if (!rotConfig.segments.length) { showToast('กรุณาเพิ่มช่วงทีมอย่างน้อย 1 ช่วง', 'err'); return; }
     rotConfig.anchorDate = anchorStr;
