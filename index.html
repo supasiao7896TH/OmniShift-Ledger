@@ -67,6 +67,8 @@
             position: relative;
             transition: opacity .1s;
             -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+            min-width: 0;
         }
         .cal-day:active { opacity: .7; }
         .cal-day.empty { background: transparent; pointer-events: none; }
@@ -211,7 +213,8 @@
         .tp-m { font-size:9px;font-weight:800;color:#15803D;background:#DCFCE7;border-radius:3px;padding:1px 3px;line-height:1.2; }
         .tp-n { font-size:9px;font-weight:800;color:#1D4ED8;background:#DBEAFE;border-radius:3px;padding:1px 3px;line-height:1.2; }
         /* Holiday name in calendar cell */
-        .hol-name { font-size:8px;font-weight:700;color:#DC2626;text-align:center;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2; }
+        .hol-name { font-size:8px;font-weight:700;color:#DC2626;text-align:center;width:100%;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2; }
+        .hol-name.custom { color:#7C3AED; }
         /* Rotation segment rows */
         .seg-row { display:flex;align-items:flex-end;gap:8px;margin-bottom:8px; }
         .seg-lbl { font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;display:block; }
@@ -979,7 +982,7 @@ function renderCal() {
         else if (shift==='N') badge = '<span class="s-badge s-n">ดึก</span>';
         else badge = '<span class="s-badge s-off">หยุด</span>';
         const holName = getHolName(dk, curYear) || (isCustomHol ? customHolMap[fullDateKey] : '');
-        const holBadge = holName ? `<div class="hol-name">${holName}</div>` : '';
+        const holBadge = holName ? `<div class="hol-name${isCustomHol ? ' custom' : ''}">${holName}</div>` : '';
         const dateStr = `${curYear}-${String(curMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         const pair = rotConfig.anchorDate ? getPairForDate(dateStr, rotConfig.anchorDate) : null;
         const teamBadge = pair ? `<div class="team-pair"><span class="tp-m">☀${pair.m}</span><span class="tp-n">●${pair.n}</span></div>` : '';
