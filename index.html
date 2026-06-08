@@ -72,6 +72,7 @@
         .cal-day.empty { background: transparent; pointer-events: none; }
         .cal-day.weekend { background: var(--cal-weekend); }
         .cal-day.holiday { background: var(--cal-holiday); }
+        .cal-day.custom-hol { background: #F5F3FF; }
         .cal-day.today .d-num {
             background: var(--primary); color: #fff;
             border-radius: 50%; width: 26px; height: 26px;
@@ -402,6 +403,13 @@
             </div>
         </div>
         <button onclick="saveSettings()" class="btn-p">บันทึกการตั้งค่า</button>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;padding:0 2px;margin-top:12px">วันหยุดส่วนตัว</div>
+        <div class="set-sec">
+            <div class="set-row" onclick="openCustomHolModal()">
+                <span class="set-row-label">จัดการวันหยุดส่วนตัว</span>
+                <svg width="16" height="16" fill="#9CA3AF" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
+            </div>
+        </div>
         <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;padding:0 2px">การจัดการ</div>
         <div class="set-sec">
             <div class="set-row" onclick="openRotationModal()">
@@ -615,6 +623,28 @@
     </div>
 </div>
 
+<!-- Custom Holiday Modal -->
+<div id="modal-custom-hol" class="overlay" style="display:none" onclick="overlayClose('modal-custom-hol',event)">
+    <div class="sheet" style="max-width:420px" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div style="font-size:16px;font-weight:700;color:var(--text)">📅 วันหยุดส่วนตัว</div>
+            <button onclick="closeModal('modal-custom-hol')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px">✕</button>
+        </div>
+        <div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:#6D28D9">
+            🟣 วันหยุดที่คุณกำหนดเองจะแสดงสีม่วงอ่อนในปฏิทิน
+        </div>
+        <!-- Add form -->
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+            <input type="date" id="ch-date" class="fi">
+            <input type="text" id="ch-name" class="fi" placeholder="ชื่อวันหยุด เช่น วันหยุดโรงงาน, วันพระราชทานพิเศษ" maxlength="30">
+            <button onclick="addCustomHol()" class="btn-p" style="width:100%">+ เพิ่มวันหยุด</button>
+        </div>
+        <!-- List -->
+        <div id="ch-list" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto"></div>
+    </div>
+</div>
+
 <!-- Toast -->
 <div id="toast-box" style="position:fixed;top:16px;right:16px;z-index:100;display:flex;flex-direction:column;gap:8px" aria-live="polite"></div>
 
@@ -735,6 +765,64 @@ const VAR_HOL_NAMES = {
     '2026':{'01-02':'ชดเชย','03-03':'มาฆบูชา','05-13':'วิสาขบูชา','07-29':'อาสาฬหบูชา','07-30':'เข้าพรรษา','10-16':'ชดเชย','12-07':'ชดเชย'},
     '2027':{'02-21':'มาฆบูชา','02-22':'ชดเชย','05-20':'วิสาขบูชา','07-18':'อาสาฬหบูชา','07-19':'เข้าพรรษา','07-20':'ชดเชย','10-25':'ชดเชย','12-06':'ชดเชย'}
 };
+// ===== Custom Holidays =====
+let customHols = [];
+function loadCustomHols() {
+    try { customHols = JSON.parse(SS.get('custom_holidays') || '[]'); } catch(e) { customHols = []; }
+}
+function saveCustomHols() { SS.set('custom_holidays', JSON.stringify(customHols)); }
+function openCustomHolModal() {
+    loadCustomHols();
+    // default date to today
+    const t = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    $('ch-date').value = `${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`;
+    $('ch-name').value = '';
+    renderCustomHolList();
+    openModal('modal-custom-hol');
+}
+function renderCustomHolList() {
+    const el = $('ch-list');
+    if (!customHols.length) {
+        el.innerHTML = '<div style="font-size:13px;color:var(--text-muted);text-align:center;padding:12px">ยังไม่มีวันหยุดส่วนตัว</div>';
+        return;
+    }
+    el.innerHTML = customHols.map((h, i) => {
+        const [yr, mo, dy] = h.date.split('-').map(Number);
+        const label = `${dy} ${['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][mo-1]} ${yr}`;
+        return `<div style="display:flex;align-items:center;justify-content:space-between;background:#F5F3FF;border-radius:10px;padding:10px 12px">
+            <div>
+                <div style="font-size:12px;color:#6D28D9;font-weight:700">${label}</div>
+                <div style="font-size:14px;font-weight:600;color:var(--text)">${h.name}</div>
+            </div>
+            <button onclick="deleteCustomHol(${i})" style="background:#EF4444;color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer">ลบ</button>
+        </div>`;
+    }).join('');
+}
+function addCustomHol() {
+    const date = $('ch-date').value;
+    const name = $('ch-name').value.trim();
+    if (!date) { showToast('กรุณาเลือกวันที่', 'err'); return; }
+    if (!name) { showToast('กรุณาใส่ชื่อวันหยุด', 'err'); return; }
+    if (customHols.some(h => h.date === date)) { showToast('วันที่นี้มีอยู่แล้ว', 'err'); return; }
+    customHols.push({date, name});
+    customHols.sort((a, b) => a.date.localeCompare(b.date));
+    saveCustomHols();
+    renderCustomHolList();
+    $('ch-name').value = '';
+    showToast('เพิ่มวันหยุดแล้ว');
+    renderCal();
+}
+function deleteCustomHol(i) {
+    showConfirm(`ลบ "${customHols[i].name}"?`, () => {
+        customHols.splice(i, 1);
+        saveCustomHols();
+        renderCustomHolList();
+        renderCal();
+        showToast('ลบแล้ว');
+    });
+}
+
 function getHolName(dk, yr) {
     return HOL_NAMES[dk] || (VAR_HOL_NAMES[String(yr)] || {})[dk] || '';
 }
@@ -770,7 +858,7 @@ const $ = id => document.getElementById(id);
 window.onload = function() {
     const t = new Date();
     curYear = t.getFullYear(); curMonth = t.getMonth()+1; statsYear = curYear;
-    loadSettings(); loadReasons(); loadRotConfig(); loadTheme();
+    loadSettings(); loadReasons(); loadRotConfig(); loadCustomHols(); loadTheme();
     $('restore-file').onchange = restoreData;
     renderCal();
 };
@@ -798,6 +886,9 @@ function renderCal() {
     $('cal-be').textContent = `พ.ศ. ${curYear+543}`;
     const data = getMonthData(curYear, curMonth);
     const hols = getHols(curYear);
+    loadCustomHols();
+    const customHolMap = {};
+    customHols.forEach(h => { customHolMap[h.date] = h.name; });
     const today = new Date();
     const isCurMonth = today.getFullYear()===curYear && today.getMonth()+1===curMonth;
     const firstDow = (new Date(curYear, curMonth-1, 1).getDay()+6)%7;
@@ -815,14 +906,17 @@ function renderCal() {
         const isHol = hols.includes(dk);
         const isWE = dow===0||dow===6;
         const isTd = isCurMonth && d===today.getDate();
+        const pad2 = n => String(n).padStart(2,'0');
+        const fullDateKey = `${curYear}-${pad2(curMonth)}-${pad2(d)}`;
+        const isCustomHol = !isHol && !!customHolMap[fullDateKey];
         let cls = 'cal-day';
-        if (isHol) cls+=' holiday'; else if (isWE) cls+=' weekend';
+        if (isHol) cls+=' holiday'; else if (isCustomHol) cls+=' custom-hol'; else if (isWE) cls+=' weekend';
         if (isTd) cls+=' today';
         let badge = '';
         if (shift==='M') badge = '<span class="s-badge s-m">เช้า</span>';
         else if (shift==='N') badge = '<span class="s-badge s-n">ดึก</span>';
         else badge = '<span class="s-badge s-off">หยุด</span>';
-        const holName = getHolName(dk, curYear);
+        const holName = getHolName(dk, curYear) || (isCustomHol ? customHolMap[fullDateKey] : '');
         const holBadge = holName ? `<div class="hol-name">${holName}</div>` : '';
         const dateStr = `${curYear}-${String(curMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         const pair = rotConfig.anchorDate ? getPairForDate(dateStr, rotConfig.anchorDate) : null;
