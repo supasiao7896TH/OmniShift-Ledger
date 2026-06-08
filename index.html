@@ -599,6 +599,22 @@
     </div>
 </div>
 
+<!-- Consecutive Shift Warning Modal -->
+<div id="modal-consec" class="overlay" style="display:none" onclick="event.stopPropagation()">
+    <div class="sheet" style="max-width:380px" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        <div style="text-align:center;margin-bottom:12px">
+            <div style="font-size:40px;line-height:1.2">⚠️</div>
+            <div style="font-size:16px;font-weight:700;color:#B45309;margin-top:6px">ทำงานต่อเนื่อง 12 ชั่วโมง</div>
+        </div>
+        <div id="consec-msg" style="font-size:14px;color:var(--text-muted);text-align:center;line-height:1.7;background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:12px 14px;margin-bottom:18px"></div>
+        <div style="display:flex;gap:10px">
+            <button id="consec-cancel" class="btn-s" style="flex:1">ยกเลิก</button>
+            <button id="consec-ok" class="btn-p" style="flex:1;background:#D97706">✅ ควบกะ — บันทึกต่อ</button>
+        </div>
+    </div>
+</div>
+
 <!-- Toast -->
 <div id="toast-box" style="position:fixed;top:16px;right:16px;z-index:100;display:flex;flex-direction:column;gap:8px" aria-live="polite"></div>
 
@@ -866,6 +882,39 @@ function refreshShiftBtns(s) {
 
 function saveDayModal() {
     if (!activeKey) return;
+
+    // Check consecutive shift: previous day N → today M
+    if (activePick === 'M') {
+        const parts = activeKey.split('-').map(Number);
+        const curDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        const prevDate = new Date(curDate); prevDate.setDate(prevDate.getDate() - 1);
+        const prevYr = prevDate.getFullYear(), prevMo = prevDate.getMonth() + 1, prevDay = prevDate.getDate();
+        const prevKey = `${prevYr}-${prevMo}-${prevDay}`;
+        const prevData = getMonthData(prevYr, prevMo);
+        const prevEntry = prevData[prevKey];
+        if (prevEntry && prevEntry.shift === 'N') {
+            const dateLabel = `${prevDay} ${TH_MONTHS_S[prevMo-1]}`;
+            showConsecWarning(
+                `วันที่ ${dateLabel} ทำกะดึก (N) ต่อเนื่องมาถึงกะเช้า (M) วันนี้\nทำงานติดต่อกันมาแล้ว 12 ชั่วโมง\n\nต้องการควบกะหรือไม่?`,
+                () => doSaveDayModal()
+            );
+            return;
+        }
+    }
+    doSaveDayModal();
+}
+
+function showConsecWarning(msg, onOk) {
+    $('consec-msg').innerHTML = msg.replace(/\n/g, '<br>');
+    const modal = $('modal-consec');
+    modal.style.display = 'flex'; document.body.style.overflow = 'hidden';
+    const ok = $('consec-ok'), cancel = $('consec-cancel');
+    const close = () => { modal.style.display = 'none'; document.body.style.overflow = ''; ok.onclick = null; cancel.onclick = null; };
+    ok.onclick = () => { close(); onOk(); };
+    cancel.onclick = close;
+}
+
+function doSaveDayModal() {
     const [yr, mo] = activeKey.split('-');
     const data = getMonthData(yr, mo);
     const ot15=parseFloat($('mi-ot15').value)||0;
