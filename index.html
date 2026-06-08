@@ -89,6 +89,7 @@
         }
         .s-m { background: var(--shift-m); color: #fff; }
         .s-n { background: var(--shift-n); color: #fff; }
+        .s-d { background: #F97316; color: #fff; }
         .s-off { background: var(--shift-off-bg); color: var(--shift-off-text); }
         .ot-dot {
             position: absolute; top: 3px; right: 3px;
@@ -483,6 +484,7 @@
             <div class="shift-pick">
                 <button class="sp-btn" id="sp-m" onclick="pickShift('M')">เช้า</button>
                 <button class="sp-btn" id="sp-n" onclick="pickShift('N')">ดึก</button>
+                <button class="sp-btn" id="sp-d" onclick="pickShift('D')">เดย์</button>
                 <button class="sp-btn" id="sp-off" onclick="pickShift('-')">หยุด</button>
             </div>
         </div>
@@ -980,6 +982,7 @@ function renderCal() {
         let badge = '';
         if (shift==='M') badge = '<span class="s-badge s-m">เช้า</span>';
         else if (shift==='N') badge = '<span class="s-badge s-n">ดึก</span>';
+        else if (shift==='D') badge = '<span class="s-badge s-d">เดย์</span>';
         else badge = '<span class="s-badge s-off">หยุด</span>';
         const holName = getHolName(dk, curYear) || (isCustomHol ? customHolMap[fullDateKey] : '');
         const holBadge = holName ? `<div class="hol-name${isCustomHol ? ' custom' : ''}">${holName}</div>` : '';
@@ -1003,19 +1006,19 @@ function calcHouseAllowance(salary, housePct) {
 
 function updateSumBar(data) {
     const s = readSettings();
-    let mD=0, nD=0, ot15=0, ot20=0, ot30=0;
+    let mD=0, nD=0, dD=0, ot15=0, ot20=0, ot30=0;
     for (const k in data) {
         const d=data[k];
-        if(d.shift==='M') mD++; else if(d.shift==='N') nD++;
+        if(d.shift==='M') mD++; else if(d.shift==='N') nD++; else if(d.shift==='D') dD++;
         ot15+=d.ot15||0; ot20+=d.ot20||0; ot30+=d.ot30||0;
     }
-    const hrs = (mD+nD)*12;
+    const hrs = mD*12 + nD*12 + dD*8;
     const hr = s.salary>0 ? s.salary/s.mhours : 0;
     const inc = s.salary
         + mD*s.mRate + nD*s.nRate
         + ot15*hr*1.5 + ot20*hr*2 + ot30*hr*3
         + calcHouseAllowance(s.salary, s.house) + s.salary*(s.bonus/100);
-    $('s-days').textContent = `${mD+nD} วัน`;
+    $('s-days').textContent = `${mD+nD+dD} วัน`;
     $('s-hours').textContent = `${hrs} ชม.`;
     $('s-income').textContent = '฿'+Math.round(inc).toLocaleString('th-TH');
 }
@@ -1042,14 +1045,15 @@ function pickShift(s) { activePick=s; refreshShiftBtns(s); }
 function refreshShiftBtns(s) {
     $('sp-m').className='sp-btn'+(s==='M'?' sp-m':'');
     $('sp-n').className='sp-btn'+(s==='N'?' sp-n':'');
+    $('sp-d').className='sp-btn'+(s==='D'?' sp-d':'');
     $('sp-off').className='sp-btn'+(s==='-'?' sp-off':'');
 }
 
 function saveDayModal() {
     if (!activeKey) return;
 
-    // Check consecutive shift: previous day N → today M
-    if (activePick === 'M') {
+    // Check consecutive shift: previous day N → today M or D
+    if (activePick === 'M' || activePick === 'D') {
         const parts = activeKey.split('-').map(Number);
         const curDate = new Date(parts[0], parts[1] - 1, parts[2]);
         const prevDate = new Date(curDate); prevDate.setDate(prevDate.getDate() - 1);
@@ -1059,8 +1063,9 @@ function saveDayModal() {
         const prevEntry = prevData[prevKey];
         if (prevEntry && prevEntry.shift === 'N') {
             const dateLabel = `${prevDay} ${TH_MONTHS_S[prevMo-1]}`;
+            const nextShiftLabel = activePick === 'D' ? 'กะเดย์ (D) 07:30–16:30' : 'กะเช้า (M)';
             showConsecWarning(
-                `วันที่ ${dateLabel} ทำกะดึก (N) ต่อเนื่องมาถึงกะเช้า (M) วันนี้\nทำงานติดต่อกันมาแล้ว 12 ชั่วโมง\n\nต้องการควบกะหรือไม่?`,
+                `วันที่ ${dateLabel} ทำกะดึก (N) ต่อเนื่องมาถึง${nextShiftLabel} วันนี้\nทำงานติดต่อกันมาแล้ว 12 ชั่วโมง\n\nต้องการควบกะหรือไม่?`,
                 () => doSaveDayModal()
             );
             return;
@@ -1111,17 +1116,17 @@ function renderStats() {
     const incArr=[], otArr=[];
     for (let m=1; m<=12; m++) {
         const data = getMonthData(statsYear, m);
-        let mD=0, nD=0, ot15=0, ot20=0, ot30=0;
+        let mD=0, nD=0, dD=0, ot15=0, ot20=0, ot30=0;
         const hasWork = Object.keys(data).length>0;
         for (const k in data) {
             const d=data[k];
-            if(d.shift==='M') mD++; else if(d.shift==='N') nD++;
+            if(d.shift==='M') mD++; else if(d.shift==='N') nD++; else if(d.shift==='D') dD++;
             ot15+=d.ot15||0; ot20+=d.ot20||0; ot30+=d.ot30||0;
         }
         const mOT = ot15+ot20+ot30;
         const mInc = hasWork ? s.salary+mD*s.mRate+nD*s.nRate+ot15*hr*1.5+ot20*hr*2+ot30*hr*3+calcHouseAllowance(s.salary,s.house)+s.salary*(s.bonus/100) : 0;
         incArr.push(mInc); otArr.push(mOT);
-        totDays+=mD+nD; totOT+=mOT; totInc+=mInc;
+        totDays+=mD+nD+dD; totOT+=mOT; totInc+=mInc;
     }
     $('st-days').textContent = totDays;
     $('st-ot').textContent = totOT.toFixed(1);
@@ -1129,10 +1134,10 @@ function renderStats() {
     // Breakdown for current month
     const curData = getMonthData(curYear, curMonth);
     const dim = new Date(curYear, curMonth, 0).getDate();
-    let mC=0, nC=0, offC=0;
+    let mC=0, nC=0, dC=0, offC=0;
     for (let d=1; d<=dim; d++) {
         const e = curData[`${curYear}-${curMonth}-${d}`];
-        if (!e||e.shift==='-') offC++; else if(e.shift==='M') mC++; else if(e.shift==='N') nC++;
+        if (!e||e.shift==='-') offC++; else if(e.shift==='M') mC++; else if(e.shift==='N') nC++; else if(e.shift==='D') dC++;
     }
     const pct = v => dim>0 ? (v/dim*100).toFixed(0) : 0;
     $('st-breakdown').innerHTML = `
@@ -1150,6 +1155,13 @@ function renderStats() {
                     <div style="background:#3B82F6;width:${pct(nC)}%;height:10px;border-radius:99px;transition:width .4s"></div>
                 </div>
                 <span style="font-size:13px;font-weight:700;width:40px;text-align:right">${nC} วัน</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+                <span class="s-badge s-d" style="width:44px;flex-shrink:0">เดย์</span>
+                <div style="flex:1;background:#F3F4F6;border-radius:99px;height:10px">
+                    <div style="background:#F97316;width:${pct(dC)}%;height:10px;border-radius:99px;transition:width .4s"></div>
+                </div>
+                <span style="font-size:13px;font-weight:700;width:40px;text-align:right">${dC} วัน</span>
             </div>
             <div style="display:flex;align-items:center;gap:10px">
                 <span class="s-badge s-off" style="width:44px;flex-shrink:0">หยุด</span>
@@ -1425,10 +1437,10 @@ function renderCalSum() {
     const s = readSettings();
     const hr = s.salary > 0 ? s.salary / s.mhours : 0;
     const data = getMonthData(curYear, curMonth);
-    let mD = 0, nD = 0, ot15 = 0, ot20 = 0, ot30 = 0;
+    let mD = 0, nD = 0, dD = 0, ot15 = 0, ot20 = 0, ot30 = 0;
     for (const k in data) {
         const d = data[k];
-        if (d.shift === 'M') mD++; else if (d.shift === 'N') nD++;
+        if (d.shift === 'M') mD++; else if (d.shift === 'N') nD++; else if (d.shift === 'D') dD++;
         ot15 += d.ot15 || 0; ot20 += d.ot20 || 0; ot30 += d.ot30 || 0;
     }
     const baseInc  = s.salary;
@@ -1451,6 +1463,7 @@ function renderCalSum() {
     let rows = row('Base Salary:', f2(baseInc), 'var(--text)');
     rows += row(`M-Shift Pay (${mD} shifts):`, `+ ${f2(mShiftInc)}`, '#7C3AED');
     rows += row(`N-Shift Pay (${nD} shifts):`, `+ ${f2(nShiftInc)}`, '#7C3AED');
+    if (dD > 0) rows += row(`Day Shift (${dD} days):`, '— (ไม่มีค่ากะ)', '#9CA3AF');
     rows += row(`OT Pay (${otTotalHrs.toFixed(1)} hrs):`, `+ ${f2(otInc)}`, '#EC4899');
     if (ot15 > 0) rows += subRow(`↳ 1.5× (${ot15.toFixed(1)} hrs)`, f2(ot15Inc));
     if (ot20 > 0) rows += subRow(`↳ 2.0× (${ot20.toFixed(1)} hrs)`, f2(ot20Inc));
@@ -1617,11 +1630,11 @@ async function askGeminiShiftAdvice(refresh) {
     const s = readSettings();
     const hr = s.salary > 0 ? s.salary / s.mhours : 0;
     const curData = getMonthData(curYear, curMonth);
-    let mD=0, nD=0, ot15=0, ot20=0, ot30=0, leaveDays=0, swapOut=0, swapIn=0;
+    let mD=0, nD=0, dD=0, ot15=0, ot20=0, ot30=0, leaveDays=0, swapOut=0, swapIn=0;
     const LEAVE_CATS = ['ลาป่วย','ลากิจ','ลาพักร้อน','ลาอื่นๆ'];
     for (const k in curData) {
         const d = curData[k];
-        if (d.shift==='M') mD++; else if (d.shift==='N') nD++;
+        if (d.shift==='M') mD++; else if (d.shift==='N') nD++; else if (d.shift==='D') dD++;
         ot15 += d.ot15||0; ot20 += d.ot20||0; ot30 += d.ot30||0;
         if (LEAVE_CATS.includes(d.reason)) leaveDays++;
         else if (d.reason==='แทนกะ') swapOut++;
