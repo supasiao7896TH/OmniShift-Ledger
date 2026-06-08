@@ -1,6 +1,6 @@
 // ShiftPro Tracker — Service Worker (offline support)
 // bump CACHE เมื่อปล่อยเวอร์ชันใหม่ เพื่อล้าง cache เก่า
-const CACHE = 'shiftpro-v11-16';
+const CACHE = 'shiftpro-v11-17';
 
 const ASSETS = [
   './',
