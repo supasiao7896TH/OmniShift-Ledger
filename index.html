@@ -995,6 +995,12 @@ function renderCal() {
     if (calSumOpen) renderCalSum();
 }
 
+// ค่าเช่าบ้าน = max(เงินเดือน × อัตรา%, 8,000) — มีขั้นต่ำ 8,000 บาท
+function calcHouseAllowance(salary, housePct) {
+    if (!salary || salary <= 0) return 0;
+    return Math.max(salary * (housePct / 100), 8000);
+}
+
 function updateSumBar(data) {
     const s = readSettings();
     let mD=0, nD=0, ot15=0, ot20=0, ot30=0;
@@ -1008,7 +1014,7 @@ function updateSumBar(data) {
     const inc = s.salary
         + mD*s.mRate + nD*s.nRate
         + ot15*hr*1.5 + ot20*hr*2 + ot30*hr*3
-        + s.salary*(s.house/100) + s.salary*(s.bonus/100);
+        + calcHouseAllowance(s.salary, s.house) + s.salary*(s.bonus/100);
     $('s-days').textContent = `${mD+nD} วัน`;
     $('s-hours').textContent = `${hrs} ชม.`;
     $('s-income').textContent = '฿'+Math.round(inc).toLocaleString('th-TH');
@@ -1113,7 +1119,7 @@ function renderStats() {
             ot15+=d.ot15||0; ot20+=d.ot20||0; ot30+=d.ot30||0;
         }
         const mOT = ot15+ot20+ot30;
-        const mInc = hasWork ? s.salary+mD*s.mRate+nD*s.nRate+ot15*hr*1.5+ot20*hr*2+ot30*hr*3+s.salary*(s.house/100)+s.salary*(s.bonus/100) : 0;
+        const mInc = hasWork ? s.salary+mD*s.mRate+nD*s.nRate+ot15*hr*1.5+ot20*hr*2+ot30*hr*3+calcHouseAllowance(s.salary,s.house)+s.salary*(s.bonus/100) : 0;
         incArr.push(mInc); otArr.push(mOT);
         totDays+=mD+nD; totOT+=mOT; totInc+=mInc;
     }
@@ -1432,7 +1438,7 @@ function renderCalSum() {
     const ot20Inc  = ot20 * hr * 2.0;
     const ot30Inc  = ot30 * hr * 3.0;
     const otInc    = ot15Inc + ot20Inc + ot30Inc;
-    const houseInc = s.salary * (s.house / 100);
+    const houseInc = calcHouseAllowance(s.salary, s.house);
     const bonusInc = s.salary * (s.bonus / 100);
     const totalInc = baseInc + mShiftInc + nShiftInc + otInc + houseInc + bonusInc;
     const otTotalHrs = ot15 + ot20 + ot30;
@@ -1626,7 +1632,7 @@ async function askGeminiShiftAdvice(refresh) {
     const mShiftInc = mD*s.mRate;
     const nShiftInc = nD*s.nRate;
     const otInc = ot15*hr*1.5 + ot20*hr*2.0 + ot30*hr*3.0;
-    const houseInc = s.salary*(s.house/100);
+    const houseInc = calcHouseAllowance(s.salary, s.house);
     const bonusInc = s.salary*(s.bonus/100);
     const totalInc = baseInc+mShiftInc+nShiftInc+otInc+houseInc+bonusInc;
 
@@ -1645,7 +1651,7 @@ async function askGeminiShiftAdvice(refresh) {
         const pBase=s.salary, pMInc=pm*s.mRate, pNInc=pn*s.nRate;
         const pHr=pBase>0?pBase/s.mhours:0;
         const pOtInc=pot*pHr*1.5;
-        const pTotal=pBase+pMInc+pNInc+pOtInc+pBase*(s.house/100)+pBase*(s.bonus/100);
+        const pTotal=pBase+pMInc+pNInc+pOtInc+calcHouseAllowance(pBase,s.house)+pBase*(s.bonus/100);
         prevInfo.push(`${TH_MONTHS[m-1]} ${y}: กะเช้า ${pm} ลา ${pl} OT ${pot.toFixed(1)}ชม. รายได้รวม ~${Math.round(pTotal).toLocaleString()} บาท`);
     }
 
