@@ -752,6 +752,7 @@ function renderThemePicker() {
 }
 const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 const TH_MONTHS_S = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const EN_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const TH_DAYS = ['อา','จ','อ','พ','พฤ','ศ','ส'];
 
 // ===== State =====
@@ -938,7 +939,7 @@ function goToday() {
 })();
 
 function renderCal() {
-    $('cal-title').textContent = `${TH_MONTHS[curMonth-1]} ${curYear}`;
+    $('cal-title').textContent = `${EN_MONTHS[curMonth-1]} ${curYear}`;
     $('cal-be').textContent = `พ.ศ. ${curYear+543}`;
     const _t = new Date();
     const _isCurrentMonth = _t.getFullYear() === curYear && _t.getMonth() + 1 === curMonth;
