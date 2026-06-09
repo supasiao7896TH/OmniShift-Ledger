@@ -219,6 +219,13 @@
         /* Holiday name in calendar cell */
         .hol-name { font-size:8px;font-weight:700;color:#DC2626;text-align:center;width:100%;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2; }
         .hol-name.custom { color:#7C3AED; }
+        /* Weekly OT progress bars */
+        .week-row { display:flex;flex-direction:column;margin-bottom:2px; }
+        .week-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:2px; }
+        .ot-week-bar { display:flex;align-items:center;gap:5px;padding:2px 3px 1px; }
+        .ot-week-track { flex:1;height:4px;border-radius:2px;background:var(--border);overflow:hidden; }
+        .ot-week-fill { height:100%;border-radius:2px; }
+        .ot-week-label { font-size:9px;font-weight:800;white-space:nowrap; }
         /* Rotation segment rows */
         .seg-row { display:flex;align-items:flex-end;gap:8px;margin-bottom:8px; }
         .seg-lbl { font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:4px;display:block; }
@@ -271,7 +278,7 @@
             <div class="cal-dh sun">Sun</div><div class="cal-dh">Mon</div><div class="cal-dh">Tue</div>
             <div class="cal-dh">Wed</div><div class="cal-dh">Thu</div><div class="cal-dh">Fri</div><div class="cal-dh">Sat</div>
         </div>
-        <div id="cal-body" class="cal-grid"></div>
+        <div id="cal-body"></div>
     </div>
     <!-- Summary income section (collapsible) -->
     <div class="cal-sum-wrap">
@@ -309,11 +316,15 @@
             <div class="sum-val" id="s-days">0 วัน</div>
         </div>
         <div class="sum-item">
-            <div class="sum-label">ชั่วโมงรวม</div>
+            <div class="sum-label">ชม.รวม</div>
             <div class="sum-val" id="s-hours">0 ชม.</div>
         </div>
         <div class="sum-item">
-            <div class="sum-label">รายได้เดือนนี้</div>
+            <div class="sum-label">OT เดือนนี้</div>
+            <div class="sum-val" id="s-ot" style="color:var(--text-muted)">0 ชม.</div>
+        </div>
+        <div class="sum-item">
+            <div class="sum-label">รายได้</div>
             <div class="sum-val" id="s-income" style="color:var(--primary)">฿0</div>
         </div>
     </div>
@@ -966,7 +977,10 @@ function renderCal() {
     const firstDow = new Date(curYear, curMonth-1, 1).getDay(); // 0=Sun … 6=Sat (Sunday-first)
     const daysInMonth = new Date(curYear, curMonth, 0).getDate();
     let html = '';
-    for (let i=0; i<firstDow; i++) html += '<div class="cal-day empty"></div>';
+    let weekHtml = '';
+    let weekRowStart = 1;
+    const pad2 = n => String(n).padStart(2,'0');
+    for (let i=0; i<firstDow; i++) weekHtml += '<div class="cal-day empty"></div>';
     for (let d=1; d<=daysInMonth; d++) {
         const key = `${curYear}-${curMonth}-${d}`;
         const dd = data[key]||{};
@@ -974,11 +988,10 @@ function renderCal() {
         const hasOT = (dd.ot15||0)+(dd.ot20||0)+(dd.ot30||0)>0;
         const dt = new Date(curYear, curMonth-1, d);
         const dow = dt.getDay();
-        const dk = `${String(curMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dk = `${pad2(curMonth)}-${pad2(d)}`;
         const isHol = hols.includes(dk);
         const isWE = dow===0||dow===6;
         const isTd = isCurMonth && d===today.getDate();
-        const pad2 = n => String(n).padStart(2,'0');
         const fullDateKey = `${curYear}-${pad2(curMonth)}-${pad2(d)}`;
         const isCustomHol = !isHol && !!customHolMap[fullDateKey];
         let cls = 'cal-day';
@@ -992,16 +1005,40 @@ function renderCal() {
         else badge = '<span class="s-badge s-off">OFF</span>';
         const holName = getHolName(dk, curYear) || (isCustomHol ? customHolMap[fullDateKey] : '');
         const holBadge = holName ? `<div class="hol-name${isCustomHol ? ' custom' : ''}">${holName}</div>` : '';
-        const dateStr = `${curYear}-${String(curMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dateStr = `${curYear}-${pad2(curMonth)}-${pad2(d)}`;
         const pair = rotConfig.anchorDate ? getPairForDate(dateStr, rotConfig.anchorDate) : null;
         const teamBadge = pair ? `<div class="team-pair"><span class="tp-m">☀${pair.m}</span><span class="tp-n">●${pair.n}</span></div>` : '';
-        html += `<div class="${cls}" onclick="openDayModal('${key}',${d})">
+        weekHtml += `<div class="${cls}" onclick="openDayModal('${key}',${d})">
             ${hasOT?'<span class="ot-dot"></span>':''}
             <span class="d-num">${d}</span>${badge}${holBadge}${teamBadge}</div>`;
+        const gridPos = firstDow + d - 1;
+        const isEndOfWeek = gridPos % 7 === 6;
+        const isLastDay = d === daysInMonth;
+        if (isEndOfWeek || isLastDay) {
+            let weekOT = 0;
+            for (let wd = weekRowStart; wd <= d; wd++) {
+                const wdd = data[`${curYear}-${curMonth}-${wd}`] || {};
+                weekOT += (wdd.ot15||0) + (wdd.ot20||0) + (wdd.ot30||0);
+            }
+            html += `<div class="week-row"><div class="week-grid">${weekHtml}</div>${renderWeekOTBar(weekOT)}</div>`;
+            weekHtml = '';
+            weekRowStart = d + 1;
+        }
     }
     $('cal-body').innerHTML = html;
     updateSumBar(data);
     if (calSumOpen) renderCalSum();
+}
+
+function renderWeekOTBar(otHours) {
+    if (otHours <= 0) return '';
+    const pct = Math.min(otHours / 36 * 100, 100).toFixed(1);
+    let color;
+    if (otHours >= 30) color = '#EF4444';
+    else if (otHours >= 24) color = '#F59E0B';
+    else color = '#22C55E';
+    const warn = otHours >= 30 ? '⚠ ' : '';
+    return `<div class="ot-week-bar"><div class="ot-week-track"><div class="ot-week-fill" style="width:${pct}%;background:${color}"></div></div><span class="ot-week-label" style="color:${color}">${warn}${otHours}h/36h</span></div>`;
 }
 
 // ค่าเช่าบ้าน = max(เงินเดือน × อัตรา%, 8,000) — มีขั้นต่ำ 8,000 บาท
@@ -1024,8 +1061,14 @@ function updateSumBar(data) {
         + mD*s.mRate + nD*s.nRate
         + ot15*hr*1.5 + ot20*hr*2 + ot30*hr*3
         + calcHouseAllowance(s.salary, s.house) + s.salary*(s.bonus/100);
+    const totalOT = Math.round((ot15 + ot20 + ot30) * 10) / 10;
     $('s-days').textContent = `${mD+nD+dD} วัน`;
     $('s-hours').textContent = `${hrs} ชม.`;
+    const otEl = $('s-ot');
+    if (otEl) {
+        otEl.textContent = `${totalOT} ชม.`;
+        otEl.style.color = totalOT === 0 ? 'var(--text-muted)' : totalOT >= 100 ? '#EF4444' : totalOT >= 60 ? '#F59E0B' : 'var(--text)';
+    }
     $('s-income').textContent = '฿'+Math.round(inc).toLocaleString('th-TH');
 }
 
