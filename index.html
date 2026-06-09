@@ -1007,7 +1007,7 @@ function renderCal() {
         const holBadge = holName ? `<div class="hol-name${isCustomHol ? ' custom' : ''}">${holName}</div>` : '';
         const dateStr = `${curYear}-${pad2(curMonth)}-${pad2(d)}`;
         const pair = rotConfig.anchorDate ? getPairForDate(dateStr, rotConfig.anchorDate) : null;
-        const teamBadge = pair ? `<div class="team-pair"><span class="tp-m">☀${pair.m}</span><span class="tp-n">🌙${pair.n}</span></div>` : '';
+        const teamBadge = pair ? `<div class="team-pair"><span class="tp-m">🌞${pair.m}</span><span class="tp-n">🌙${pair.n}</span></div>` : '';
         weekHtml += `<div class="${cls}" onclick="openDayModal('${key}',${d})">
             ${hasOT?'<span class="ot-dot"></span>':''}
             <span class="d-num">${d}</span>${badge}${holBadge}${teamBadge}</div>`;
