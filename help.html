@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--orange:#F97316;--blue:#3B82F6;--orange-light:#FFF7ED;--blue-light:#EFF6FF;--gray:#6B7280;--gray-light:#F3F4F6;--text:#1F2937;--border:#E5E7EB;--radius:12px;--shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.06)}
+:root{--orange:#F97316;--blue:#3B82F6;--green:#22C55E;--orange-light:#FFF7ED;--blue-light:#EFF6FF;--green-light:#F0FDF4;--gray:#6B7280;--gray-light:#F3F4F6;--text:#1F2937;--border:#E5E7EB;--radius:12px;--shadow:0 1px 3px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.06)}
 html{scroll-behavior:smooth}
 body{font-family:'Sarabun',sans-serif;font-size:16px;line-height:1.7;color:var(--text);background:#fff}
 a{color:var(--blue);text-decoration:none}
@@ -34,6 +34,7 @@ a:hover{text-decoration:underline}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:500}
 .badge-orange{background:var(--orange-light);color:var(--orange)}
 .badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-green{background:var(--green-light);color:#15803D}
 
 /* LAYOUT */
 .content{max-width:800px;margin:0 auto;padding:24px 16px 60px}
@@ -63,6 +64,8 @@ a:hover{text-decoration:underline}
 .infobox{display:flex;gap:10px;padding:12px 14px;border-radius:10px;margin:14px 0;font-size:.88rem}
 .infobox-orange{background:#FFF7ED;border:1px solid #FED7AA}
 .infobox-blue{background:#EFF6FF;border:1px solid #BFDBFE}
+.infobox-green{background:#F0FDF4;border:1px solid #BBF7D0}
+.infobox-red{background:#FEF2F2;border:1px solid #FECACA}
 .infobox-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
 .infobox p{margin:0;line-height:1.6}
 
@@ -88,9 +91,10 @@ tr:last-child td{border-bottom:none}
 
 /* SHIFT BADGE */
 .shift-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.82rem;font-weight:600}
-.shift-m{background:#FEF3C7;color:#92400E}
-.shift-n{background:#EDE9FE;color:#5B21B6}
-.shift-off{background:#F0FDF4;color:#166534}
+.shift-m{background:#DCFCE7;color:#15803D}
+.shift-n{background:#DBEAFE;color:#1D4ED8}
+.shift-d{background:#FFEDD5;color:#C2410C}
+.shift-off{background:#F3F4F6;color:#374151}
 
 /* OT TABLE */
 .ot-grid{display:flex;flex-direction:column;gap:6px;margin:10px 0}
@@ -107,6 +111,11 @@ tr:last-child td{border-bottom:none}
 .team-b{background:#DCFCE7;border-color:#22C55E;color:#14532D}
 .team-c{background:#DBEAFE;border-color:#3B82F6;color:#1E3A8A}
 .team-d{background:#F3E8FF;border-color:#A855F7;color:#4C1D95}
+
+/* OT BAR DEMO */
+.ot-bar-demo{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;margin:6px 0;font-size:.85rem}
+.ot-bar-track{flex:1;height:8px;border-radius:4px;background:#E5E7EB;overflow:hidden}
+.ot-bar-fill{height:100%;border-radius:4px}
 
 /* FOOTER */
 .footer{text-align:center;padding:28px 16px;background:var(--gray-light);border-top:1px solid var(--border);font-size:.83rem;color:var(--gray)}
@@ -129,7 +138,10 @@ tr:last-child td{border-bottom:none}
       <a class="navlink" href="#s7">AI</a>
       <a class="navlink" href="#s8">ธีมสี</a>
       <a class="navlink" href="#s9">สำรอง</a>
-      <a class="navlink" href="#s10">ความเป็นส่วนตัว</a>
+      <a class="navlink" href="#s10">วันหยุดพิเศษ</a>
+      <a class="navlink" href="#s11">เหตุผลส่วนตัว</a>
+      <a class="navlink" href="#s12">OT รายสัปดาห์</a>
+      <a class="navlink" href="#s13">ความเป็นส่วนตัว</a>
     </div>
     <a class="back-app-btn" href="./">⬅ กลับแอป</a>
   </div>
@@ -145,6 +157,7 @@ tr:last-child td{border-bottom:none}
       <span class="badge badge-blue">💰 คำนวณรายได้</span>
       <span class="badge badge-orange">🤖 AI วิเคราะห์</span>
       <span class="badge badge-blue">📱 PWA ออฟไลน์</span>
+      <span class="badge badge-green">📊 OT รายสัปดาห์</span>
     </div>
   </div>
 </div>
@@ -199,6 +212,13 @@ tr:last-child td{border-bottom:none}
           <span class="infobox-icon">💡</span>
           <p>หลังติดตั้งแล้ว แอปจะทำงานได้แม้ไม่มีอินเทอร์เน็ต (ออฟไลน์) และมีไอคอนบนหน้าจอเหมือนแอปทั่วไป</p>
         </div>
+        <div class="divider"></div>
+        <h3 style="font-size:.95rem;font-weight:700;margin:14px 0 8px;color:var(--text)">👆 การนำทางในปฏิทิน</h3>
+        <ul class="blist">
+          <li>กดปุ่ม <strong>‹ ›</strong> เพื่อเลื่อนเดือนก่อน/หลัง</li>
+          <li><strong>ปัดซ้าย/ขวา</strong> บนปฏิทินเพื่อเลื่อนเดือน (รองรับทั้ง Android และ iOS)</li>
+          <li>เมื่ออยู่คนละเดือนกับปัจจุบัน จะมีปุ่ม <strong>"วันนี้"</strong> ให้กดกลับมาเดือนปัจจุบันได้ทันที</li>
+        </ul>
       </div>
     </div>
   </div>
@@ -213,7 +233,6 @@ tr:last-child td{border-bottom:none}
       </div>
       <div class="card-body">
         <p>ก่อนเริ่มบันทึกข้อมูล ควรตั้งค่าข้อมูลส่วนตัวและระบบกะให้ครบถ้วน</p>
-
         <h3 style="font-size:.95rem;font-weight:700;margin:14px 0 10px;color:var(--text)">💵 เงินเดือนและอัตราค่าตอบแทน</h3>
         <p>ไปที่แท็บ <strong>Settings</strong> แล้วกรอกข้อมูลต่อไปนี้</p>
         <div class="table-wrap">
@@ -221,45 +240,38 @@ tr:last-child td{border-bottom:none}
             <thead><tr><th>รายการ</th><th>ค่าเริ่มต้น</th><th>คำอธิบาย</th></tr></thead>
             <tbody>
               <tr><td>เงินเดือน</td><td>—</td><td>เงินเดือนฐาน (บาท/เดือน)</td></tr>
-              <tr><td>ค่ากะเช้า</td><td>150 บาท/กะ</td><td>เบี้ยเลี้ยงกะเช้า</td></tr>
-              <tr><td>ค่ากะดึก</td><td>200 บาท/กะ</td><td>เบี้ยเลี้ยงกะดึก</td></tr>
+              <tr><td>ค่ากะเช้า (M)</td><td>150 บาท/กะ</td><td>เบี้ยเลี้ยงกะเช้า</td></tr>
+              <tr><td>ค่ากะดึก (N)</td><td>200 บาท/กะ</td><td>เบี้ยเลี้ยงกะดึก</td></tr>
               <tr><td>ชั่วโมงทำงาน/เดือน</td><td>176 ชม.</td><td>ใช้คำนวณอัตรา OT ต่อชั่วโมง</td></tr>
-              <tr><td>เบี้ยที่พัก</td><td>—</td><td>คิดเป็น % จากเงินเดือน</td></tr>
-              <tr><td>โบนัสวันหยุด</td><td>—</td><td>คิดเป็น % จากเงินเดือน</td></tr>
+              <tr><td>เบี้ยที่พัก (%)</td><td>—</td><td>คิดเป็น % จากเงินเดือน — มีขั้นต่ำ <strong>8,000 บาท</strong> (ถ้า % คำนวณได้น้อยกว่า 8,000 จะได้ 8,000 อัตโนมัติ)</td></tr>
+              <tr><td>โบนัสวันหยุด (%)</td><td>—</td><td>คิดเป็น % จากเงินเดือน</td></tr>
             </tbody>
           </table>
         </div>
-
         <div class="divider"></div>
-
         <h3 style="font-size:.95rem;font-weight:700;margin:14px 0 6px;color:var(--orange)">🔄 ตั้งค่าการหมุนเวียนกะ — ส่วนสำคัญที่สุด</h3>
         <p style="margin-bottom:10px">ระบบใช้รูปแบบ <strong>4 ทีม (A/B/C/D) วนรอบ 12 วัน</strong> โดยแต่ละทีมจะหมุนเวียนกันระหว่างกะเช้า กะดึก และวันหยุด</p>
-
         <div class="team-legend">
           <span class="team-chip team-a">ทีม A</span>
           <span class="team-chip team-b">ทีม B</span>
           <span class="team-chip team-c">ทีม C</span>
           <span class="team-chip team-d">ทีม D</span>
         </div>
-
         <p>วิธีตั้งค่า: ไป <span class="path">Settings → ตั้งค่าการหมุนเวียนกะ</span></p>
-
         <ol class="steps">
           <li><span class="step-num">1</span>กด <strong>"เพิ่ม segment"</strong></li>
           <li><span class="step-num">2</span>เลือก <strong>"วันที่เริ่มต้น"</strong> — วันแรกที่คุณรู้ว่าตัวเองอยู่ทีมไหน</li>
           <li><span class="step-num">3</span>เลือก <strong>"ทีม"</strong> ของตัวเอง (A / B / C / D)</li>
           <li><span class="step-num">4</span>กด <strong>"บันทึกและเติมกะ"</strong> — ระบบจะคำนวณกะของทุกวันอัตโนมัติ</li>
         </ol>
-
         <div class="infobox infobox-orange">
           <span class="infobox-icon">⚠️</span>
           <p><strong>หากถูกย้ายทีม:</strong> กด "เพิ่ม segment" อีกอัน แล้วระบุ <strong>วันที่เริ่มทีมใหม่</strong> และ <strong>ทีมใหม่</strong> ระบบจะปรับกะนับจากวันนั้นโดยอัตโนมัติ</p>
         </div>
-
-        <p>หลังตั้งค่าแล้ว ปฏิทินจะแสดงสัญลักษณ์บนแต่ละวัน เช่น <code>☀A ●D</code> หรือ <code>☀C ●B</code></p>
+        <p>หลังตั้งค่าแล้ว ปฏิทินจะแสดงสัญลักษณ์บนแต่ละวัน เช่น <code>🌞A 🌙D</code> หรือ <code>🌞C 🌙B</code></p>
         <ul class="blist">
-          <li><strong>☀</strong> = ทีมที่ทำ<strong>กะเช้า</strong>วันนั้น</li>
-          <li><strong>●</strong> = ทีมที่ทำ<strong>กะดึก</strong>วันนั้น</li>
+          <li><strong>🌞</strong> = ทีมที่ทำ<strong>กะเช้า (M)</strong>วันนั้น</li>
+          <li><strong>🌙</strong> = ทีมที่ทำ<strong>กะดึก (N)</strong>วันนั้น</li>
         </ul>
       </div>
     </div>
@@ -279,22 +291,58 @@ tr:last-child td{border-bottom:none}
           <li><span class="step-num">2</span>หน้าแก้ไขวันจะเปิดขึ้น เลือกประเภทกะ</li>
           <li><span class="step-num">3</span>บันทึก OT (ถ้ามี) แล้วกด "บันทึก"</li>
         </ol>
-
         <div class="divider"></div>
         <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px">ประเภทกะ</h3>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-          <span class="shift-badge shift-m">☀️ เช้า (M)</span>
-          <span class="shift-badge shift-n">🌙 ดึก (N)</span>
-          <span class="shift-badge shift-off">🏠 หยุด</span>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Badge</th><th>ชื่อกะ</th><th>เวลา</th><th>ชม.</th><th>ค่ากะ</th><th>OT</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="shift-badge shift-m">M</span></td>
+                <td>กะเช้า (Morning)</td>
+                <td>07:30 – 19:30</td>
+                <td>12 ชม.</td>
+                <td>ได้ค่ากะเช้า</td>
+                <td>1.5× / 3.0×</td>
+              </tr>
+              <tr>
+                <td><span class="shift-badge shift-n">N</span></td>
+                <td>กะดึก (Night)</td>
+                <td>19:30 – 07:30</td>
+                <td>12 ชม.</td>
+                <td>ได้ค่ากะดึก</td>
+                <td>1.5× / 3.0×</td>
+              </tr>
+              <tr>
+                <td><span class="shift-badge shift-d">D</span></td>
+                <td>กะเดย์ (Day)</td>
+                <td>07:30 – 16:30</td>
+                <td>8 ชม.</td>
+                <td><strong>ไม่มีค่ากะ</strong></td>
+                <td>1.5× เท่านั้น</td>
+              </tr>
+              <tr>
+                <td><span class="shift-badge shift-off">OFF</span></td>
+                <td>วันหยุด (Off)</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
+        <div class="infobox infobox-blue">
+          <span class="infobox-icon">ℹ️</span>
+          <p><strong>กะเดย์ (D)</strong> คือการทำงานวันจันทร์–ศุกร์ 8 ชั่วโมง ไม่มีค่าเบี้ยเลี้ยงกะ แต่ยังได้รับเงินเดือน เบี้ยที่พัก และสิทธิ์ OT 1.5× เหมือนกะปกติ</p>
+        </div>
         <div class="divider"></div>
         <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px">การบันทึก OT</h3>
         <p style="margin-bottom:8px">ใส่จำนวนชั่วโมง OT แยกตามอัตรา</p>
         <div class="ot-grid">
           <div class="ot-row ot-1">
             <span class="ot-rate">1.5×</span>
-            <span>OT <strong>วันธรรมดา</strong> — ทำเกินเวลาปกติในวันทำงาน</span>
+            <span>OT <strong>วันธรรมดา / กะเดย์</strong> — ทำเกินเวลาปกติในวันทำงาน</span>
           </div>
           <div class="ot-row ot-2">
             <span class="ot-rate">2.0×</span>
@@ -305,11 +353,13 @@ tr:last-child td{border-bottom:none}
             <span>OT <strong>วันหยุดนักขัตฤกษ์</strong> — วันหยุดราชการ / วันหยุดพิเศษ</span>
           </div>
         </div>
-
         <div class="infobox infobox-blue">
           <span class="infobox-icon">🔵</span>
-          <p>วันที่มีการบันทึก OT จะแสดง <strong>จุดสีส้ม</strong> ที่มุมบนซ้ายของช่องวันในปฏิทิน ทำให้มองเห็นได้ง่าย</p>
+          <p>วันที่มีการบันทึก OT จะแสดง <strong>จุดสีส้ม</strong> ที่มุมบนขวาของช่องวันในปฏิทิน ทำให้มองเห็นได้ง่าย</p>
         </div>
+        <div class="divider"></div>
+        <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px">⚠️ คำเตือนกะต่อเนื่อง (N → M / D)</h3>
+        <p>หากบันทึกกะเช้า (M) หรือกะเดย์ (D) ต่อจากกะดึก (N) ของวันก่อนหน้า ระบบจะแสดงคำเตือนว่าทำงานต่อเนื่องมาแล้ว 12 ชั่วโมง เพื่อให้ยืนยันก่อนบันทึก</p>
       </div>
     </div>
   </div>
@@ -325,11 +375,10 @@ tr:last-child td{border-bottom:none}
       <div class="card-body">
         <ol class="steps">
           <li><span class="step-num">1</span>กดที่วันที่ต้องการบันทึกการลาในปฏิทิน</li>
-          <li><span class="step-num">2</span>เลือกกะเป็น <strong>"หยุด"</strong></li>
+          <li><span class="step-num">2</span>เลือกกะเป็น <strong>"OFF"</strong></li>
           <li><span class="step-num">3</span>เลือกเหตุผลการลา</li>
           <li><span class="step-num">4</span>กรอกรายละเอียดเพิ่มเติม (ถ้ามี) แล้วกด "บันทึก"</li>
         </ol>
-
         <div class="divider"></div>
         <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px">ประเภทการลา</h3>
         <ul class="blist">
@@ -338,7 +387,6 @@ tr:last-child td{border-bottom:none}
           <li><strong>ลาพักร้อน</strong> — วันลาพักผ่อนประจำปี</li>
           <li><strong>ลาอื่นๆ</strong> — การลาประเภทอื่น เช่น ลาคลอด ลาบวช</li>
         </ul>
-
         <div class="divider"></div>
         <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px">บันทึกผู้แทน</h3>
         <p>ถ้ามีคนมาทำงานแทนในวันที่ลา ให้ใส่ชื่อผู้แทนในช่อง <strong>"รายละเอียด"</strong></p>
@@ -360,25 +408,20 @@ tr:last-child td{border-bottom:none}
       </div>
       <div class="card-body">
         <p>ระบบรองรับการบันทึกทั้ง 2 กรณี</p>
-
         <div class="divider" style="margin:10px 0"></div>
-
         <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px;color:var(--blue)">📤 ฉันไปแทนคนอื่น</h3>
         <ul class="blist">
-          <li>กดวันที่ไปแทน → เลือกกะ (เช้า/ดึก)</li>
+          <li>กดวันที่ไปแทน → เลือกกะ (M / N / D)</li>
           <li>เลือกเหตุผลเป็น <strong>"แทนกะ"</strong></li>
           <li>ใส่ <strong>ชื่อคนที่ตัวเองไปแทน</strong> ในช่อง "รายละเอียด"</li>
         </ul>
-
         <div class="divider" style="margin:10px 0"></div>
-
         <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px;color:var(--orange)">📥 มีคนมาแทนฉัน</h3>
         <ul class="blist">
-          <li>กดวันที่หยุด → เลือกกะเป็น <strong>"หยุด"</strong></li>
+          <li>กดวันที่หยุด → เลือกกะเป็น <strong>"OFF"</strong></li>
           <li>เลือกเหตุผลเป็นประเภทการลาที่เหมาะสม</li>
           <li>ใส่ <strong>ชื่อผู้ที่มาแทน</strong> ในช่อง "รายละเอียด"</li>
         </ul>
-
         <div class="infobox infobox-blue">
           <span class="infobox-icon">📈</span>
           <p>ดูสถิติการแทนกะทั้งหมด รวมถึงรายชื่อคนที่แทนและถูกแทนได้ในแท็บ <strong>"สถิติ"</strong></p>
@@ -400,18 +443,30 @@ tr:last-child td{border-bottom:none}
           <li><span class="step-num">1</span>เลื่อนลงใต้ปฏิทิน กด <strong>"This Month's Summary"</strong></li>
           <li><span class="step-num">2</span>หน้าสรุปรายได้ประจำเดือนจะเปิดขึ้น</li>
         </ol>
-
         <div class="divider"></div>
         <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px">รายการที่แสดงในสรุป</h3>
         <ul class="blist">
           <li><strong>เงินเดือนฐาน</strong> — ตามที่ตั้งค่าไว้</li>
-          <li><strong>ค่ากะ</strong> — รวมค่ากะเช้า + ค่ากะดึก ทุกกะในเดือนนั้น</li>
+          <li><strong>ค่ากะ</strong> — รวมค่ากะเช้า (M) + ค่ากะดึก (N) — กะเดย์ (D) ไม่มีค่ากะ</li>
           <li><strong>OT รวม</strong> — แยกแสดง 1.5× / 2.0× / 3.0× พร้อมจำนวนชั่วโมงและเงิน</li>
-          <li><strong>เบี้ยเลี้ยง</strong> — ตามที่ตั้งค่าเป็น %</li>
+          <li><strong>เบี้ยที่พัก</strong> — คำนวณจาก % เงินเดือน (ขั้นต่ำ 8,000 บาท)</li>
           <li><strong>โบนัส</strong> — ตามที่ตั้งค่าเป็น %</li>
           <li><strong>รายได้รวม</strong> — ผลรวมทั้งหมด</li>
         </ul>
-
+        <div class="divider"></div>
+        <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px">แถบสรุปด่วน (Summary Bar)</h3>
+        <p>ด้านล่างปฏิทินมีแถบ 4 ช่องแสดงตัวเลขด่วนของเดือนปัจจุบัน</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ช่อง</th><th>แสดง</th></tr></thead>
+            <tbody>
+              <tr><td>วันทำงาน</td><td>จำนวนวันที่บันทึกกะ M / N / D รวมกัน</td></tr>
+              <tr><td>ชม.รวม</td><td>ชั่วโมงทำงานปกติรวม (M=12ชม., N=12ชม., D=8ชม.)</td></tr>
+              <tr><td>OT เดือนนี้</td><td>ชั่วโมง OT รวมทั้งเดือน (ทุกอัตรา)</td></tr>
+              <tr><td>รายได้</td><td>รายได้รวมประมาณการเดือนนี้</td></tr>
+            </tbody>
+          </table>
+        </div>
         <div class="divider"></div>
         <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px">กราฟรายได้</h3>
         <ul class="blist">
@@ -435,14 +490,12 @@ tr:last-child td{border-bottom:none}
           <span class="infobox-icon">🔑</span>
           <p>ฟีเจอร์นี้ต้องใช้ <strong>Gemini API Key</strong> ซึ่งสมัครฟรีได้ที่ <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a></p>
         </div>
-
         <h3 style="font-size:.93rem;font-weight:700;margin:14px 0 8px">วิธีตั้งค่า API Key</h3>
         <ol class="steps">
           <li><span class="step-num">1</span>ไปที่ <span class="path">Settings → ตั้งค่า Gemini AI</span></li>
           <li><span class="step-num">2</span>วาง API Key ที่ได้รับในช่องที่กำหนด</li>
           <li><span class="step-num">3</span>กด <strong>"บันทึก"</strong></li>
         </ol>
-
         <div class="divider"></div>
         <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px">วิธีใช้งาน</h3>
         <ol class="steps">
@@ -450,7 +503,6 @@ tr:last-child td{border-bottom:none}
           <li><span class="step-num">2</span>กดปุ่ม <strong>"🤖 AI วิเคราะห์กะ &amp; รายได้"</strong></li>
           <li><span class="step-num">3</span>รอสักครู่ ผลวิเคราะห์จะแสดงขึ้น</li>
         </ol>
-
         <div class="divider"></div>
         <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px">AI จะวิเคราะห์อะไรบ้าง?</h3>
         <ul class="blist">
@@ -472,7 +524,6 @@ tr:last-child td{border-bottom:none}
       </div>
       <div class="card-body">
         <p>ปรับแต่งหน้าตาแอปให้เข้ากับสไตล์ของคุณ ไปที่ <span class="path">Settings → 🎨 ธีมสี</span></p>
-
         <div class="table-wrap" style="margin-top:12px">
           <table>
             <thead><tr><th>ธีม</th><th>ลักษณะ</th></tr></thead>
@@ -504,16 +555,13 @@ tr:last-child td{border-bottom:none}
           <li><span class="step-num">2</span>กดปุ่ม <strong>"ดาวน์โหลด"</strong></li>
           <li><span class="step-num">3</span>ไฟล์ <code>.json</code> จะถูกบันทึกลงเครื่อง</li>
         </ol>
-
         <div class="divider"></div>
-
         <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px;color:var(--orange)">📥 กู้คืนข้อมูล (Restore)</h3>
         <ol class="steps">
           <li><span class="step-num">1</span>ไปที่ <span class="path">Settings → กู้คืนข้อมูล (Restore)</span></li>
           <li><span class="step-num">2</span>กด <strong>"เลือกไฟล์"</strong> แล้วเลือกไฟล์ <code>.json</code> ที่สำรองไว้</li>
           <li><span class="step-num">3</span>กด <strong>"กู้คืน"</strong> เพื่อยืนยัน</li>
         </ol>
-
         <div class="infobox infobox-orange">
           <span class="infobox-icon">⚠️</span>
           <p><strong>คำแนะนำ:</strong> สำรองข้อมูลอย่างน้อยเดือนละครั้ง หรือก่อนเปลี่ยนโทรศัพท์ / ล้างเครื่อง เพื่อป้องกันข้อมูลสูญหาย</p>
@@ -526,9 +574,130 @@ tr:last-child td{border-bottom:none}
   <div class="section" id="s10">
     <div class="card">
       <div class="card-header">
+        <span class="icon">📆</span>
+        <h2>วันหยุดพิเศษส่วนตัว</h2>
+        <span class="sec-num">10</span>
+      </div>
+      <div class="card-body">
+        <p>นอกจากวันหยุดราชการที่ระบบบันทึกไว้แล้ว คุณสามารถเพิ่มวันหยุดเฉพาะของโรงงาน หรือวันหยุดพิเศษอื่นๆ ได้เอง</p>
+        <h3 style="font-size:.93rem;font-weight:700;margin:14px 0 8px">วิธีเพิ่มวันหยุดส่วนตัว</h3>
+        <ol class="steps">
+          <li><span class="step-num">1</span>ไปที่ <span class="path">Settings → วันหยุดส่วนตัว</span></li>
+          <li><span class="step-num">2</span>เลือก <strong>"วันที่เริ่ม"</strong></li>
+          <li><span class="step-num">3</span>เลือก <strong>"วันที่สิ้นสุด"</strong> (ถ้าเป็นวันเดียว ปล่อยว่างได้)</li>
+          <li><span class="step-num">4</span>ใส่ <strong>ชื่อวันหยุด</strong> แล้วกด <strong>"เพิ่ม"</strong></li>
+        </ol>
+        <div class="infobox infobox-blue">
+          <span class="infobox-icon">📅</span>
+          <p>รองรับทั้ง <strong>วันเดียว</strong> (เลือกแค่วันเริ่ม) และ <strong>หลายวันต่อเนื่อง</strong> (เลือกทั้งวันเริ่มและวันสิ้นสุด) เช่น หยุดช่วงเทศกาล 3 วัน</p>
+        </div>
+        <div class="divider"></div>
+        <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px">การแสดงผลในปฏิทิน</h3>
+        <ul class="blist">
+          <li>วันหยุดส่วนตัวจะแสดงพื้นหลัง <strong>สีม่วงอ่อน</strong> ต่างจากวันหยุดราชการ (สีแดงอ่อน)</li>
+          <li>ชื่อวันหยุดจะแสดงในช่องวันด้วย <strong>ตัวอักษรสีม่วง</strong></li>
+          <li>หากชื่อยาวเกินไปจะถูกตัดด้วย <code>…</code> เพื่อไม่ให้ layout เสีย</li>
+        </ul>
+        <div class="divider"></div>
+        <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px">การลบวันหยุด</h3>
+        <p>กดปุ่ม <strong>"ลบ"</strong> ข้างชื่อวันหยุดในรายการ ระบบจะขอยืนยันก่อนลบ</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 11 -->
+  <div class="section" id="s11">
+    <div class="card">
+      <div class="card-header">
+        <span class="icon">📝</span>
+        <h2>เหตุผลการบันทึกส่วนตัว</h2>
+        <span class="sec-num">11</span>
+      </div>
+      <div class="card-body">
+        <p>เมื่อบันทึกกะแต่ละวัน คุณสามารถเลือก <strong>"เหตุผล"</strong> เพื่ออธิบายสาเหตุที่บันทึก เช่น แทนกะ ลาป่วย ทำงานล่วงเวลา ฯลฯ นอกจากรายการเหตุผลที่มีมาให้แล้ว คุณสามารถเพิ่มเหตุผลส่วนตัวของตัวเองได้</p>
+        <h3 style="font-size:.93rem;font-weight:700;margin:14px 0 8px">วิธีจัดการเหตุผลส่วนตัว</h3>
+        <ol class="steps">
+          <li><span class="step-num">1</span>ไปที่ <span class="path">Settings → จัดการเหตุผล</span></li>
+          <li><span class="step-num">2</span>พิมพ์เหตุผลใหม่ในช่องข้อความ แล้วกด <strong>"เพิ่ม"</strong></li>
+          <li><span class="step-num">3</span>เหตุผลจะปรากฏในรายการ Dropdown เมื่อบันทึกกะ</li>
+        </ol>
+        <div class="infobox infobox-green">
+          <span class="infobox-icon">💡</span>
+          <p>ตัวอย่างเหตุผลที่นิยมเพิ่ม: <strong>"ช่วยงาน Shutdown"</strong>, <strong>"แทนกะเพื่อน"</strong>, <strong>"ทำงานต่อเนื่องเร่งด่วน"</strong>, <strong>"ช่วยงาน Start up"</strong></p>
+        </div>
+        <div class="divider"></div>
+        <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px">การลบเหตุผล</h3>
+        <p>กดปุ่ม <strong>"ลบ"</strong> ข้างเหตุผลที่ไม่ต้องการ เหตุผลที่มาพร้อมระบบจะไม่สามารถลบได้ แต่เหตุผลที่เพิ่มเองสามารถลบได้ตลอดเวลา</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 12 -->
+  <div class="section" id="s12">
+    <div class="card">
+      <div class="card-header">
+        <span class="icon">📊</span>
+        <h2>การเตือน OT รายสัปดาห์</h2>
+        <span class="sec-num">12</span>
+      </div>
+      <div class="card-body">
+        <p>ตาม <strong>พ.ร.บ. คุ้มครองแรงงาน</strong> กำหนดให้นายจ้างให้ลูกจ้างทำงานล่วงเวลาได้ไม่เกิน <strong>36 ชั่วโมงต่อสัปดาห์</strong> แอปจึงมีระบบเตือนอัตโนมัติในปฏิทินเพื่อช่วยติดตาม</p>
+        <div class="divider"></div>
+        <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 10px">แถบ OT รายสัปดาห์</h3>
+        <p style="margin-bottom:10px">ใต้แต่ละแถวสัปดาห์ในปฏิทินจะมีแถบ Progress Bar แสดงชั่วโมง OT ของสัปดาห์นั้น (นับเฉพาะ OT จริง ไม่นับชั่วโมงทำงานปกติ)</p>
+        <div class="ot-bar-demo" style="background:#F0FDF4">
+          <div class="ot-bar-track">
+            <div class="ot-bar-fill" style="width:44%;background:#22C55E"></div>
+          </div>
+          <span style="font-size:.82rem;font-weight:800;color:#22C55E;white-space:nowrap;min-width:60px;text-align:right">16h / 36h</span>
+          <span style="font-size:.82rem;color:#15803D">🟢 ปลอดภัย</span>
+        </div>
+        <div class="ot-bar-demo" style="background:#FFFBEB">
+          <div class="ot-bar-track">
+            <div class="ot-bar-fill" style="width:72%;background:#F59E0B"></div>
+          </div>
+          <span style="font-size:.82rem;font-weight:800;color:#F59E0B;white-space:nowrap;min-width:60px;text-align:right">26h / 36h</span>
+          <span style="font-size:.82rem;color:#92400E">🟡 ระวัง</span>
+        </div>
+        <div class="ot-bar-demo" style="background:#FEF2F2">
+          <div class="ot-bar-track">
+            <div class="ot-bar-fill" style="width:92%;background:#EF4444"></div>
+          </div>
+          <span style="font-size:.82rem;font-weight:800;color:#EF4444;white-space:nowrap;min-width:60px;text-align:right">⚠ 33h / 36h</span>
+          <span style="font-size:.82rem;color:#991B1B">🔴 อันตราย</span>
+        </div>
+        <div class="table-wrap" style="margin-top:14px">
+          <table>
+            <thead><tr><th>สี</th><th>ชั่วโมง OT / สัปดาห์</th><th>ความหมาย</th></tr></thead>
+            <tbody>
+              <tr><td>🟢 เขียว</td><td>0 – 23 ชม.</td><td>ปลอดภัย — ยังมีพื้นที่ทำ OT ได้</td></tr>
+              <tr><td>🟡 เหลือง</td><td>24 – 29 ชม.</td><td>ระวัง — ใกล้ถึงเพดานกฎหมาย</td></tr>
+              <tr><td>🔴 แดง + ⚠</td><td>30 ชม. ขึ้นไป</td><td>อันตราย — เกือบถึงหรือเกิน 36 ชม./สัปดาห์</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="infobox infobox-orange">
+          <span class="infobox-icon">⚠️</span>
+          <p>แถบ OT จะ<strong>ไม่แสดง</strong>ในสัปดาห์ที่ไม่มี OT เลย เพื่อไม่ให้รกหน้าจอ</p>
+        </div>
+        <div class="divider"></div>
+        <h3 style="font-size:.93rem;font-weight:700;margin:10px 0 8px">OT รวมเดือนนี้ (Summary Bar)</h3>
+        <p>ช่อง <strong>"OT เดือนนี้"</strong> ในแถบสรุปด้านล่างแสดงยอดรวม OT ทุกชั่วโมงในเดือนปัจจุบัน เพื่อให้เห็นภาพรวมทั้งเดือนอย่างรวดเร็ว</p>
+        <div class="infobox infobox-blue">
+          <span class="infobox-icon">ℹ️</span>
+          <p>ชั่วโมง OT ที่นับ คือ ot1.5× + ot2.0× + ot3.0× รวมกัน — ไม่นับชั่วโมงทำงานปกติในกะ M / N / D</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 13 -->
+  <div class="section" id="s13">
+    <div class="card">
+      <div class="card-header">
         <span class="icon">🔒</span>
         <h2>ความเป็นส่วนตัว</h2>
-        <span class="sec-num">10</span>
+        <span class="sec-num">13</span>
       </div>
       <div class="card-body">
         <ul class="blist">
@@ -537,12 +706,10 @@ tr:last-child td{border-bottom:none}
           <li>แต่ละคนที่ติดตั้งแอปจะมีข้อมูล <strong>แยกกัน 100%</strong> ไม่มีการเชื่อมโยงกัน</li>
           <li>ข้อมูลจะยังอยู่แม้ปิดแอปหรือรีสตาร์ทเครื่อง</li>
         </ul>
-
         <div class="infobox infobox-blue">
           <span class="infobox-icon">🤖</span>
           <p><strong>ข้อยกเว้น Gemini AI:</strong> เมื่อกดปุ่ม "AI วิเคราะห์" ข้อมูลสรุปการทำงานจะถูกส่งไปยัง Google Gemini API เพื่อวิเคราะห์ ซึ่งผู้ใช้เป็นผู้กดเองโดยสมัครใจ และใช้ API Key ของตัวเอง</p>
         </div>
-
         <div class="infobox infobox-orange">
           <span class="infobox-icon">💡</span>
           <p>หากล้างข้อมูลเบราว์เซอร์ (Clear Cache / Clear Data) ข้อมูลแอปจะหายทั้งหมด ควรสำรองข้อมูลไว้เป็นประจำ</p>
@@ -555,7 +722,7 @@ tr:last-child td{border-bottom:none}
 
 <footer class="footer">
   <div class="footer-logo">🏭</div>
-  <p>Developed in collaboration by <strong>Supasit A.@1981 TH &amp; AI Partner</strong> &nbsp;·&nbsp; V11.0</p>
+  <p>Developed in collaboration by <strong>Supasit A.@1981 TH &amp; AI Partner</strong> &nbsp;·&nbsp; V11.1</p>
   <p style="margin-top:8px"><a href="./">⬅ กลับไปยังแอป ShiftPro Tracker</a></p>
 </footer>
 
