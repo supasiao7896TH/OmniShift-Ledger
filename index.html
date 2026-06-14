@@ -54,6 +54,28 @@
             padding: calc(14px + env(safe-area-inset-top)) 16px 16px;
             position: sticky; top: 0; z-index: 20;
         }
+        /* ── World Cup theme header decorations ── */
+        body[data-theme="wc-stadium"] .app-header::before {
+            content:''; position:absolute; inset:0; pointer-events:none; z-index:0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size:28px 28px;
+        }
+        body[data-theme="wc-stadium"] .app-header { color:#FFD700; }
+        body[data-theme="wc-stadium"] .app-header button { color:#FFD700 !important; }
+        body[data-theme="wc-trophy"] .app-header::after {
+            content:''; position:absolute; bottom:0; left:0; right:0; height:2px; pointer-events:none;
+            background:linear-gradient(90deg, transparent, #C9A84C, #F5D78B, #C9A84C, transparent);
+        }
+        body[data-theme="wc-trophy"] .app-header { color:#F5D78B; }
+        body[data-theme="wc-trophy"] .app-header button { color:#F5D78B !important; }
+        body[data-theme="wc-thai"] .app-header::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:4px; pointer-events:none;
+            background:linear-gradient(90deg, #E63946 33%, #fff 33% 66%, #E63946 66%);
+        }
+        body[data-theme="wc-thai"] .app-header { border-bottom:3px solid #E63946; }
+        body[data-theme="wc-tournament"] .app-header { border-bottom:2px solid #00B894; }
         /* Calendar grid */
         .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
         .cal-dh { text-align: center; font-size: 12px; font-weight: 700; color: var(--text-muted); padding: 7px 0; }
