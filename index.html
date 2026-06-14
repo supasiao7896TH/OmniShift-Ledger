@@ -98,7 +98,7 @@
         .cal-day.empty { background: transparent; pointer-events: none; }
         .cal-day.weekend { background: var(--cal-weekend); }
         .cal-day.holiday { background: var(--cal-holiday); }
-        .cal-day.custom-hol { background: #F5F3FF; }
+        .cal-day.custom-hol { background: var(--cal-custom-hol); }
         .cal-day.today .d-num {
             background: var(--primary); color: #fff;
             border-radius: 50%; width: 26px; height: 26px;
@@ -717,48 +717,48 @@ const THEMES = [
       primary:'#F97316', dark:'#EA580C', light:'#FFF7ED', focusRing:'rgba(249,115,22,.18)',
       hFrom:'#F97316', hTo:'#EA580C',
       bg:'#F3F4F6', surface:'#FFFFFF', text:'#111827', muted:'#6B7280', border:'#E5E7EB',
-      calWeekend:'#F8FAFC', calHoliday:'#FEF2F2' },
+      calWeekend:'#F8FAFC', calHoliday:'#FEF2F2', calCustomHol:'#F5F3FF' },
     { id:'sky', name:'Sky\nBlue',         emoji:'🌤️',
       primary:'#0EA5E9', dark:'#0284C7', light:'#E0F2FE', focusRing:'rgba(14,165,233,.18)',
       hFrom:'#0369A1', hTo:'#0EA5E9',
       bg:'#F0F9FF', surface:'#FFFFFF', text:'#0C1A2E', muted:'#4B6A8A', border:'#BAE6FD',
-      calWeekend:'#F0F9FF', calHoliday:'#FEF2F2' },
+      calWeekend:'#F0F9FF', calHoliday:'#FEF2F2', calCustomHol:'#F5F3FF' },
     { id:'ocean', name:'Ocean\nDeep',     emoji:'🌊',
       primary:'#2563EB', dark:'#1D4ED8', light:'#DBEAFE', focusRing:'rgba(37,99,235,.18)',
       hFrom:'#1E3A5F', hTo:'#1D4ED8',
       bg:'#F8FAFC', surface:'#FFFFFF', text:'#0F172A', muted:'#4A6180', border:'#BFDBFE',
-      calWeekend:'#F1F5F9', calHoliday:'#FEF2F2' },
+      calWeekend:'#F1F5F9', calHoliday:'#FEF2F2', calCustomHol:'#F5F3FF' },
     { id:'frost', name:'Arctic\nFrost',   emoji:'❄️',
       primary:'#0891B2', dark:'#0E7490', light:'#CFFAFE', focusRing:'rgba(8,145,178,.18)',
       hFrom:'#164E63', hTo:'#06B6D4',
       bg:'#F0FDFE', surface:'#FFFFFF', text:'#0C2A2F', muted:'#4A7580', border:'#A5F3FC',
-      calWeekend:'#E0FDFF', calHoliday:'#FEF2F2' },
+      calWeekend:'#E0FDFF', calHoliday:'#FEF2F2', calCustomHol:'#F5F3FF' },
     { id:'midnight', name:'Midnight\nNavy', emoji:'🌙',
       primary:'#60A5FA', dark:'#3B82F6', light:'#1E3A8A', focusRing:'rgba(96,165,250,.2)',
       hFrom:'#1E3A8A', hTo:'#3B82F6',
       bg:'#0F172A', surface:'#1E293B', text:'#F1F5F9', muted:'#94A3B8', border:'#334155',
-      calWeekend:'#172032', calHoliday:'#2D1515' },
+      calWeekend:'#172032', calHoliday:'#2D1515', calCustomHol:'#1E1A35' },
     // ── World Cup 2026 Edition ──
     { id:'wc-stadium', name:'Stadium\nGreen', emoji:'⚽', wc:true,
       primary:'#FFD700', dark:'#E6C200', light:'#3a3000', focusRing:'rgba(255,215,0,.22)',
       hFrom:'#0d2b1a', hTo:'#1a5c35',
       bg:'#0d2b1a', surface:'#122a19', text:'#E8F5E9', muted:'#7AAB8A', border:'#1e3d28',
-      calWeekend:'#0f3320', calHoliday:'#3a1500' },
+      calWeekend:'#0f3320', calHoliday:'#3a1500', calCustomHol:'#1a1035' },
     { id:'wc-trophy', name:'Golden\nTrophy', emoji:'🏆', wc:true,
       primary:'#C9A84C', dark:'#B8973B', light:'#1a1500', focusRing:'rgba(201,168,76,.25)',
       hFrom:'#0D1B3E', hTo:'#253a7a',
       bg:'#0D1B3E', surface:'#162454', text:'#E8EDF8', muted:'#7A8AAA', border:'#1e2a48',
-      calWeekend:'#111f4a', calHoliday:'#2d1015' },
+      calWeekend:'#111f4a', calHoliday:'#2d1015', calCustomHol:'#13104a' },
     { id:'wc-thai', name:'Thai\nTeam', emoji:'🇹🇭', wc:true,
       primary:'#E63946', dark:'#C22030', light:'#3d0a10', focusRing:'rgba(230,57,70,.25)',
       hFrom:'#C22030', hTo:'#1D3557',
       bg:'#12204E', surface:'#1D3366', text:'#FFFFFF', muted:'#8899BB', border:'#1e2d5a',
-      calWeekend:'#162a5f', calHoliday:'#3d0a10' },
+      calWeekend:'#162a5f', calHoliday:'#3d0a10', calCustomHol:'#14103d' },
     { id:'wc-tournament', name:'Tourna\nment', emoji:'🌍', wc:true,
       primary:'#00B894', dark:'#00A381', light:'#001a15', focusRing:'rgba(0,184,148,.2)',
       hFrom:'#0a0a0a', hTo:'#00523a',
       bg:'#0a0a0a', surface:'#111111', text:'#FFFFFF', muted:'#888888', border:'#222222',
-      calWeekend:'#0d0d0d', calHoliday:'#1a0000' },
+      calWeekend:'#0d0d0d', calHoliday:'#1a0000', calCustomHol:'#150a2a' },
 ];
 
 function applyTheme(id) {
@@ -774,9 +774,10 @@ function applyTheme(id) {
     r.setProperty('--text',         t.text);
     r.setProperty('--text-muted',   t.muted);
     r.setProperty('--border',       t.border);
-    r.setProperty('--cal-weekend',  t.calWeekend);
-    r.setProperty('--cal-holiday',  t.calHoliday);
-    r.setProperty('--focus-ring',   t.focusRing);
+    r.setProperty('--cal-weekend',    t.calWeekend);
+    r.setProperty('--cal-holiday',    t.calHoliday);
+    r.setProperty('--cal-custom-hol', t.calCustomHol);
+    r.setProperty('--focus-ring',     t.focusRing);
     const tcMeta = document.querySelector('meta[name="theme-color"]');
     if (tcMeta) tcMeta.content = t.hFrom;
     document.body.dataset.theme = id;
