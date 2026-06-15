@@ -18,7 +18,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #F97316;
@@ -76,6 +76,39 @@
         }
         body[data-theme="wc-thai"] .app-header { border-bottom:3px solid #E63946; }
         body[data-theme="wc-tournament"] .app-header { border-bottom:2px solid #00B894; }
+        /* ── World Cup theme calendar cell enhancements ── */
+        body[data-theme^="wc-"] .cal-day.shift-m {
+            background: rgba(34,197,94,0.18) !important;
+            border: 1px solid rgba(34,197,94,0.45);
+        }
+        body[data-theme^="wc-"] .cal-day.shift-n {
+            background: rgba(59,130,246,0.15) !important;
+            border: 1px solid rgba(59,130,246,0.35);
+        }
+        body[data-theme^="wc-"] .cal-day.has-ot {
+            border-color: rgba(255,215,0,0.75) !important;
+            box-shadow: 0 0 7px rgba(255,215,0,0.25);
+        }
+        body[data-theme^="wc-"] .ot-dot {
+            background: #FFD700;
+            box-shadow: 0 0 4px rgba(255,215,0,0.8);
+        }
+        body[data-theme^="wc-"] .s-badge { font-size: 9px; letter-spacing: 0; }
+        /* ── World Cup theme sum bar ── */
+        body[data-theme="wc-thai"] .sum-bar {
+            background: #E63946;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        body[data-theme="wc-thai"] .sum-label { color: rgba(255,255,255,0.75); }
+        body[data-theme="wc-thai"] .sum-val { color: #fff !important; }
+        body[data-theme="wc-stadium"] .sum-bar,
+        body[data-theme="wc-trophy"] .sum-bar,
+        body[data-theme="wc-tournament"] .sum-bar {
+            background: rgba(0,0,0,0.45);
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        /* ── WC branding block in header ── */
+        #wc-branding { display:none; text-align:center; padding-bottom:10px; }
         /* Calendar grid */
         .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
         .cal-dh { text-align: center; font-size: 12px; font-weight: 700; color: var(--text-muted); padding: 7px 0; }
@@ -273,6 +306,7 @@
 <!-- ======== TAB: ปฏิทิน ======== -->
 <div id="tab-calendar" class="tab active">
     <div class="app-header">
+        <div id="wc-branding"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
             <button onclick="changeMonth(-1)" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;opacity:.9" aria-label="เดือนก่อน">
                 <svg width="22" height="22" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>
@@ -783,9 +817,44 @@ function applyTheme(id) {
     document.body.dataset.theme = id;
     SS.set('theme', id);
     if ($('theme-picker')) renderThemePicker();
+    updateWCBranding(id);
+    if ($('cal-body')) renderCal();
 }
 
 function loadTheme() { applyTheme(SS.get('theme') || 'orange'); }
+
+function updateWCBranding(id) {
+    const el = $('wc-branding');
+    if (!el) return;
+    const brandingMap = {
+        'wc-stadium': `
+            <div style="font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;letter-spacing:3px;color:#FFD700">⚽ SHIFTPRO</div>
+            <div style="font-size:10px;letter-spacing:2px;color:rgba(255,215,0,0.55)">TRACKER · กะทำงาน</div>`,
+        'wc-trophy': `
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px">
+                <span style="font-size:22px;filter:drop-shadow(0 0 7px rgba(201,168,76,0.8))">🏆</span>
+                <span style="font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;letter-spacing:2px;color:#F5D78B">ShiftPro</span>
+            </div>
+            <div style="font-size:10px;letter-spacing:2px;color:rgba(201,168,76,0.5)">TRACKER · กะทำงาน</div>`,
+        'wc-thai': `
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px">
+                <span style="font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;letter-spacing:2px;color:#fff">ShiftPro Tracker</span>
+                <span style="font-size:20px">🐘</span>
+            </div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.5)">ติดตามกะทำงาน</div>`,
+        'wc-tournament': `
+            <div style="font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;letter-spacing:3px;color:#fff">SHIFT<span style="color:#00B894">PRO</span></div>
+            <div style="font-size:10px;letter-spacing:2px;color:#555">WORLD CUP EDITION</div>`
+    };
+    const html = brandingMap[id];
+    if (html) {
+        el.innerHTML = html;
+        el.style.display = 'block';
+    } else {
+        el.style.display = 'none';
+        el.innerHTML = '';
+    }
+}
 
 function renderThemePicker() {
     const cur = SS.get('theme') || 'orange';
@@ -1048,9 +1117,13 @@ function renderCal() {
         if (isHol) cls+=' holiday'; else if (isCustomHol) cls+=' custom-hol'; else if (isWE) cls+=' weekend';
         if (isTd) cls+=' today';
         if (dow===0) cls+=' sun-col';
+        if (shift==='M') cls+=' shift-m';
+        else if (shift==='N') cls+=' shift-n';
+        if (hasOT) cls+=' has-ot';
+        const isWCTheme = (document.body.dataset.theme||'').startsWith('wc-');
         let badge = '';
-        if (shift==='M') badge = '<span class="s-badge s-m">M</span>';
-        else if (shift==='N') badge = '<span class="s-badge s-n">N</span>';
+        if (shift==='M') badge = `<span class="s-badge s-m">${isWCTheme?'🌞 กลางวัน':'M'}</span>`;
+        else if (shift==='N') badge = `<span class="s-badge s-n">${isWCTheme?'🌙 กลางคืน':'N'}</span>`;
         else if (shift==='D') badge = '<span class="s-badge s-d">D</span>';
         else badge = '<span class="s-badge s-off">OFF</span>';
         const holName = getHolName(dk, curYear) || (isCustomHol ? customHolMap[fullDateKey] : '');
