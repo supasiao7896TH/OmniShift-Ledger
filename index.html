@@ -1122,8 +1122,8 @@ function renderCal() {
         if (hasOT) cls+=' has-ot';
         const isWCTheme = (document.body.dataset.theme||'').startsWith('wc-');
         let badge = '';
-        if (shift==='M') badge = `<span class="s-badge s-m">${isWCTheme?'🌞 กลางวัน':'M'}</span>`;
-        else if (shift==='N') badge = `<span class="s-badge s-n">${isWCTheme?'🌙 กลางคืน':'N'}</span>`;
+        if (shift==='M') badge = `<span class="s-badge s-m">${isWCTheme?'🌞 M':'M'}</span>`;
+        else if (shift==='N') badge = `<span class="s-badge s-n">${isWCTheme?'🌙 N':'N'}</span>`;
         else if (shift==='D') badge = '<span class="s-badge s-d">D</span>';
         else badge = '<span class="s-badge s-off">OFF</span>';
         const holName = getHolName(dk, curYear) || (isCustomHol ? customHolMap[fullDateKey] : '');
