@@ -504,6 +504,10 @@
                 <input type="number" inputmode="decimal" id="holidayBonusRate" class="fi set-inp" placeholder="16">
             </div>
             <div class="set-row" style="cursor:default">
+                <span class="set-row-label">PVD พนักงานสมทบ (%)<br><span style="font-size:10px;color:var(--text-muted);font-weight:400">ส่วนพนักงานเท่านั้น (ใช้ลดหย่อนภาษี)</span></span>
+                <input type="number" inputmode="decimal" id="pvdRateInput" class="fi set-inp" placeholder="7" min="0" max="15">
+            </div>
+            <div class="set-row" style="cursor:default">
                 <span class="set-row-label">ชม.ทำงาน/เดือน</span>
                 <input type="number" inputmode="decimal" id="monthlyHoursInput" class="fi set-inp" placeholder="176">
             </div>
@@ -671,9 +675,22 @@
                     <div class="tax-lbl">กองทุน ThaiESG<small>ไม่เกิน 30% ของรายได้ สูงสุด 300,000</small></div>
                     <input type="number" inputmode="decimal" id="tax-thaiesg" class="fi tax-inp" min="0" placeholder="0" oninput="saveTaxData();renderTaxResult()">
                 </div>
-                <div class="tax-row">
-                    <div class="tax-lbl">กองทุนสำรองเลี้ยงชีพ PVD<small>ไม่เกิน 15% ของค่าจ้าง สูงสุด 500,000</small></div>
-                    <input type="number" inputmode="decimal" id="tax-pvd" class="fi tax-inp" min="0" placeholder="0" oninput="saveTaxData();renderTaxResult()">
+                <div>
+                    <div class="tax-lbl" style="margin-bottom:6px">กองทุนสำรองเลี้ยงชีพ PVD (ส่วนพนักงาน)<small>ไม่เกิน 15% ของค่าจ้าง · สูงสุด 500,000 · รวม bucket กองทุน</small></div>
+                    <div id="tax-pvd-auto-row" style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:8px;padding:8px 10px;margin-bottom:6px">
+                        <span id="tax-pvd-auto-label" style="font-size:11px;color:var(--text-muted)">คำนวณอัตโนมัติ</span>
+                        <span id="tax-pvd-auto-val" style="font-weight:700;color:#059669;font-size:14px">฿0</span>
+                    </div>
+                    <div class="tax-row" style="margin-bottom:4px">
+                        <span style="font-size:12px;color:var(--text-muted)">กรอกยอดจริงจากสลิปแทน (override)</span>
+                        <label class="tax-toggle">
+                            <input type="checkbox" id="tax-pvd-manual" onchange="togglePvdManual()">
+                            <span class="tax-toggle-sl"></span>
+                        </label>
+                    </div>
+                    <div id="tax-pvd-inp-row" style="display:none">
+                        <input type="number" inputmode="decimal" id="tax-pvd" class="fi" min="0" placeholder="ยอด PVD ส่วนพนักงานทั้งปี (บาท)" style="width:100%" oninput="saveTaxData();renderTaxResult()">
+                    </div>
                 </div>
                 <div id="tax-fund-bucket-warn" style="display:none;font-size:11px;color:#EF4444;font-weight:600;padding:4px 0">⚠ รวมกองทุนเกิน 500,000 — ระบบคำนวณที่ 500,000 บาท</div>
             </div>
@@ -1935,7 +1952,7 @@ function renderCalSum() {
 function saveSettings() {
     SS.set('settings', JSON.stringify({
         salary:$('salaryInput').value, mRate:$('mRateInput').value, nRate:$('nRateInput').value,
-        house:$('houseAllowanceRate').value, bonus:$('holidayBonusRate').value, mhours:$('monthlyHoursInput').value
+        house:$('houseAllowanceRate').value, bonus:$('holidayBonusRate').value, mhours:$('monthlyHoursInput').value, pvdRate:$('pvdRateInput').value
     }));
     SS.set('last_saved', new Date().toISOString());
     renderCal();
@@ -1950,14 +1967,15 @@ function readSettings() {
         nRate: parseFloat($('nRateInput')?.value)||0,
         house: parseFloat($('houseAllowanceRate')?.value)||0,
         bonus: parseFloat($('holidayBonusRate')?.value)||0,
-        mhours: mh>0?mh:DEFAULT_HOURS
+        mhours: mh>0?mh:DEFAULT_HOURS,
+        pvdRate: parseFloat($('pvdRateInput')?.value)||7
     };
 }
 
 function loadSettings() {
     let s={};
     try{ const str=SS.get('settings'); if(str) s=JSON.parse(str); }catch(e){}
-    const def={salary:'',mRate:'150',nRate:'200',house:'15',bonus:'16',mhours:String(DEFAULT_HOURS)};
+    const def={salary:'',mRate:'150',nRate:'200',house:'15',bonus:'16',mhours:String(DEFAULT_HOURS),pvdRate:'7'};
     const m={...def,...s};
     $('salaryInput').value=m.salary;
     $('mRateInput').value=m.mRate;
@@ -1965,6 +1983,7 @@ function loadSettings() {
     $('houseAllowanceRate').value=m.house;
     $('holidayBonusRate').value=m.bonus;
     $('monthlyHoursInput').value=m.mhours;
+    $('pvdRateInput').value=m.pvdRate;
 }
 
 // ===== Data =====
@@ -2247,6 +2266,10 @@ function loadTaxData() {
     $('tax-donation').value = d.donation || '';
     $('tax-donation2x').value = d.donation2x || '';
     $('tax-parents-spouse-row').style.display = d.spouse ? 'flex' : 'none';
+    const pvdManual = !!d.pvdManual;
+    $('tax-pvd-manual').checked = pvdManual;
+    $('tax-pvd-inp-row').style.display = pvdManual ? 'block' : 'none';
+    $('tax-pvd').value = d.pvd || '';
 }
 
 function saveTaxData() {
@@ -2267,6 +2290,8 @@ function saveTaxData() {
         eReceipt: parseFloat($('tax-ereceipt').value)||0,
         donation: parseFloat($('tax-donation').value)||0,
         donation2x: parseFloat($('tax-donation2x').value)||0,
+        pvdManual: $('tax-pvd-manual').checked,
+        pvd: parseFloat($('tax-pvd').value)||0,
         children: taxChildren,
     };
     SS.set('tax_data', JSON.stringify(d));
@@ -2275,6 +2300,17 @@ function saveTaxData() {
 
 function toggleEReceipt() {
     $('tax-ereceipt-inp-row').style.display = $('tax-ereceipt-toggle').checked ? 'block' : 'none';
+    saveTaxData();
+    renderTaxResult();
+}
+
+function togglePvdManual() {
+    const manual = $('tax-pvd-manual').checked;
+    $('tax-pvd-inp-row').style.display = manual ? 'block' : 'none';
+    if (manual && !$('tax-pvd').value) {
+        const s = readSettings();
+        $('tax-pvd').value = Math.round(s.salary * 12 * ((s.pvdRate||7) / 100));
+    }
     saveTaxData();
     renderTaxResult();
 }
@@ -2346,7 +2382,9 @@ function computeTaxDeductions(annualIncome, sso) {
     const rmf    = Math.min(d.rmf||0,    Math.min(annualIncome * 0.30, 500000));
     const ssf    = Math.min(d.ssf||0,    Math.min(annualIncome * 0.30, 200000));
     const thaiesg= Math.min(d.thaiesg||0,Math.min(annualIncome * 0.30, 300000));
-    const pvd    = Math.min(d.pvd||0,    Math.min(s.salary * 12 * 0.15, 500000));
+    const pvdAuto = s.salary * 12 * ((s.pvdRate||7) / 100);
+    const pvdRaw  = d.pvdManual ? (d.pvd||0) : pvdAuto;
+    const pvd     = Math.min(pvdRaw, Math.min(s.salary * 12 * 0.15, 500000));
     const rawFund = rmf + ssf + thaiesg + pvd;
     const fundCombined = Math.min(rawFund, 500000);
 
@@ -2413,6 +2451,11 @@ function renderTaxResult() {
     if ($('tax-sso-val')) {
         $('tax-sso-val').textContent = fmtB(sso) + (monthsWithWork > 0 ? ` (${monthsWithWork} เดือน × 750)` : ' (ยังไม่มีกะ)');
     }
+
+    // PVD auto display
+    const pvdAuto = Math.round(s.salary * 12 * ((s.pvdRate||7) / 100));
+    if ($('tax-pvd-auto-label')) $('tax-pvd-auto-label').textContent = `${s.pvdRate||7}% × ฿${Math.round(s.salary).toLocaleString('th-TH')}/เดือน × 12 เดือน =`;
+    if ($('tax-pvd-auto-val'))   $('tax-pvd-auto-val').textContent   = '฿' + pvdAuto.toLocaleString('th-TH');
 
     // Fund bucket warning
     const det = computeTaxDeductions(useAnnual, sso);
