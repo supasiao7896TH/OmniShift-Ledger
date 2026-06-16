@@ -299,6 +299,34 @@
             .cal-charts-wrap { flex:2; }
         }
         @media print { .bot-nav, .overlay { display: none !important; } }
+        /* ── Tax Tab ── */
+        .tax-group{background:var(--surface);border-radius:14px;border:1px solid var(--border);overflow:hidden}
+        .tax-grp-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+        .tax-grp-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px}
+        .tax-grp-body{padding:12px 16px;display:flex;flex-direction:column;gap:11px;border-top:1px solid var(--border)}
+        .tax-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+        .tax-lbl{font-size:14px;flex:1;line-height:1.3}
+        .tax-lbl small{font-size:10px;color:var(--text-muted);display:block;font-weight:500;margin-top:1px}
+        .tax-inp{width:120px;text-align:right;padding:7px 10px;font-size:14px}
+        .tax-result-card{background:var(--surface);border-radius:14px;border:1px solid var(--border);padding:16px}
+        .tax-res-row{display:flex;justify-content:space-between;font-size:13px;padding:2px 0}
+        .tax-res-row span:first-child{color:var(--text-muted)}
+        .tax-res-row span:last-child{font-weight:600;color:var(--text)}
+        .tax-res-row.deduct span:last-child{color:#059669}
+        .tax-res-row.total{border-top:2px solid var(--border);margin-top:6px;padding-top:6px;font-size:15px;font-weight:800}
+        .tax-res-row.total span:first-child{color:var(--text)}
+        .tax-res-row.total span:last-child{color:#EF4444}
+        .tax-res-row.refund span:last-child{color:#22C55E}
+        .tax-res-row.warn span:last-child{color:#F97316}
+        .tax-toggle{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
+        .tax-toggle input{opacity:0;width:0;height:0;position:absolute}
+        .tax-toggle-sl{position:absolute;inset:0;background:#D1D5DB;border-radius:12px;transition:.2s;cursor:pointer}
+        .tax-toggle-sl::before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+        .tax-toggle input:checked+.tax-toggle-sl{background:var(--primary)}
+        .tax-toggle input:checked+.tax-toggle-sl::before{transform:translateX(20px)}
+        .tax-child-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
+        .tax-child-item:last-child{border-bottom:none}
+        .fund-info-box{background:var(--primary-light);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--text-muted);line-height:1.5}
     </style>
 </head>
 <body>
@@ -524,6 +552,202 @@
     </div>
 </div>
 
+<!-- ======== TAB: ภาษี ======== -->
+<div id="tab-tax" class="tab">
+    <div class="app-header">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+            <button onclick="changeTaxYear(-1)" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;opacity:.9" aria-label="ปีก่อน">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>
+            </button>
+            <div style="text-align:center">
+                <div style="font-size:20px;font-weight:700">ภาษีเงินได้ พ.ศ. <span id="tax-yr-display"></span></div>
+                <div style="font-size:11px;opacity:.8">ภ.ง.ด. 91 · ประมาณการส่วนบุคคล</div>
+            </div>
+            <button onclick="changeTaxYear(1)" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;opacity:.9" aria-label="ปีถัดไป">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
+            </button>
+        </div>
+    </div>
+    <div style="padding:14px;display:flex;flex-direction:column;gap:12px">
+
+        <!-- รายได้รวม -->
+        <div class="s-card">
+            <div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:8px">รายได้รวม (ดึงจากข้อมูลกะในระบบ)</div>
+            <div id="tax-income-summary"></div>
+        </div>
+
+        <!-- กลุ่มที่ 1: ส่วนตัวและครอบครัว -->
+        <div class="tax-group">
+            <div class="tax-grp-hdr" onclick="toggleTaxGroup('grp-family')">
+                <div class="tax-grp-title">👨‍👩‍👧 ส่วนตัวและครอบครัว</div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span id="grp-family-total" style="font-size:12px;font-weight:700;color:var(--primary)"></span>
+                    <svg id="grp-family-chev" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style="transition:transform .25s;color:var(--text-muted)"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+                </div>
+            </div>
+            <div id="grp-family-body" class="tax-grp-body" style="display:none">
+                <div class="tax-row">
+                    <div class="tax-lbl">ลดหย่อนส่วนตัว<small>60,000 บาท (อัตโนมัติทุกคน)</small></div>
+                    <span style="font-weight:700;color:#059669">฿60,000</span>
+                </div>
+                <div class="tax-row">
+                    <div class="tax-lbl">คู่สมรส (ไม่มีรายได้)<small>60,000 บาท</small></div>
+                    <label class="tax-toggle">
+                        <input type="checkbox" id="tax-spouse" onchange="saveTaxData();renderTaxResult()">
+                        <span class="tax-toggle-sl"></span>
+                    </label>
+                </div>
+                <div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                        <div class="tax-lbl">บุตร<small>คนที่ 1: 30,000 · คนที่ 2+ เกิดหลัง พ.ศ. 2561: 60,000</small></div>
+                        <button onclick="addTaxChild()" style="background:var(--primary);color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;flex-shrink:0">+ เพิ่ม</button>
+                    </div>
+                    <div id="tax-children-list"></div>
+                </div>
+                <div class="tax-row">
+                    <div class="tax-lbl">บิดามารดา (ของตัวเอง)<small>30,000/คน · อายุ 60+ รายได้ &lt;30,000/ปี</small></div>
+                    <select id="tax-parents-self" class="fi tax-inp" onchange="saveTaxData();renderTaxResult()">
+                        <option value="0">0 คน</option><option value="1">1 คน</option><option value="2">2 คน</option>
+                    </select>
+                </div>
+                <div class="tax-row" id="tax-parents-spouse-row" style="display:none">
+                    <div class="tax-lbl">บิดามารดา (ของคู่สมรส)<small>30,000/คน</small></div>
+                    <select id="tax-parents-spouse" class="fi tax-inp" onchange="saveTaxData();renderTaxResult()">
+                        <option value="0">0 คน</option><option value="1">1 คน</option><option value="2">2 คน</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- กลุ่มที่ 2: ประกันภัย -->
+        <div class="tax-group">
+            <div class="tax-grp-hdr" onclick="toggleTaxGroup('grp-insurance')">
+                <div class="tax-grp-title">🛡️ ประกันภัย</div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span id="grp-insurance-total" style="font-size:12px;font-weight:700;color:var(--primary)"></span>
+                    <svg id="grp-insurance-chev" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style="transition:transform .25s;color:var(--text-muted)"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+                </div>
+            </div>
+            <div id="grp-insurance-body" class="tax-grp-body" style="display:none">
+                <div class="tax-row">
+                    <div class="tax-lbl">ประกันสังคม<small>คำนวณอัตโนมัติ 750 บาท/เดือน จากกะที่บันทึกไว้</small></div>
+                    <span id="tax-sso-val" style="font-weight:700;color:#059669;white-space:nowrap">฿0</span>
+                </div>
+                <div class="tax-row">
+                    <div class="tax-lbl">เบี้ยประกันชีวิต<small>สูงสุด 100,000 บาท</small></div>
+                    <input type="number" inputmode="decimal" id="tax-life-ins" class="fi tax-inp" min="0" max="100000" placeholder="0" oninput="saveTaxData();renderTaxResult()">
+                </div>
+                <div class="tax-row">
+                    <div class="tax-lbl">เบี้ยประกันสุขภาพ (ตัวเอง)<small>สูงสุด 25,000 · รวมกับประกันชีวิตไม่เกิน 100,000</small></div>
+                    <input type="number" inputmode="decimal" id="tax-health-ins" class="fi tax-inp" min="0" max="25000" placeholder="0" oninput="saveTaxData();renderTaxResult()">
+                </div>
+                <div class="tax-row">
+                    <div class="tax-lbl">เบี้ยประกันสุขภาพ (บิดามารดา)<small>สูงสุด 15,000 บาท</small></div>
+                    <input type="number" inputmode="decimal" id="tax-parent-health" class="fi tax-inp" min="0" max="15000" placeholder="0" oninput="saveTaxData();renderTaxResult()">
+                </div>
+            </div>
+        </div>
+
+        <!-- กลุ่มที่ 3: กองทุนเพื่อการออม -->
+        <div class="tax-group">
+            <div class="tax-grp-hdr" onclick="toggleTaxGroup('grp-funds')">
+                <div class="tax-grp-title">📈 กองทุนเพื่อการออม</div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span id="grp-funds-total" style="font-size:12px;font-weight:700;color:var(--primary)"></span>
+                    <svg id="grp-funds-chev" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style="transition:transform .25s;color:var(--text-muted)"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+                </div>
+            </div>
+            <div id="grp-funds-body" class="tax-grp-body" style="display:none">
+                <div class="fund-info-box">⚠ กองทุนทั้งหมด (RMF + SSF + THAIESG + PVD) รวมกันต้องไม่เกิน <strong>500,000 บาท</strong></div>
+                <div class="tax-row">
+                    <div class="tax-lbl">กองทุน RMF<small>ไม่เกิน 30% ของรายได้ สูงสุด 500,000</small></div>
+                    <input type="number" inputmode="decimal" id="tax-rmf" class="fi tax-inp" min="0" placeholder="0" oninput="saveTaxData();renderTaxResult()">
+                </div>
+                <div class="tax-row">
+                    <div class="tax-lbl">กองทุน SSF<small>ไม่เกิน 30% ของรายได้ สูงสุด 200,000</small></div>
+                    <input type="number" inputmode="decimal" id="tax-ssf" class="fi tax-inp" min="0" placeholder="0" oninput="saveTaxData();renderTaxResult()">
+                </div>
+                <div class="tax-row">
+                    <div class="tax-lbl">กองทุน ThaiESG<small>ไม่เกิน 30% ของรายได้ สูงสุด 300,000</small></div>
+                    <input type="number" inputmode="decimal" id="tax-thaiesg" class="fi tax-inp" min="0" placeholder="0" oninput="saveTaxData();renderTaxResult()">
+                </div>
+                <div class="tax-row">
+                    <div class="tax-lbl">กองทุนสำรองเลี้ยงชีพ PVD<small>ไม่เกิน 15% ของค่าจ้าง สูงสุด 500,000</small></div>
+                    <input type="number" inputmode="decimal" id="tax-pvd" class="fi tax-inp" min="0" placeholder="0" oninput="saveTaxData();renderTaxResult()">
+                </div>
+                <div id="tax-fund-bucket-warn" style="display:none;font-size:11px;color:#EF4444;font-weight:600;padding:4px 0">⚠ รวมกองทุนเกิน 500,000 — ระบบคำนวณที่ 500,000 บาท</div>
+            </div>
+        </div>
+
+        <!-- กลุ่มที่ 4: บ้านและอื่นๆ -->
+        <div class="tax-group">
+            <div class="tax-grp-hdr" onclick="toggleTaxGroup('grp-other')">
+                <div class="tax-grp-title">🏠 บ้านและอื่นๆ</div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span id="grp-other-total" style="font-size:12px;font-weight:700;color:var(--primary)"></span>
+                    <svg id="grp-other-chev" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" style="transition:transform .25s;color:var(--text-muted)"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+                </div>
+            </div>
+            <div id="grp-other-body" class="tax-grp-body" style="display:none">
+                <div class="tax-row">
+                    <div class="tax-lbl">ดอกเบี้ยเงินกู้บ้าน<small>สูงสุด 100,000 บาท</small></div>
+                    <input type="number" inputmode="decimal" id="tax-mortgage" class="fi tax-inp" min="0" max="100000" placeholder="0" oninput="saveTaxData();renderTaxResult()">
+                </div>
+                <div>
+                    <div class="tax-row" style="margin-bottom:6px">
+                        <div class="tax-lbl">Easy E-Receipt<small>สูงสุด 50,000 บาท (เปิดหากมีนโยบายปีนี้)</small></div>
+                        <label class="tax-toggle">
+                            <input type="checkbox" id="tax-ereceipt-toggle" onchange="toggleEReceipt()">
+                            <span class="tax-toggle-sl"></span>
+                        </label>
+                    </div>
+                    <div id="tax-ereceipt-inp-row" style="display:none">
+                        <input type="number" inputmode="decimal" id="tax-ereceipt" class="fi" min="0" max="50000" placeholder="กรอกยอดใบเสร็จ E-Receipt (สูงสุด 50,000)" style="width:100%" oninput="saveTaxData();renderTaxResult()">
+                    </div>
+                </div>
+                <div class="tax-row">
+                    <div class="tax-lbl">บริจาคทั่วไป<small>สูงสุด 10% ของเงินได้หลังหักค่าลดหย่อน</small></div>
+                    <input type="number" inputmode="decimal" id="tax-donation" class="fi tax-inp" min="0" placeholder="0" oninput="saveTaxData();renderTaxResult()">
+                </div>
+                <div class="tax-row">
+                    <div class="tax-lbl">บริจาค 2 เท่า (การศึกษา/กีฬา)<small>กรอกยอดที่บริจาคจริง — นับ 2 เท่า สูงสุดรวม 10% ของเงินได้</small></div>
+                    <input type="number" inputmode="decimal" id="tax-donation2x" class="fi tax-inp" min="0" placeholder="0" oninput="saveTaxData();renderTaxResult()">
+                </div>
+            </div>
+        </div>
+
+        <!-- ผลการคำนวณ -->
+        <div style="font-size:14px;font-weight:700;color:var(--text-muted);margin-top:2px">📊 ผลการคำนวณ</div>
+
+        <div class="tax-result-card">
+            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px">ภาษีหัก ณ ที่จ่าย (ประมาณการรายเดือน)</div>
+            <div id="tax-monthly-result"></div>
+        </div>
+
+        <div class="tax-result-card">
+            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px">ภาษีรายปี — ภ.ง.ด. 91</div>
+            <div id="tax-annual-result"></div>
+        </div>
+
+        <!-- ตาราง Tax Bracket -->
+        <div class="s-card">
+            <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px">อัตราภาษีเงินได้บุคคลธรรมดา (ปี 2568–2569)</div>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:3px 16px;font-size:11px">
+                <span style="color:var(--text-muted)">0 – 150,000</span><span style="font-weight:700;color:var(--text-muted)">ยกเว้น</span>
+                <span style="color:var(--text-muted)">150,001 – 300,000</span><span style="font-weight:700;color:#22C55E">5%</span>
+                <span style="color:var(--text-muted)">300,001 – 500,000</span><span style="font-weight:700;color:#84CC16">10%</span>
+                <span style="color:var(--text-muted)">500,001 – 750,000</span><span style="font-weight:700;color:#EAB308">15%</span>
+                <span style="color:var(--text-muted)">750,001 – 1,000,000</span><span style="font-weight:700;color:#F97316">20%</span>
+                <span style="color:var(--text-muted)">1,000,001 – 2,000,000</span><span style="font-weight:700;color:#EF4444">25%</span>
+                <span style="color:var(--text-muted)">2,000,001 – 5,000,000</span><span style="font-weight:700;color:#DC2626">30%</span>
+                <span style="color:var(--text-muted)">5,000,001 ขึ้นไป</span><span style="font-weight:700;color:#991B1B">35%</span>
+            </div>
+        </div>
+
+        <p style="font-size:10px;color:var(--text-muted);text-align:center;padding-bottom:4px">* ข้อมูลนี้เป็นเพียงการประมาณการ ควรยืนยันกับสรรพากรหรือนักบัญชี</p>
+    </div>
+</div>
+
 <!-- Bottom Nav -->
 <nav class="bot-nav">
     <button class="nav-btn active" id="nav-calendar" onclick="switchTab('calendar')">
@@ -537,6 +761,10 @@
     <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         การตั้งค่า
+    </button>
+    <button class="nav-btn" id="nav-tax" onclick="switchTab('tax')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14l6-6"/><circle cx="9.5" cy="9.5" r=".5" fill="currentColor" stroke="none"/><circle cx="14.5" cy="14.5" r=".5" fill="currentColor" stroke="none"/><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 2.5 2 2.5-2 3.5 2z"/></svg>
+        ภาษี
     </button>
 </nav>
 
@@ -1030,12 +1258,13 @@ window.onload = function() {
 
 // ===== Tabs =====
 function switchTab(tab) {
-    ['calendar','stats','settings'].forEach(t => {
+    ['calendar','stats','settings','tax'].forEach(t => {
         $('tab-'+t).classList.toggle('active', t===tab);
         $('nav-'+t).classList.toggle('active', t===tab);
     });
     if (tab==='stats') renderStats();
     if (tab==='settings') renderThemePicker();
+    if (tab==='tax') renderTaxTab();
 }
 
 // ===== Calendar =====
@@ -1936,6 +2165,349 @@ function showConfirm(msg, onOk) {
     const close=()=>{modal.style.display='none';document.body.style.overflow='';ok.onclick=null;cancel.onclick=null;};
     ok.onclick=()=>{onOk();close();};
     cancel.onclick=close;
+}
+
+// ===== TAX MODULE =====
+
+const TAX_BRACKETS = [
+    { up: 150000,   rate: 0    },
+    { up: 300000,   rate: 0.05 },
+    { up: 500000,   rate: 0.10 },
+    { up: 750000,   rate: 0.15 },
+    { up: 1000000,  rate: 0.20 },
+    { up: 2000000,  rate: 0.25 },
+    { up: 5000000,  rate: 0.30 },
+    { up: Infinity, rate: 0.35 },
+];
+
+let taxYearCE = new Date().getFullYear();
+let taxChildren = [];
+
+function calcThaiIncomeTax(taxable) {
+    if (taxable <= 0) return 0;
+    let tax = 0, prev = 0;
+    for (const b of TAX_BRACKETS) {
+        if (taxable <= prev) break;
+        const slice = Math.min(taxable, b.up) - prev;
+        tax += slice * b.rate;
+        prev = b.up;
+    }
+    return Math.round(tax);
+}
+
+function getAnnualData(yearCE) {
+    const s = readSettings();
+    const hr = s.salary > 0 ? s.salary / s.mhours : 0;
+    let totalIncome = 0, monthsWithWork = 0;
+    const monthList = [];
+    for (let m = 1; m <= 12; m++) {
+        const data = getMonthData(yearCE, m);
+        let mD=0, nD=0, dD=0, ot15=0, ot20=0, ot30=0;
+        let hasWork = false;
+        for (const k in data) {
+            const d = data[k];
+            if (d.shift==='M'){mD++;hasWork=true;}
+            else if(d.shift==='N'){nD++;hasWork=true;}
+            else if(d.shift==='D'){dD++;hasWork=true;}
+            ot15+=d.ot15||0; ot20+=d.ot20||0; ot30+=d.ot30||0;
+            if((d.ot15||0)+(d.ot20||0)+(d.ot30||0)>0) hasWork=true;
+        }
+        const inc = hasWork
+            ? s.salary + mD*s.mRate + nD*s.nRate
+              + ot15*hr*1.5 + ot20*hr*2 + ot30*hr*3
+              + calcHouseAllowance(s.salary, s.house)
+              + s.salary*(s.bonus/100)
+            : 0;
+        if (hasWork) { totalIncome += inc; monthsWithWork++; }
+        monthList.push({ m, inc, hasWork });
+    }
+    return { totalIncome, monthsWithWork, monthList, settings: s };
+}
+
+function loadTaxData() {
+    let d = {};
+    try { const str = SS.get('tax_data'); if (str) d = JSON.parse(str); } catch(e) {}
+    taxYearCE = d.yearCE || new Date().getFullYear();
+    taxChildren = Array.isArray(d.children) ? d.children : [];
+    $('tax-spouse').checked = !!d.spouse;
+    $('tax-parents-self').value = String(d.parentsSelf || 0);
+    $('tax-parents-spouse').value = String(d.parentsSpouse || 0);
+    $('tax-life-ins').value = d.lifeIns || '';
+    $('tax-health-ins').value = d.healthIns || '';
+    $('tax-parent-health').value = d.parentHealth || '';
+    $('tax-rmf').value = d.rmf || '';
+    $('tax-ssf').value = d.ssf || '';
+    $('tax-thaiesg').value = d.thaiesg || '';
+    $('tax-pvd').value = d.pvd || '';
+    $('tax-mortgage').value = d.mortgage || '';
+    const eOn = !!d.eReceiptEnabled;
+    $('tax-ereceipt-toggle').checked = eOn;
+    $('tax-ereceipt-inp-row').style.display = eOn ? 'block' : 'none';
+    $('tax-ereceipt').value = d.eReceipt || '';
+    $('tax-donation').value = d.donation || '';
+    $('tax-donation2x').value = d.donation2x || '';
+    $('tax-parents-spouse-row').style.display = d.spouse ? 'flex' : 'none';
+}
+
+function saveTaxData() {
+    const d = {
+        yearCE: taxYearCE,
+        spouse: $('tax-spouse').checked,
+        parentsSelf: parseInt($('tax-parents-self').value)||0,
+        parentsSpouse: parseInt($('tax-parents-spouse').value)||0,
+        lifeIns: parseFloat($('tax-life-ins').value)||0,
+        healthIns: parseFloat($('tax-health-ins').value)||0,
+        parentHealth: parseFloat($('tax-parent-health').value)||0,
+        rmf: parseFloat($('tax-rmf').value)||0,
+        ssf: parseFloat($('tax-ssf').value)||0,
+        thaiesg: parseFloat($('tax-thaiesg').value)||0,
+        pvd: parseFloat($('tax-pvd').value)||0,
+        mortgage: parseFloat($('tax-mortgage').value)||0,
+        eReceiptEnabled: $('tax-ereceipt-toggle').checked,
+        eReceipt: parseFloat($('tax-ereceipt').value)||0,
+        donation: parseFloat($('tax-donation').value)||0,
+        donation2x: parseFloat($('tax-donation2x').value)||0,
+        children: taxChildren,
+    };
+    SS.set('tax_data', JSON.stringify(d));
+    $('tax-parents-spouse-row').style.display = d.spouse ? 'flex' : 'none';
+}
+
+function toggleEReceipt() {
+    $('tax-ereceipt-inp-row').style.display = $('tax-ereceipt-toggle').checked ? 'block' : 'none';
+    saveTaxData();
+    renderTaxResult();
+}
+
+function addTaxChild() {
+    taxChildren.push({ birthYearBE: new Date().getFullYear() + 543 });
+    saveTaxData();
+    renderTaxChildren();
+    renderTaxResult();
+}
+
+function removeTaxChild(idx) {
+    taxChildren.splice(idx, 1);
+    saveTaxData();
+    renderTaxChildren();
+    renderTaxResult();
+}
+
+function updateChildYear(idx, val) {
+    const yr = parseInt(val);
+    if (yr >= 2480 && yr <= 2650) taxChildren[idx].birthYearBE = yr;
+    saveTaxData();
+    renderTaxChildren();
+    renderTaxResult();
+}
+
+function calcChildDeduction(birthYearBE, childIndex) {
+    return (childIndex >= 1 && birthYearBE >= 2561) ? 60000 : 30000;
+}
+
+function renderTaxChildren() {
+    const list = $('tax-children-list');
+    if (!taxChildren.length) {
+        list.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:4px 0">ยังไม่มีบุตร — กดปุ่ม "+ เพิ่ม" ด้านบน</div>';
+        return;
+    }
+    list.innerHTML = taxChildren.map((c, i) => {
+        const ded = calcChildDeduction(c.birthYearBE, i);
+        return `<div class="tax-child-item">
+            <span style="font-size:12px;min-width:52px;color:var(--text-muted)">คนที่ ${i+1}</span>
+            <span style="font-size:11px;color:var(--text-muted);white-space:nowrap">เกิด พ.ศ.</span>
+            <input type="number" inputmode="numeric" class="fi" style="width:80px;padding:5px 8px;font-size:13px"
+                value="${c.birthYearBE}" min="2480" max="2650"
+                onchange="updateChildYear(${i}, this.value)">
+            <span style="font-size:12px;color:#059669;font-weight:700;flex:1;padding-left:4px">฿${ded===60000?'60,000 ✦':'30,000'}</span>
+            <button onclick="removeTaxChild(${i})" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:18px;padding:2px 6px;line-height:1">✕</button>
+        </div>`;
+    }).join('');
+}
+
+function computeTaxDeductions(annualIncome, sso) {
+    let d = {};
+    try { const str = SS.get('tax_data'); if (str) d = JSON.parse(str); } catch(e) {}
+    const s = readSettings();
+
+    const expenseDeduction = Math.min(annualIncome * 0.5, 100000);
+    const personal = 60000;
+    const spouse = d.spouse ? 60000 : 0;
+    let childrenDeduction = 0;
+    (d.children || []).forEach((c, i) => { childrenDeduction += calcChildDeduction(c.birthYearBE, i); });
+    const parentsSelf   = Math.min(parseInt(d.parentsSelf  ||0), 2) * 30000;
+    const parentsSpouse = d.spouse ? Math.min(parseInt(d.parentsSpouse||0), 2) * 30000 : 0;
+
+    const lifeIns = Math.min(d.lifeIns||0, 100000);
+    const healthIns = Math.min(d.healthIns||0, 25000);
+    const lifeHealthCombined = Math.min(lifeIns + healthIns, 100000);
+    const parentHealth = Math.min(d.parentHealth||0, 15000);
+
+    const rmf    = Math.min(d.rmf||0,    Math.min(annualIncome * 0.30, 500000));
+    const ssf    = Math.min(d.ssf||0,    Math.min(annualIncome * 0.30, 200000));
+    const thaiesg= Math.min(d.thaiesg||0,Math.min(annualIncome * 0.30, 300000));
+    const pvd    = Math.min(d.pvd||0,    Math.min(s.salary * 12 * 0.15, 500000));
+    const rawFund = rmf + ssf + thaiesg + pvd;
+    const fundCombined = Math.min(rawFund, 500000);
+
+    const mortgage  = Math.min(d.mortgage||0, 100000);
+    const eReceipt  = d.eReceiptEnabled ? Math.min(d.eReceipt||0, 50000) : 0;
+
+    const baseForDonation = annualIncome - expenseDeduction - personal - spouse - childrenDeduction
+        - parentsSelf - parentsSpouse - sso - lifeHealthCombined - parentHealth
+        - fundCombined - mortgage - eReceipt;
+    const donationCap = Math.max(baseForDonation * 0.10, 0);
+    const donGeneral  = Math.min(d.donation||0, donationCap);
+    const don2x       = Math.max(Math.min((d.donation2x||0) * 2, donationCap - donGeneral), 0);
+    const totalDonation = donGeneral + don2x;
+
+    const totalPersonalDeductions = personal + spouse + childrenDeduction + parentsSelf + parentsSpouse
+        + sso + lifeHealthCombined + parentHealth + fundCombined + mortgage + eReceipt + totalDonation;
+
+    return {
+        expenseDeduction, personal, spouse, childrenDeduction,
+        parentsSelf, parentsSpouse, sso: sso||0, lifeHealthCombined, parentHealth,
+        fundCombined, rawFund, mortgage, eReceipt, totalDonation,
+        totalPersonalDeductions,
+    };
+}
+
+function renderTaxResult() {
+    const { totalIncome, monthsWithWork, monthList, settings: s } = getAnnualData(taxYearCE);
+    const now = new Date();
+    const isCurrentYear = taxYearCE === now.getFullYear();
+    const fmtB = v => '฿' + Math.round(Math.abs(v)).toLocaleString('th-TH');
+
+    const activeMths = monthList.filter(x => x.hasWork);
+    const baseMonthlyEst = s.salary > 0
+        ? s.salary + calcHouseAllowance(s.salary, s.house) + s.salary*(s.bonus/100)
+        : 0;
+    const projMonthlyAvg = activeMths.length > 0 ? totalIncome / activeMths.length : baseMonthlyEst;
+    let useAnnual;
+    if (isCurrentYear) {
+        useAnnual = activeMths.length > 0
+            ? totalIncome + projMonthlyAvg * (12 - activeMths.length)
+            : baseMonthlyEst * 12;
+    } else {
+        useAnnual = totalIncome;
+    }
+
+    // Income summary
+    let incHtml = `<div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;margin-bottom:2px">
+        <span>รายได้จริงในระบบ (${activeMths.length} เดือน)</span>
+        <span style="color:var(--primary)">${fmtB(totalIncome)}</span>
+    </div>`;
+    if (isCurrentYear && activeMths.length > 0 && activeMths.length < 12) {
+        incHtml += `<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted)">
+            <span>ประมาณการทั้งปี (projection)</span>
+            <span style="color:#F97316;font-weight:600">${fmtB(useAnnual)}</span>
+        </div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:2px">* จากค่าเฉลี่ย ${fmtB(projMonthlyAvg)}/เดือน × 12</div>`;
+    } else if (activeMths.length === 0 && s.salary > 0) {
+        incHtml += `<div style="font-size:11px;color:#F97316;margin-top:4px">⚠ ยังไม่มีข้อมูลกะปีนี้ — ใช้เงินเดือนฐาน ${fmtB(baseMonthlyEst)}/เดือน ประมาณการ</div>`;
+    }
+    $('tax-income-summary').innerHTML = incHtml;
+
+    // SSO auto
+    const sso = Math.min(monthsWithWork * 750, 9000);
+    if ($('tax-sso-val')) {
+        $('tax-sso-val').textContent = fmtB(sso) + (monthsWithWork > 0 ? ` (${monthsWithWork} เดือน × 750)` : ' (ยังไม่มีกะ)');
+    }
+
+    // Fund bucket warning
+    const det = computeTaxDeductions(useAnnual, sso);
+    const fundWarn = $('tax-fund-bucket-warn');
+    if (fundWarn) fundWarn.style.display = det.rawFund > 500000 ? 'block' : 'none';
+
+    if (useAnnual <= 0) {
+        const msg = '<div style="font-size:13px;color:var(--text-muted);padding:6px 0">กรุณาตั้งค่าเงินเดือนใน "การตั้งค่า" ก่อนครับ</div>';
+        $('tax-monthly-result').innerHTML = msg;
+        $('tax-annual-result').innerHTML = msg;
+        updateTaxGroupTotals(det, sso);
+        return;
+    }
+
+    const taxable = Math.max(useAnnual - det.expenseDeduction - det.totalPersonalDeductions, 0);
+    const annualTax = calcThaiIncomeTax(taxable);
+    const monthlyWHT = Math.round(annualTax / 12);
+    const paidSoFar  = Math.round(monthlyWHT * activeMths.length);
+    const balance    = paidSoFar - annualTax;
+
+    // Monthly WHT
+    const curM = isCurrentYear ? now.getMonth() + 1 : 12;
+    const curEntry = monthList.find(x => x.m === curM);
+    const curMonthInc = (curEntry && curEntry.hasWork) ? curEntry.inc : projMonthlyAvg;
+    $('tax-monthly-result').innerHTML = `
+        <div class="tax-res-row"><span>รายได้เดือนปัจจุบัน${!curEntry?.hasWork?' (ประมาณ)':''}</span><span>${fmtB(curMonthInc)}</span></div>
+        <div class="tax-res-row deduct"><span>ลดหย่อนรวม ÷ 12 (ประมาณ)</span><span>-${fmtB(det.totalPersonalDeductions / 12)}</span></div>
+        <div class="tax-res-row total"><span>ภาษีหัก ณ ที่จ่าย / เดือน</span><span>${fmtB(monthlyWHT)}</span></div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:6px">คำนวณเหมือน HR: ภาษีทั้งปี ${fmtB(annualTax)} ÷ 12 เดือน</div>`;
+
+    // Annual tax
+    let annualHtml = `
+        <div class="tax-res-row"><span>รายได้รวมทั้งปี${isCurrentYear?' (projection)':''}</span><span>${fmtB(useAnnual)}</span></div>
+        <div class="tax-res-row deduct"><span>(-) ค่าใช้จ่าย 50% (สูงสุด 100,000)</span><span>-${fmtB(det.expenseDeduction)}</span></div>
+        <div class="tax-res-row deduct"><span>(-) ค่าลดหย่อนส่วนบุคคลรวม</span><span>-${fmtB(det.totalPersonalDeductions)}</span></div>
+        <div class="tax-res-row" style="border-top:1px dashed var(--border);padding-top:5px;margin-top:3px">
+            <span style="font-weight:600">เงินได้สุทธิ</span><span style="font-weight:700;color:var(--text)">${fmtB(taxable)}</span>
+        </div>
+        <div class="tax-res-row total"><span>ภาษีที่ต้องเสียทั้งปี</span><span>${fmtB(annualTax)}</span></div>`;
+    if (activeMths.length > 0) {
+        annualHtml += `
+        <div class="tax-res-row" style="margin-top:4px"><span>ถูกหักไปแล้วประมาณ (${activeMths.length} เดือน)</span><span>-${fmtB(paidSoFar)}</span></div>
+        <div class="tax-res-row ${balance >= 0 ? 'refund' : 'warn'} total">
+            <span>${balance >= 0 ? '+ ได้คืนภาษีโดยประมาณ' : '- ยังต้องจ่ายเพิ่ม'}</span>
+            <span>${fmtB(Math.abs(balance))}</span>
+        </div>`;
+    }
+    // Detail breakdown
+    const parts = [`ส่วนตัว ฿60,000`];
+    if (det.spouse)          parts.push(`คู่สมรส ฿${det.spouse.toLocaleString('th-TH')}`);
+    if (det.childrenDeduction) parts.push(`บุตร ฿${det.childrenDeduction.toLocaleString('th-TH')}`);
+    if (det.parentsSelf+det.parentsSpouse) parts.push(`พ่อแม่ ฿${(det.parentsSelf+det.parentsSpouse).toLocaleString('th-TH')}`);
+    parts.push(`ประกันสังคม ฿${det.sso.toLocaleString('th-TH')}`);
+    if (det.lifeHealthCombined) parts.push(`ประกัน ฿${det.lifeHealthCombined.toLocaleString('th-TH')}`);
+    if (det.parentHealth)    parts.push(`ประกันพ่อแม่ ฿${det.parentHealth.toLocaleString('th-TH')}`);
+    if (det.fundCombined)    parts.push(`กองทุน ฿${det.fundCombined.toLocaleString('th-TH')}`);
+    if (det.mortgage)        parts.push(`ดอกเบี้ยบ้าน ฿${det.mortgage.toLocaleString('th-TH')}`);
+    if (det.eReceipt)        parts.push(`E-Receipt ฿${det.eReceipt.toLocaleString('th-TH')}`);
+    if (det.totalDonation)   parts.push(`บริจาค ฿${det.totalDonation.toLocaleString('th-TH')}`);
+    annualHtml += `<div style="font-size:10px;color:var(--text-muted);margin-top:8px;line-height:1.7">${parts.join(' · ')}</div>`;
+    $('tax-annual-result').innerHTML = annualHtml;
+
+    updateTaxGroupTotals(det, sso);
+}
+
+function updateTaxGroupTotals(det, sso) {
+    const fmtS = v => v > 0 ? '฿'+Math.round(v).toLocaleString('th-TH') : '';
+    const familyTotal = 60000 + (det.spouse||0) + (det.childrenDeduction||0) + (det.parentsSelf||0) + (det.parentsSpouse||0);
+    const insTotal    = (sso||0) + (det.lifeHealthCombined||0) + (det.parentHealth||0);
+    if ($('grp-family-total'))    $('grp-family-total').textContent    = fmtS(familyTotal);
+    if ($('grp-insurance-total')) $('grp-insurance-total').textContent = fmtS(insTotal);
+    if ($('grp-funds-total'))     $('grp-funds-total').textContent     = fmtS(det.fundCombined||0);
+    if ($('grp-other-total'))     $('grp-other-total').textContent     = fmtS((det.mortgage||0)+(det.eReceipt||0)+(det.totalDonation||0));
+}
+
+function toggleTaxGroup(groupId) {
+    const body = $(groupId + '-body');
+    const chev = $(groupId + '-chev');
+    const isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    chev.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+function changeTaxYear(d) {
+    taxYearCE += d;
+    saveTaxData();
+    $('tax-yr-display').textContent = taxYearCE + 543;
+    renderTaxResult();
+}
+
+function renderTaxTab() {
+    $('tax-yr-display').textContent = taxYearCE + 543;
+    loadTaxData();
+    renderTaxChildren();
+    renderTaxResult();
 }
 
 // ===== Toast =====
