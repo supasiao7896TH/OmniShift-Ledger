@@ -142,6 +142,7 @@ tr:last-child td{border-bottom:none}
       <a class="navlink" href="#s11">เหตุผลส่วนตัว</a>
       <a class="navlink" href="#s12">OT รายสัปดาห์</a>
       <a class="navlink" href="#s13">ความเป็นส่วนตัว</a>
+      <a class="navlink" href="#s14">💰 ภาษี</a>
     </div>
     <a class="back-app-btn" href="./">⬅ กลับแอป</a>
   </div>
@@ -245,6 +246,7 @@ tr:last-child td{border-bottom:none}
               <tr><td>ชั่วโมงทำงาน/เดือน</td><td>176 ชม.</td><td>ใช้คำนวณอัตรา OT ต่อชั่วโมง</td></tr>
               <tr><td>เบี้ยที่พัก (%)</td><td>—</td><td>คิดเป็น % จากเงินเดือน — มีขั้นต่ำ <strong>8,000 บาท</strong> (ถ้า % คำนวณได้น้อยกว่า 8,000 จะได้ 8,000 อัตโนมัติ)</td></tr>
               <tr><td>โบนัสวันหยุด (%)</td><td>—</td><td>คิดเป็น % จากเงินเดือน</td></tr>
+              <tr><td>PVD พนักงานสมทบ (%)</td><td>7%</td><td>% ที่พนักงานสมทบเข้ากองทุนสำรองเลี้ยงชีพ — ใช้คำนวณลดหย่อนภาษีใน Tab ภาษี อัตโนมัติ (ลดหย่อนได้เฉพาะส่วนพนักงานเท่านั้น)</td></tr>
             </tbody>
           </table>
         </div>
@@ -718,11 +720,138 @@ tr:last-child td{border-bottom:none}
     </div>
   </div>
 
+  <!-- SECTION 14 -->
+  <div class="section" id="s14">
+    <div class="card">
+      <div class="card-header">
+        <span class="icon">💰</span>
+        <h2>Tab ภาษีเงินได้บุคคลธรรมดา (ภ.ง.ด. 91)</h2>
+        <span class="sec-num">14</span>
+      </div>
+      <div class="card-body">
+        <p>ช่วยประมาณการภาษีเงินได้ประจำปีและภาษีหัก ณ ที่จ่ายรายเดือน โดยดึงรายได้จากข้อมูลกะในระบบโดยอัตโนมัติ ไม่ต้องกรอกซ้ำ</p>
+        <div class="infobox infobox-orange">
+          <span class="infobox-icon">⚠️</span>
+          <p>ข้อมูลนี้เป็น <strong>ประมาณการเท่านั้น</strong> ควรยืนยันตัวเลขสุดท้ายกับสรรพากรหรือนักบัญชีเสมอ</p>
+        </div>
+
+        <div class="divider"></div>
+        <h3 style="font-size:.95rem;font-weight:700;margin:0 0 8px;color:var(--text)">📊 รายได้รวม (Auto)</h3>
+        <p>ระบบดึงรายได้จากทุกเดือนที่มีข้อมูลกะในปีที่เลือก รวม เงินเดือน + ค่าเบี้ยกะ + OT + ค่าบ้าน + โบนัส พร้อม Projection ทั้งปีหากข้อมูลยังไม่ครบ 12 เดือน</p>
+        <ul class="blist">
+          <li>ใช้ลูกศร ◀ ▶ ด้านบน header เพื่อสลับดูปีย้อนหลัง หรือวางแผนล่วงหน้า</li>
+          <li>ปีปัจจุบัน: แสดงยอดจริงและ Projection ส่วนที่เหลือ</li>
+          <li>ปีก่อนหน้า: แสดงยอดจริงที่บันทึกไว้เท่านั้น</li>
+        </ul>
+
+        <div class="divider"></div>
+        <h3 style="font-size:.95rem;font-weight:700;margin:0 0 8px;color:var(--text)">📋 ค่าลดหย่อน — 4 กลุ่ม</h3>
+        <p>กดที่หัวข้อแต่ละกลุ่มเพื่อขยาย/ยุบ ข้อมูลที่กรอกจะบันทึกอัตโนมัติ ไม่ต้องกรอกซ้ำทุกครั้ง</p>
+
+        <h4 style="font-size:.9rem;font-weight:700;margin:12px 0 6px;color:var(--orange)">👨‍👩‍👧 กลุ่ม 1 — ส่วนตัวและครอบครัว</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>รายการ</th><th>จำนวน (บาท)</th><th>หมายเหตุ</th></tr></thead>
+            <tbody>
+              <tr><td>ลดหย่อนส่วนตัว</td><td>60,000</td><td>ได้ทุกคนอัตโนมัติ</td></tr>
+              <tr><td>คู่สมรส (ไม่มีรายได้)</td><td>60,000</td><td>เปิด Toggle ถ้ามีคู่สมรสที่ไม่มีรายได้</td></tr>
+              <tr><td>บุตร คนที่ 1</td><td>30,000/คน</td><td>กด "+ เพิ่ม" แล้วใส่ปีเกิด (พ.ศ.)</td></tr>
+              <tr><td>บุตร คนที่ 2+ เกิดหลัง พ.ศ. 2561</td><td>60,000/คน</td><td>ระบบคำนวณอัตราให้อัตโนมัติตามปีเกิด</td></tr>
+              <tr><td>บิดามารดา (ตัวเอง)</td><td>30,000/คน สูงสุด 2 คน</td><td>อายุ 60+ รายได้ไม่เกิน 30,000/ปี</td></tr>
+              <tr><td>บิดามารดา (คู่สมรส)</td><td>30,000/คน สูงสุด 2 คน</td><td>จะแสดงก็ต่อเมื่อเปิด Toggle คู่สมรส</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 style="font-size:.9rem;font-weight:700;margin:12px 0 6px;color:var(--orange)">🛡️ กลุ่ม 2 — ประกันภัย</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>รายการ</th><th>เพดาน (บาท)</th><th>หมายเหตุ</th></tr></thead>
+            <tbody>
+              <tr><td>ประกันสังคม</td><td>9,000/ปี</td><td><strong>คำนวณอัตโนมัติ</strong> — 750 บาท × จำนวนเดือนที่มีกะ</td></tr>
+              <tr><td>เบี้ยประกันชีวิต</td><td>100,000</td><td>รวมกับประกันสุขภาพตัวเองต้องไม่เกิน 100,000</td></tr>
+              <tr><td>เบี้ยประกันสุขภาพ (ตัวเอง)</td><td>25,000</td><td>รวมกับประกันชีวิตไม่เกิน 100,000</td></tr>
+              <tr><td>เบี้ยประกันสุขภาพ (บิดามารดา)</td><td>15,000</td><td>แยกจากประกันส่วนตัว</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 style="font-size:.9rem;font-weight:700;margin:12px 0 6px;color:var(--orange)">📈 กลุ่ม 3 — กองทุนเพื่อการออม</h4>
+        <div class="infobox infobox-blue" style="margin-top:0">
+          <span class="infobox-icon">ℹ️</span>
+          <p>กองทุนทั้งหมด <strong>(RMF + SSF + ThaiESG + PVD) รวมกันต้องไม่เกิน 500,000 บาท</strong> ระบบจะเตือนหากเกิน</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>กองทุน</th><th>เพดานรายกองทุน</th><th>หมายเหตุ</th></tr></thead>
+            <tbody>
+              <tr><td>RMF</td><td>30% ของรายได้ สูงสุด 500,000</td><td>—</td></tr>
+              <tr><td>SSF</td><td>30% ของรายได้ สูงสุด 200,000</td><td>—</td></tr>
+              <tr><td>ThaiESG</td><td>30% ของรายได้ สูงสุด 300,000</td><td>ตรวจสอบนโยบายปีปัจจุบัน</td></tr>
+              <tr><td>PVD (กองทุนสำรองเลี้ยงชีพ)</td><td>15% ของค่าจ้าง สูงสุด 500,000</td><td><strong>Auto</strong> จาก % ที่ตั้งใน Tab การตั้งค่า หรือ Override ด้วยยอดจริงจากสลิป</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="infobox infobox-green" style="margin-top:8px">
+          <span class="infobox-icon">💡</span>
+          <p><strong>PVD อัตโนมัติ:</strong> ระบบจะแสดงสูตร เช่น "7% × ฿50,000/เดือน × 12 เดือน = ฿42,000" หากอยากใช้ยอดจริงจากสลิป ให้เปิด Toggle "กรอกยอดจริงจากสลิปแทน" — ลดหย่อนได้เฉพาะ <strong>ส่วนของพนักงาน</strong> เท่านั้น ส่วนนายจ้างสมทบไม่นับ</p>
+        </div>
+
+        <h4 style="font-size:.9rem;font-weight:700;margin:12px 0 6px;color:var(--orange)">🏠 กลุ่ม 4 — บ้านและอื่นๆ</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>รายการ</th><th>เพดาน (บาท)</th><th>หมายเหตุ</th></tr></thead>
+            <tbody>
+              <tr><td>ดอกเบี้ยเงินกู้บ้าน</td><td>100,000</td><td>—</td></tr>
+              <tr><td>Easy E-Receipt</td><td>50,000</td><td>เปิด Toggle ถ้ามีนโยบายปีนั้น แล้วกรอกยอด</td></tr>
+              <tr><td>บริจาคทั่วไป</td><td>10% ของเงินได้หลังหักค่าลดหย่อน</td><td>ระบบคำนวณเพดานให้อัตโนมัติ</td></tr>
+              <tr><td>บริจาค 2 เท่า (การศึกษา/กีฬา)</td><td>รวมกับบริจาคทั่วไปไม่เกิน 10%</td><td>กรอกยอดที่จ่ายจริง ระบบคูณ 2 ให้อัตโนมัติ</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="divider"></div>
+        <h3 style="font-size:.95rem;font-weight:700;margin:0 0 8px;color:var(--text)">📊 ผลการคำนวณ</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ส่วน</th><th>ความหมาย</th></tr></thead>
+            <tbody>
+              <tr><td><strong>ภาษีหัก ณ ที่จ่าย / เดือน</strong></td><td>ประมาณภาษีที่ HR หักทุกเดือน — คำนวณเหมือนกัน คือ ภาษีทั้งปี ÷ 12</td></tr>
+              <tr><td><strong>รายได้รวมทั้งปี</strong></td><td>ยอดจริง + Projection เดือนที่เหลือ</td></tr>
+              <tr><td><strong>ค่าใช้จ่าย 50%</strong></td><td>หักได้สูงสุด 100,000 บาท (กฎหมายกำหนด)</td></tr>
+              <tr><td><strong>เงินได้สุทธิ</strong></td><td>รายได้ − ค่าใช้จ่าย − ค่าลดหย่อนทั้งหมด</td></tr>
+              <tr><td><strong>ภาษีที่ต้องเสียทั้งปี</strong></td><td>คำนวณจากอัตราก้าวหน้า 8 ขั้น (0%–35%)</td></tr>
+              <tr><td><strong>ได้คืน / ต้องจ่ายเพิ่ม</strong></td><td>เปรียบเทียบภาษีทั้งปีกับที่ถูกหักไปแล้ว</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="divider"></div>
+        <h3 style="font-size:.95rem;font-weight:700;margin:0 0 8px;color:var(--text)">📐 อัตราภาษีเงินได้บุคคลธรรมดา ปี 2568–2569</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>เงินได้สุทธิ (บาท)</th><th>อัตราภาษี</th></tr></thead>
+            <tbody>
+              <tr><td>0 – 150,000</td><td>ยกเว้น</td></tr>
+              <tr><td>150,001 – 300,000</td><td>5%</td></tr>
+              <tr><td>300,001 – 500,000</td><td>10%</td></tr>
+              <tr><td>500,001 – 750,000</td><td>15%</td></tr>
+              <tr><td>750,001 – 1,000,000</td><td>20%</td></tr>
+              <tr><td>1,000,001 – 2,000,000</td><td>25%</td></tr>
+              <tr><td>2,000,001 – 5,000,000</td><td>30%</td></tr>
+              <tr><td>5,000,001 ขึ้นไป</td><td>35%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <footer class="footer">
   <div class="footer-logo">🏭</div>
-  <p>Developed in collaboration by <strong>Supasit A.@1981 TH &amp; AI Partner</strong> &nbsp;·&nbsp; V11.1</p>
+  <p>Developed in collaboration by <strong>Supasit A.@1981 TH &amp; AI Partner</strong> &nbsp;·&nbsp; V11.2</p>
   <p style="margin-top:8px"><a href="./">⬅ กลับไปยังแอป ShiftPro Tracker</a></p>
 </footer>
 
