@@ -508,6 +508,10 @@
                 <input type="number" inputmode="decimal" id="pvdRateInput" class="fi set-inp" placeholder="7" min="0" max="15">
             </div>
             <div class="set-row" style="cursor:default">
+                <span class="set-row-label">ประกันสังคม (บาท/เดือน)<br><span style="font-size:10px;color:var(--text-muted);font-weight:400">5% × ฐานค่าจ้างสูงสุด (ปี 2569 = 875 บาท)</span></span>
+                <input type="number" inputmode="decimal" id="ssoRateInput" class="fi set-inp" placeholder="875" min="0" max="9000">
+            </div>
+            <div class="set-row" style="cursor:default">
                 <span class="set-row-label">ชม.ทำงาน/เดือน</span>
                 <input type="number" inputmode="decimal" id="monthlyHoursInput" class="fi set-inp" placeholder="176">
             </div>
@@ -634,7 +638,7 @@
             </div>
             <div id="grp-insurance-body" class="tax-grp-body" style="display:none">
                 <div class="tax-row">
-                    <div class="tax-lbl">ประกันสังคม<small>คำนวณอัตโนมัติ 750 บาท/เดือน จากกะที่บันทึกไว้</small></div>
+                    <div class="tax-lbl">ประกันสังคม<small id="tax-sso-label">คำนวณอัตโนมัติจากกะที่บันทึกไว้</small></div>
                     <span id="tax-sso-val" style="font-weight:700;color:#059669;white-space:nowrap">฿0</span>
                 </div>
                 <div class="tax-row">
@@ -1952,7 +1956,7 @@ function renderCalSum() {
 function saveSettings() {
     SS.set('settings', JSON.stringify({
         salary:$('salaryInput').value, mRate:$('mRateInput').value, nRate:$('nRateInput').value,
-        house:$('houseAllowanceRate').value, bonus:$('holidayBonusRate').value, mhours:$('monthlyHoursInput').value, pvdRate:$('pvdRateInput').value
+        house:$('houseAllowanceRate').value, bonus:$('holidayBonusRate').value, mhours:$('monthlyHoursInput').value, pvdRate:$('pvdRateInput').value, ssoRate:$('ssoRateInput').value
     }));
     SS.set('last_saved', new Date().toISOString());
     renderCal();
@@ -1968,14 +1972,15 @@ function readSettings() {
         house: parseFloat($('houseAllowanceRate')?.value)||0,
         bonus: parseFloat($('holidayBonusRate')?.value)||0,
         mhours: mh>0?mh:DEFAULT_HOURS,
-        pvdRate: parseFloat($('pvdRateInput')?.value)||7
+        pvdRate: parseFloat($('pvdRateInput')?.value)||7,
+        ssoRate: parseFloat($('ssoRateInput')?.value)||875
     };
 }
 
 function loadSettings() {
     let s={};
     try{ const str=SS.get('settings'); if(str) s=JSON.parse(str); }catch(e){}
-    const def={salary:'',mRate:'150',nRate:'200',house:'15',bonus:'16',mhours:String(DEFAULT_HOURS),pvdRate:'7'};
+    const def={salary:'',mRate:'150',nRate:'200',house:'15',bonus:'16',mhours:String(DEFAULT_HOURS),pvdRate:'7',ssoRate:'875'};
     const m={...def,...s};
     $('salaryInput').value=m.salary;
     $('mRateInput').value=m.mRate;
@@ -1984,6 +1989,7 @@ function loadSettings() {
     $('holidayBonusRate').value=m.bonus;
     $('monthlyHoursInput').value=m.mhours;
     $('pvdRateInput').value=m.pvdRate;
+    $('ssoRateInput').value=m.ssoRate;
 }
 
 // ===== Data =====
@@ -2446,10 +2452,15 @@ function renderTaxResult() {
     }
     $('tax-income-summary').innerHTML = incHtml;
 
-    // SSO auto
-    const sso = Math.min(monthsWithWork * 750, 9000);
+    // SSO auto (configurable from settings)
+    const ssoMonthly = s.ssoRate || 875;
+    const ssoMax = ssoMonthly * 12;
+    const sso = Math.min(monthsWithWork * ssoMonthly, ssoMax);
+    if ($('tax-sso-label')) {
+        $('tax-sso-label').textContent = `คำนวณอัตโนมัติ ${ssoMonthly} บาท/เดือน จากกะที่บันทึกไว้`;
+    }
     if ($('tax-sso-val')) {
-        $('tax-sso-val').textContent = fmtB(sso) + (monthsWithWork > 0 ? ` (${monthsWithWork} เดือน × 750)` : ' (ยังไม่มีกะ)');
+        $('tax-sso-val').textContent = fmtB(sso) + (monthsWithWork > 0 ? ` (${monthsWithWork} เดือน × ${ssoMonthly})` : ' (ยังไม่มีกะ)');
     }
 
     // PVD auto display
