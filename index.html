@@ -405,9 +405,12 @@
                     </div>
                 </div>
             </div>
-            <div style="margin-top:14px;text-align:center">
-                <button onclick="askGeminiShiftAdvice()" style="background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;border:none;border-radius:12px;padding:10px 28px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;box-shadow:0 2px 8px rgba(79,70,229,.35)">
+            <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+                <button onclick="askGeminiShiftAdvice()" style="background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;border:none;border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;box-shadow:0 2px 8px rgba(79,70,229,.35)">
                     🤖 AI วิเคราะห์กะ &amp; รายได้
+                </button>
+                <button onclick="askGeminiOTPlan()" style="background:linear-gradient(135deg,#0EA5E9,#6366F1);color:#fff;border:none;border-radius:12px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;box-shadow:0 2px 8px rgba(14,165,233,.35)">
+                    🎯 วางแผน OT
                 </button>
             </div>
         </div>
@@ -481,10 +484,22 @@
         <div class="s-card">
             <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:12px">สถิติการลา — <span id="st-leave-yr"></span></div>
             <div id="st-leave"></div>
+            <div style="margin-top:12px;text-align:center">
+                <button onclick="askGeminiLeaveAdvice()" style="background:linear-gradient(135deg,#7C3AED,#DB2777);color:#fff;border:none;border-radius:12px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;box-shadow:0 2px 8px rgba(124,58,237,.3)">
+                    📅 AI แนะนำการใช้วันลา
+                </button>
+            </div>
         </div>
         <div class="s-card">
             <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:12px">การแทนกะ — <span id="st-swap-yr"></span></div>
             <div id="st-swap"></div>
+        </div>
+        <div class="s-card" style="text-align:center;padding:16px">
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">💰 ภาพรวมการเงินทั้งปี</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">AI วิเคราะห์รายได้ ภาษี PVD และวันลา พร้อมให้คะแนนสุขภาพการเงิน</div>
+            <button onclick="askGeminiFinancialHealth()" style="background:linear-gradient(135deg,#0284C7,#059669);color:#fff;border:none;border-radius:12px;padding:10px 28px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;box-shadow:0 2px 8px rgba(2,132,199,.3)">
+                💰 AI สุขภาพการเงินโดยรวม
+            </button>
         </div>
     </div>
 </div>
@@ -811,6 +826,12 @@
             <div id="tax-annual-result"></div>
         </div>
 
+        <div style="text-align:center;padding:4px 0 8px">
+            <button onclick="askGeminiTaxAdvice()" style="background:linear-gradient(135deg,#D97706,#DC2626);color:#fff;border:none;border-radius:12px;padding:10px 28px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;box-shadow:0 2px 8px rgba(217,119,6,.3)">
+                🧾 AI วางแผนลดภาษี
+            </button>
+        </div>
+
         <!-- ตาราง Tax Bracket -->
         <div class="s-card">
             <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px">อัตราภาษีเงินได้บุคคลธรรมดา (ปี 2568–2569)</div>
@@ -879,6 +900,11 @@
                 <input type="number" id="future-pvd-return-rate" min="0" max="20" step="0.5" placeholder="6" oninput="saveFutureData();renderFutureTab()">
             </div>
             <div class="future-summary" id="future-pvd-summary"></div>
+            <div style="margin-top:12px;text-align:center">
+                <button onclick="askGeminiPVDAdvice()" style="background:linear-gradient(135deg,#059669,#0D9488);color:#fff;border:none;border-radius:12px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;box-shadow:0 2px 8px rgba(5,150,105,.3)">
+                    🏦 AI วิเคราะห์ความพร้อมเกษียณ
+                </button>
+            </div>
         </div>
 
         <!-- Section 2: สหกรณ์ -->
@@ -1065,12 +1091,12 @@
         <div class="sheet-handle"></div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-shrink:0">
             <span style="font-size:20px">🤖</span>
-            <span style="font-size:16px;font-weight:700">AI วิเคราะห์กะ &amp; รายได้</span>
+            <span id="ai-result-title" style="font-size:16px;font-weight:700">AI วิเคราะห์กะ &amp; รายได้</span>
         </div>
         <div id="ai-result-body" style="flex:1;overflow-y:auto;font-size:14px;line-height:1.75;color:var(--text)"></div>
         <div style="margin-top:14px;flex-shrink:0;display:flex;gap:8px">
             <button onclick="closeModal('modal-ai-result')" class="btn-s" style="flex:1">ปิด</button>
-            <button onclick="askGeminiShiftAdvice(true)" class="btn-p" style="flex:1">🔄 วิเคราะห์ใหม่</button>
+            <button id="ai-refresh-btn" onclick="askGeminiShiftAdvice(true)" class="btn-p" style="flex:1">🔄 วิเคราะห์ใหม่</button>
         </div>
     </div>
 </div>
@@ -2324,6 +2350,274 @@ function mdToHtml(text) {
         .replace(/\n/g,'<br>');
 }
 
+// ===== Shared Gemini AI Utility =====
+let _lastGeminiCall = null;
+async function _callGemini(title, prompt) {
+    const key = SS.get('geminiApiKey');
+    if (!key) { showToast('กรุณาตั้งค่า Gemini API Key ในการตั้งค่าก่อน', 'err'); setTimeout(openAiModal, 600); return; }
+    if ($('ai-result-title')) $('ai-result-title').textContent = title;
+    $('ai-result-body').innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted)"><div style="font-size:28px;margin-bottom:8px">⏳</div>กำลังวิเคราะห์...</div>';
+    if ($('ai-refresh-btn')) $('ai-refresh-btn').onclick = () => _lastGeminiCall?.();
+    openModal('modal-ai-result');
+    try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`,
+            { method:'POST', headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] }) });
+        if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `HTTP ${res.status}`); }
+        const json = await res.json();
+        const raw = json?.candidates?.[0]?.content?.parts?.[0]?.text || 'ไม่ได้รับข้อมูลจาก AI';
+        $('ai-result-body').innerHTML = `<p style="margin:0 0 8px">${mdToHtml(raw)}</p>`;
+    } catch(e) {
+        $('ai-result-body').innerHTML = `<div style="color:#EF4444;padding:12px;background:#FEF2F2;border-radius:8px"><strong>เกิดข้อผิดพลาด:</strong><br>${e.message}<br><br><span style="font-size:12px;color:#6B7280">กรุณาตรวจสอบ API Key ในการตั้งค่า</span></div>`;
+    }
+}
+
+async function askGeminiOTPlan() {
+    const s = readSettings();
+    const hr = s.salary > 0 ? s.salary / s.mhours : 0;
+    const curData = getMonthData(curYear, curMonth);
+    let mD=0, nD=0, ot15=0, ot20=0, ot30=0;
+    for (const k in curData) {
+        const d = curData[k];
+        if (d.shift==='M') mD++; else if (d.shift==='N') nD++; else if (d.shift==='D') {}
+        ot15 += d.ot15||0; ot20 += d.ot20||0; ot30 += d.ot30||0;
+    }
+    const otDone = ot15+ot20+ot30;
+    const otRemain = Math.max(0, 48 - otDone);
+    const baseInc = s.salary + calcHouseAllowance(s.salary, s.house) + s.salary*(s.bonus/100);
+    const shiftInc = mD*s.mRate + nD*s.nRate;
+    const otInc = hr > 0 ? ot15*hr*1.5 + ot20*hr*2.0 + ot30*hr*3.0 : 0;
+    const totalSoFar = baseInc + shiftInc + otInc;
+    const prompt = `คุณเป็น AI ที่ช่วยพนักงานโรงงานกะหมุนเวียน 4 ทีม (กะ 12 ชม.) วางแผน OT เพื่อเพิ่มรายได้
+
+## ข้อมูลเดือน${TH_MONTHS[curMonth-1]} ${curYear}
+- เงินเดือนฐาน: ฿${s.salary.toLocaleString()} | ค่ากะเช้า ${s.mRate}฿ | กะดึก ${s.nRate}฿
+- อัตราค่าแรง: ${hr > 0 ? 'ชม.ละ ฿'+(hr*1.5).toFixed(0)+' (OT 1.5×) / ฿'+(hr*2).toFixed(0)+' (2×) / ฿'+(hr*3).toFixed(0)+' (3×)' : 'ยังไม่ได้ตั้งค่าเงินเดือน'}
+- กะที่ทำแล้ว: เช้า ${mD} กะ | ดึก ${nD} กะ
+- OT ที่ทำแล้ว: ${otDone.toFixed(1)} ชม. (1.5×: ${ot15}ชม. | 2×: ${ot20}ชม. | 3×: ${ot30}ชม.)
+- OT ที่ทำได้อีก: ${otRemain.toFixed(1)} ชม. (กฎหมาย max 48 ชม./เดือน)
+- รายได้สะสมเดือนนี้ (ประมาณ): ฿${Math.round(totalSoFar).toLocaleString()}
+
+## กรุณาแนะนำ (ตอบภาษาไทย กระชับ)
+1. **เป้าหมาย OT** — ถ้าอยากได้รายได้รวม ฿${(Math.round(totalSoFar/1000)*1000+5000).toLocaleString()} และ ฿${(Math.round(totalSoFar/1000)*1000+10000).toLocaleString()} ต้องทำ OT อีกกี่ชั่วโมง (ประเภทไหนคุ้มที่สุด)
+2. **แผน OT ที่เหลือ** — จาก ${otRemain.toFixed(1)} ชม.ที่เหลือ ควรเลือก OT 1.5× หรือ 3× อย่างไร
+3. **คำนวณรายได้** — ถ้าทำ OT เพิ่มอีก 8, 16, 24 ชม. รายได้รวมจะเป็นเท่าไร
+4. **ข้อควรระวัง** — สุขภาพ, ข้อกฎหมาย OT`;
+    _lastGeminiCall = askGeminiOTPlan;
+    await _callGemini('🎯 AI วางแผน OT เพื่อเป้าหมาย', prompt);
+}
+
+async function askGeminiPVDAdvice() {
+    const s = readSettings();
+    const fB = v => '฿' + Math.round(Math.abs(v)).toLocaleString('th-TH');
+    const pvdBalance = parseFloat($('future-pvd-balance')?.value) || 0;
+    const returnRate = parseFloat($('future-pvd-return-rate')?.value) || 6;
+    const retireYearBE = parseInt($('future-retire-year')?.value) || (new Date().getFullYear() + 543 + 25);
+    const retireYearCE = retireYearBE - 543;
+    const todayStr = new Date().toISOString().slice(0,10);
+    const retireStr = retireYearCE + '-12-31';
+    const wn = s.workStartDate ? getYearsMonthsBetween(s.workStartDate, todayStr) : {totalMonths:0};
+    const wr = s.workStartDate ? getYearsMonthsBetween(s.workStartDate, retireStr) : {totalMonths:0};
+    const totalWorkMonthsNow    = wn.totalMonths;
+    const totalWorkMonthsRetire = wr.totalMonths;
+    const monthsToRetire = Math.max(0, totalWorkMonthsRetire - totalWorkMonthsNow);
+    const yearsToRetire  = (monthsToRetire / 12).toFixed(1);
+    const workYearsFloat = totalWorkMonthsNow / 12;
+    const empRate = s.pvdRate || 7;
+    const coManual = $('future-pvd-co-manual')?.checked;
+    const coRateAuto = getPvdEmployerRate(workYearsFloat);
+    const coRate = coManual ? (parseFloat($('future-pvd-co-rate-inp')?.value) || coRateAuto) : coRateAuto;
+    const monthlyEmpPvd = Math.round(s.salary * empRate / 100);
+    const monthlyCoPvd  = Math.round(s.salary * coRate / 100);
+    const monthlyTotalPvd = monthlyEmpPvd + monthlyCoPvd;
+    const r_m = returnRate / 12 / 100;
+    let pvdAtRetireWithReturn;
+    if (r_m === 0 || monthsToRetire === 0) {
+        pvdAtRetireWithReturn = pvdBalance + monthlyTotalPvd * monthsToRetire;
+    } else {
+        const growth = Math.pow(1 + r_m, monthsToRetire);
+        pvdAtRetireWithReturn = Math.round(pvdBalance * growth + monthlyTotalPvd * (growth - 1) / r_m);
+    }
+    const livingPerMonth = 20000;
+    const livingTotal20yr = livingPerMonth * 12 * 20;
+    const retireAge = s.workStartDate && s.birthDate ? (retireYearCE - parseInt(s.birthDate.split('-')[0])) : null;
+    const prompt = `คุณเป็น AI ที่ปรึกษาด้านการวางแผนเกษียณสำหรับพนักงานโรงงานไทย
+
+## ข้อมูล PVD ปัจจุบัน
+- เงินเดือน: ${fB(s.salary)}/เดือน
+- อัตราสมทบพนักงาน: ${empRate}% = ${fB(monthlyEmpPvd)}/เดือน
+- อัตราสมทบบริษัท: ${coRate}% = ${fB(monthlyCoPvd)}/เดือน
+- รวมสมทบ: ${fB(monthlyTotalPvd)}/เดือน
+- ยอด PVD ปัจจุบัน: ${fB(pvdBalance)}
+- อัตราผลตอบแทนสมมุติ: ${returnRate}%/ปี
+
+## การคาดการณ์เมื่อเกษียณ
+- ปีเกษียณ: พ.ศ. ${retireYearBE}${retireAge ? ` (อายุ ${retireAge} ปี)` : ''}
+- อีก ${yearsToRetire} ปี (${monthsToRetire} เดือน)
+- ยอด PVD คาดการณ์ (รวมผลตอบแทน ${returnRate}%/ปี): ${fB(pvdAtRetireWithReturn)}
+
+## เกณฑ์อ้างอิง
+- ค่าครองชีพขั้นต่ำหลังเกษียณ: ประมาณ ${fB(livingPerMonth)}/เดือน
+- หากอยู่หลังเกษียณ 20 ปี: ต้องการ ${fB(livingTotal20yr)} (ไม่รวมเงินเฟ้อ)
+
+## กรุณาวิเคราะห์ (ตอบภาษาไทย กระชับ)
+1. **ประเมินความพอเพียง** — ยอด PVD เมื่อเกษียณ${fB(pvdAtRetireWithReturn)} พอสำหรับ 20 ปีไหม? ขาดอีกเท่าไร?
+2. **แนะนำอัตราสมทบ** — ควรปรับเป็นเท่าไรถึงจะพอเพียง (ถ้าเพิ่มเป็น 10%, 15% ยอดเกษียณจะเป็นเท่าไร)
+3. **ผลตอบแทน** — ควรเลือก portfolio แบบไหน (ตราสารหนี้/ผสม/หุ้น) ให้เหมาะกับอายุที่เหลือ ${yearsToRetire} ปี
+4. **แผนสำรอง** — ถ้า PVD ไม่พอ ควรออมเพิ่มช่องทางไหน (สหกรณ์/RMF/SSF/บ้าน)`;
+    _lastGeminiCall = askGeminiPVDAdvice;
+    await _callGemini('🏦 AI วิเคราะห์ PVD & เกษียณ', prompt);
+}
+
+async function askGeminiTaxAdvice() {
+    const s = readSettings();
+    const fB = v => '฿' + Math.round(Math.abs(v)).toLocaleString('th-TH');
+    const yearCE = new Date().getFullYear();
+    const { totalIncome, monthsWithWork, monthList } = getAnnualData(yearCE);
+    const activeMths = monthList.filter(x => x.hasWork);
+    const baseMonthlyEst = s.salary > 0 ? s.salary + calcHouseAllowance(s.salary, s.house) + s.salary*(s.bonus/100) : 0;
+    const projMonthlyAvg = activeMths.length > 0 ? totalIncome / activeMths.length : baseMonthlyEst;
+    const useAnnual = activeMths.length > 0
+        ? totalIncome + projMonthlyAvg * (12 - activeMths.length)
+        : baseMonthlyEst * 12;
+    const annualBonusAmt = s.salary > 0 ? Math.round(s.salary * (s.annualBonusMonths || 0)) : 0;
+    const totalTaxIncome = useAnnual + annualBonusAmt;
+    const ssoMonthly = s.ssoRate || 875;
+    const sso = Math.min(monthsWithWork * ssoMonthly, ssoMonthly * 12);
+    const det = computeTaxDeductions(totalTaxIncome, sso);
+    const taxable = Math.max(totalTaxIncome - det.expenseDeduction - det.totalPersonalDeductions, 0);
+    const annualTax = calcThaiIncomeTax(taxable);
+    const paidSoFar = Math.round(annualTax / 12 * activeMths.length);
+    const balance = paidSoFar - annualTax;
+    const remainingMonths = 12 - new Date().getMonth();
+    const maxRmfSpace = Math.max(0, Math.min(totalTaxIncome * 0.30, 500000) - (det.rawFund || 0));
+    const maxSsfSpace = Math.max(0, Math.min(totalTaxIncome * 0.30, 200000) - (det.rawFund || 0));
+    const prompt = `คุณเป็น AI ที่ปรึกษาภาษีเงินได้บุคคลธรรมดาสำหรับพนักงานโรงงานไทย
+
+## ข้อมูลภาษีปี ${yearCE + 543}
+- รายได้จริงในระบบ (${activeMths.length} เดือน): ${fB(totalIncome)}
+- ประมาณการรายได้ทั้งปี: ${fB(totalTaxIncome)}${annualBonusAmt > 0 ? ` (รวมโบนัส ${fB(annualBonusAmt)})` : ''}
+- ค่าใช้จ่าย 50% (สูงสุด 100,000): ${fB(det.expenseDeduction)}
+- ค่าลดหย่อนส่วนบุคคลรวม: ${fB(det.totalPersonalDeductions)}
+  • ส่วนตัว 60,000 | คู่สมรส ${fB(det.spouse||0)} | บุตร ${fB(det.childrenDeduction||0)} | พ่อแม่ ${fB((det.parentsSelf||0)+(det.parentsSpouse||0))}
+  • ประกันสังคม ${fB(det.sso)} | ประกัน ${fB(det.lifeHealthCombined||0)} | กองทุน ${fB(det.fundCombined||0)}
+  • ดอกเบี้ยบ้าน ${fB(det.mortgage||0)} | E-Receipt ${fB(det.eReceipt||0)} | บริจาค ${fB(det.totalDonation||0)}
+- เงินได้สุทธิ: ${fB(taxable)}
+- ภาษีที่ต้องเสียทั้งปี: ${fB(annualTax)}
+- ถูกหักไปแล้ว (${activeMths.length} เดือน): ${fB(paidSoFar)}
+- **${balance >= 0 ? 'คาดว่าจะได้คืนภาษี' : 'คาดว่าต้องจ่ายภาษีเพิ่ม'}: ${fB(Math.abs(balance))}**
+- เหลืออีก ${remainingMonths} เดือนในปีนี้
+
+## ช่องว่างลดหย่อนที่เหลือ
+- RMF: เพิ่มได้อีก ${fB(Math.max(0,maxRmfSpace))} (ถ้ายังไม่เต็ม 500,000)
+- SSF: เพิ่มได้อีก ${fB(Math.max(0,maxSsfSpace))} (ถ้ายังไม่เต็ม 200,000)
+
+## กรุณาวิเคราะห์ (ตอบภาษาไทย กระชับ)
+1. **สถานะภาษีปีนี้** — ต้องจ่ายเพิ่ม/คืน เท่าไร และทำไม
+2. **แนะนำลดหย่อนก่อนสิ้นปี** — ควรซื้อ RMF/SSF/Thai ESG เพิ่มเท่าไรเพื่อลดภาษีให้มากที่สุด พร้อมตัวเลขที่ประหยัดได้
+3. **ลดหย่อนที่ยังไม่ได้ใช้** — มีช่องทางลดหย่อนอะไรที่มักถูกมองข้ามบ้าง
+4. **แผนปีหน้า** — ควรปรับอะไรตั้งแต่ต้นปีเพื่อไม่ให้ต้องจ่ายภาษีเพิ่มปลายปี`;
+    _lastGeminiCall = askGeminiTaxAdvice;
+    await _callGemini('🧾 AI วางแผนลดภาษี', prompt);
+}
+
+async function askGeminiLeaveAdvice() {
+    const s = readSettings();
+    const year = new Date().getFullYear();
+    const month = new Date().getMonth() + 1;
+    const leaveCounts = countLeaveForYear(year);
+    const annualBase  = getAnnualLeaveBase(s.workStartDate, year);
+    const annualCarry = getAnnualLeaveCarryover(year, s.workStartDate);
+    const leaveLines = LEAVE_TYPES.map(lt => {
+        const used = leaveCounts[lt.key] || 0;
+        const quota = lt.type === 'annual' ? annualBase + annualCarry : (lt.quota || '—');
+        const remaining = typeof quota === 'number' ? Math.max(0, quota - used) : '—';
+        return `- ${lt.emoji} ${lt.key}: ใช้ ${used.toFixed(1)} วัน / โควตา ${quota} วัน / เหลือ ${typeof remaining === 'number' ? remaining.toFixed(1) : remaining} วัน`;
+    }).join('\n');
+    const prompt = `คุณเป็น AI ที่ปรึกษาการบริหารวันลาสำหรับพนักงานโรงงานกะหมุนเวียน PTTGC
+
+## สถานะวันลาปี ${year + 543} (ณ เดือน${TH_MONTHS[month-1]})
+${leaveLines}
+
+## บริบท
+- พนักงานทำงานระบบกะ 4 ทีม หมุนเวียน กะ 12 ชั่วโมง (M/N/D)
+- วันหยุดนักขัตฤกษ์เดือนที่เหลือในปีนี้มีหลายวัน (ธันวาคม มักมีวันหยุดช่วงปีใหม่)
+- ลาพักร้อนที่ไม่ได้ใช้อาจสะสมได้บางส่วน แต่มีเพดาน
+
+## กรุณาแนะนำ (ตอบภาษาไทย กระชับ)
+1. **ลาพักร้อน** — เหลือ${((annualBase + annualCarry) - (leaveCounts['ลาพักร้อน'] || 0)).toFixed(1)} วัน ควรใช้ช่วงไหน เชื่อมวันหยุดนักขัตฤกษ์ได้อย่างไร
+2. **วันลาที่ควรรีบใช้** — ประเภทไหนที่ไม่สะสมข้ามปี และใกล้หมดโควตา
+3. **แผนลาช่วงปลายปี** — วางแผนลายาว 4-5 วันด้วยวันลาน้อยที่สุด
+4. **ข้อแนะนำพิเศษ** — การลาป่วย/ลากิจที่เหลือ ควรเก็บไว้เผื่ออะไร`;
+    _lastGeminiCall = askGeminiLeaveAdvice;
+    await _callGemini('📅 AI แนะนำการใช้วันลา', prompt);
+}
+
+async function askGeminiFinancialHealth() {
+    const s = readSettings();
+    const fB = v => '฿' + Math.round(Math.abs(v)).toLocaleString('th-TH');
+    const yearCE = new Date().getFullYear();
+    // รายได้
+    const { totalIncome, monthsWithWork, monthList } = getAnnualData(yearCE);
+    const activeMths = monthList.filter(x => x.hasWork);
+    const baseMonthlyEst = s.salary > 0 ? s.salary + calcHouseAllowance(s.salary, s.house) + s.salary*(s.bonus/100) : 0;
+    const projMonthlyAvg = activeMths.length > 0 ? totalIncome / activeMths.length : baseMonthlyEst;
+    const annualIncome = activeMths.length > 0 ? totalIncome + projMonthlyAvg*(12-activeMths.length) : baseMonthlyEst*12;
+    // ภาษี
+    const sso = Math.min(monthsWithWork * (s.ssoRate||875), (s.ssoRate||875) * 12);
+    const det = computeTaxDeductions(annualIncome + Math.round(s.salary*(s.annualBonusMonths||0)), sso);
+    const taxable = Math.max(annualIncome + Math.round(s.salary*(s.annualBonusMonths||0)) - det.expenseDeduction - det.totalPersonalDeductions, 0);
+    const annualTax = calcThaiIncomeTax(taxable);
+    // PVD
+    const pvdBalance = parseFloat($('future-pvd-balance')?.value) || 0;
+    const todayStr = new Date().toISOString().slice(0,10);
+    const retireYearBE = parseInt($('future-retire-year')?.value) || (new Date().getFullYear()+543+25);
+    const retireStr = (retireYearBE-543) + '-12-31';
+    const wn = s.workStartDate ? getYearsMonthsBetween(s.workStartDate, todayStr) : {totalMonths:0};
+    const wr = s.workStartDate ? getYearsMonthsBetween(s.workStartDate, retireStr) : {totalMonths:0};
+    const monthsToRetire = Math.max(0, wr.totalMonths - wn.totalMonths);
+    const empRate = s.pvdRate || 7;
+    const coRate = getPvdEmployerRate(wn.totalMonths/12);
+    const monthlyTotalPvd = Math.round(s.salary*(empRate+coRate)/100);
+    const r_m = 6/12/100;
+    const growth = monthsToRetire > 0 ? Math.pow(1+r_m, monthsToRetire) : 1;
+    const pvdAtRetire = monthsToRetire > 0 ? Math.round(pvdBalance*growth + monthlyTotalPvd*(growth-1)/r_m) : pvdBalance;
+    // วันลา
+    const leaveCounts = countLeaveForYear(yearCE);
+    const annualBase  = getAnnualLeaveBase(s.workStartDate, yearCE);
+    const annualCarry = getAnnualLeaveCarryover(yearCE, s.workStartDate);
+    const annualLeaveUsed = leaveCounts['ลาพักร้อน'] || 0;
+    const annualLeaveLeft = Math.max(0, annualBase + annualCarry - annualLeaveUsed);
+    const sickLeft = Math.max(0, 30 - (leaveCounts['ลาป่วย'] || 0));
+    const prompt = `คุณเป็น AI ที่ปรึกษาการเงินส่วนบุคคลสำหรับพนักงานโรงงานไทย วิเคราะห์สุขภาพการเงินแบบองค์รวม
+
+## ข้อมูลการเงินปี ${yearCE + 543}
+**รายได้**
+- รายได้รวม (ประมาณการทั้งปี): ${fB(annualIncome)}
+- เงินเดือนฐาน: ${fB(s.salary)}/เดือน
+
+**ภาษี**
+- ภาษีที่ต้องเสียทั้งปี: ${fB(annualTax)}
+- สัดส่วนภาษี: ${annualIncome > 0 ? (annualTax/annualIncome*100).toFixed(1) : 0}% ของรายได้
+- ลดหย่อนรวม: ${fB(det.totalPersonalDeductions)}
+
+**PVD & เกษียณ**
+- ยอด PVD ปัจจุบัน: ${fB(pvdBalance)}
+- สมทบรายเดือน: ${fB(monthlyTotalPvd)} (พนักงาน ${empRate}% + บริษัท ${coRate.toFixed(0)}%)
+- ยอดคาดการณ์เมื่อเกษียณ (6%/ปี): ${fB(pvdAtRetire)} (อีก ${(monthsToRetire/12).toFixed(1)} ปี)
+
+**วันลา**
+- ลาพักร้อนเหลือ: ${annualLeaveLeft.toFixed(1)} วัน | ลาป่วยเหลือ: ${sickLeft} วัน
+
+## กรุณาวิเคราะห์สุขภาพการเงิน (ตอบภาษาไทย กระชับ มีสไตล์)
+1. **คะแนนสุขภาพการเงิน** — ให้คะแนน A/B/C/D/F แต่ละด้าน (รายได้, ภาษี, PVD/เกษียณ, สมดุลชีวิต-วันลา) พร้อมเหตุผลสั้นๆ
+2. **จุดแข็ง** — 2-3 ข้อที่ทำได้ดีแล้ว
+3. **จุดที่ควรปรับปรุง** — 3 ข้อเร่งด่วนที่สุด พร้อม action ที่ทำได้เลย
+4. **เป้าหมาย 12 เดือน** — แนะนำ 3 เป้าหมายการเงินที่ท้าทายแต่ทำได้จริง`;
+    _lastGeminiCall = askGeminiFinancialHealth;
+    await _callGemini('💰 AI สุขภาพการเงินโดยรวม', prompt);
+}
+
 async function askGeminiShiftAdvice(refresh) {
     const key = SS.get('geminiApiKey');
     if (!key) {
@@ -2396,26 +2690,8 @@ ${prevInfo.join('\n')}
 3. **คำแนะนำ OT เดือนหน้า** — ควรทำ OT กี่ชั่วโมงเพื่อเป้าหมายรายได้ที่ดีขึ้น (Max 48 ชม./เดือน)
 4. **เคล็ดลับเพิ่มรายได้** — 2-3 ข้อจริงๆที่ทำได้`;
 
-    $('ai-result-body').innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted)"><div style="font-size:28px;margin-bottom:8px">⏳</div>กำลังวิเคราะห์ข้อมูล...</div>';
-    if (!refresh) openModal('modal-ai-result');
-
-    try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`, {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
-        });
-        if (!res.ok) {
-            const err = await res.json().catch(()=>({}));
-            throw new Error(err?.error?.message || `HTTP ${res.status}`);
-        }
-        const json = await res.json();
-        const raw = json?.candidates?.[0]?.content?.parts?.[0]?.text || 'ไม่ได้รับข้อมูลจาก AI';
-        $('ai-result-body').innerHTML = `<p style="margin:0 0 8px">${mdToHtml(raw)}</p>`;
-    } catch(e) {
-        $('ai-result-body').innerHTML = `<div style="color:#EF4444;padding:12px;background:#FEF2F2;border-radius:8px">
-            <strong>เกิดข้อผิดพลาด:</strong><br>${e.message}<br><br>
-            <span style="font-size:12px;color:#6B7280">กรุณาตรวจสอบ API Key ในการตั้งค่า</span></div>`;
-    }
+    _lastGeminiCall = () => askGeminiShiftAdvice(true);
+    await _callGemini('🤖 AI วิเคราะห์กะ & รายได้', prompt);
 }
 
 // ===== Backup / Restore =====
