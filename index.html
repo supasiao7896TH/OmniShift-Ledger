@@ -741,6 +741,26 @@
             </div>
         </div>
 
+        <!-- ภาษีหัก ณ ที่จ่ายสะสม -->
+        <div class="tax-result-card" style="border-color:var(--primary)">
+            <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">💳 ภาษีหัก ณ ที่จ่ายสะสม</div>
+            <div id="tax-wht-auto-row" style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:8px;padding:8px 10px;margin-bottom:6px">
+                <span id="tax-wht-auto-label" style="font-size:11px;color:var(--text-muted)">ประมาณการจากระบบ</span>
+                <span id="tax-wht-auto-val" style="font-weight:700;color:#059669;font-size:14px">฿0</span>
+            </div>
+            <div class="tax-row" style="margin-bottom:4px">
+                <span style="font-size:12px;color:var(--text-muted)">กรอกยอดจริงจากสลิปแทน (override)</span>
+                <label class="tax-toggle">
+                    <input type="checkbox" id="tax-wht-manual" onchange="toggleWhtManual()">
+                    <span class="tax-toggle-sl"></span>
+                </label>
+            </div>
+            <div id="tax-wht-inp-row" style="display:none">
+                <input type="number" inputmode="decimal" id="tax-wht-actual" class="fi" min="0" placeholder="ยอดภาษีที่หักรวมทั้งปี (บาท)" style="width:100%;margin-bottom:4px" oninput="saveTaxData();renderTaxResult()">
+                <div style="font-size:10px;color:var(--text-muted)">ดูได้จากสลิปเงินเดือนแต่ละเดือน หรือ ภ.ง.ด.1 ของนายจ้าง</div>
+            </div>
+        </div>
+
         <!-- ผลการคำนวณ -->
         <div style="font-size:14px;font-weight:700;color:var(--text-muted);margin-top:2px">📊 ผลการคำนวณ</div>
 
@@ -2282,6 +2302,10 @@ function loadTaxData() {
     $('tax-pvd-manual').checked = pvdManual;
     $('tax-pvd-inp-row').style.display = pvdManual ? 'block' : 'none';
     $('tax-pvd').value = d.pvd || '';
+    const whtManual = !!d.whtManual;
+    $('tax-wht-manual').checked = whtManual;
+    $('tax-wht-inp-row').style.display = whtManual ? 'block' : 'none';
+    $('tax-wht-actual').value = d.whtActual || '';
 }
 
 function saveTaxData() {
@@ -2304,6 +2328,8 @@ function saveTaxData() {
         donation2x: parseFloat($('tax-donation2x').value)||0,
         pvdManual: $('tax-pvd-manual').checked,
         pvd: parseFloat($('tax-pvd').value)||0,
+        whtManual: $('tax-wht-manual').checked,
+        whtActual: parseFloat($('tax-wht-actual').value)||0,
         children: taxChildren,
     };
     SS.set('tax_data', JSON.stringify(d));
@@ -2323,6 +2349,13 @@ function togglePvdManual() {
         const s = readSettings();
         $('tax-pvd').value = Math.round(s.salary * 12 * ((s.pvdRate||7) / 100));
     }
+    saveTaxData();
+    renderTaxResult();
+}
+
+function toggleWhtManual() {
+    const manual = $('tax-wht-manual').checked;
+    $('tax-wht-inp-row').style.display = manual ? 'block' : 'none';
     saveTaxData();
     renderTaxResult();
 }
@@ -2423,6 +2456,8 @@ function computeTaxDeductions(annualIncome, sso) {
 }
 
 function renderTaxResult() {
+    let taxD = {};
+    try { const str = SS.get('tax_data'); if (str) taxD = JSON.parse(str); } catch(e) {}
     const { totalIncome, monthsWithWork, monthList, settings: s } = getAnnualData(taxYearCE);
     const now = new Date();
     const isCurrentYear = taxYearCE === now.getFullYear();
@@ -2505,7 +2540,13 @@ function renderTaxResult() {
     const annualTax = calcThaiIncomeTax(taxable);
     const monthlyWHT = Math.round(annualTax / 12);
     const paidSoFar  = Math.round(monthlyWHT * activeMths.length);
-    const balance    = paidSoFar - annualTax;
+
+    // WHT — auto estimate vs actual from slip
+    if ($('tax-wht-auto-label')) $('tax-wht-auto-label').textContent = `ประมาณการ (${activeMths.length} เดือน × ${fmtB(monthlyWHT)})`;
+    if ($('tax-wht-auto-val'))   $('tax-wht-auto-val').textContent   = fmtB(paidSoFar);
+    const whtIsManual = taxD.whtManual && (taxD.whtActual || 0) > 0;
+    const whtUsed = whtIsManual ? (taxD.whtActual || 0) : paidSoFar;
+    const balance = whtUsed - annualTax;
 
     // Monthly WHT
     const curM = isCurrentYear ? now.getMonth() + 1 : 12;
@@ -2526,11 +2567,15 @@ function renderTaxResult() {
             <span style="font-weight:600">เงินได้สุทธิ</span><span style="font-weight:700;color:var(--text)">${fmtB(taxable)}</span>
         </div>
         <div class="tax-res-row total"><span>ภาษีที่ต้องเสียทั้งปี</span><span>${fmtB(annualTax)}</span></div>`;
-    if (activeMths.length > 0) {
+    if (activeMths.length > 0 || whtIsManual) {
+        const whtLabel = whtIsManual ? 'ถูกหักไปแล้ว (ยอดจริงจากสลิป)' : `ถูกหักไปแล้วประมาณ (${activeMths.length} เดือน)`;
+        const balanceLabel = whtIsManual
+            ? (balance >= 0 ? '+ ได้คืนภาษี' : '- ต้องจ่ายเพิ่ม')
+            : (balance >= 0 ? '+ ได้คืนภาษีโดยประมาณ' : '- ยังต้องจ่ายเพิ่ม');
         annualHtml += `
-        <div class="tax-res-row" style="margin-top:4px"><span>ถูกหักไปแล้วประมาณ (${activeMths.length} เดือน)</span><span>-${fmtB(paidSoFar)}</span></div>
+        <div class="tax-res-row" style="margin-top:4px"><span>${whtLabel}</span><span>-${fmtB(whtUsed)}</span></div>
         <div class="tax-res-row ${balance >= 0 ? 'refund' : 'warn'} total">
-            <span>${balance >= 0 ? '+ ได้คืนภาษีโดยประมาณ' : '- ยังต้องจ่ายเพิ่ม'}</span>
+            <span>${balanceLabel}</span>
             <span>${fmtB(Math.abs(balance))}</span>
         </div>`;
     }
