@@ -1836,6 +1836,7 @@ function renderStats() {
 }
 
 function renderStatsCharts(incData, otData) {
+    const maxOt = readSettings().maxOt || 48;
     if (chartIncome) chartIncome.destroy();
     chartIncome = new Chart($('chart-income').getContext('2d'), {
         type:'bar',
@@ -1848,10 +1849,10 @@ function renderStatsCharts(incData, otData) {
     if (chartOT) chartOT.destroy();
     chartOT = new Chart($('chart-ot').getContext('2d'), {
         type:'bar',
-        data:{ labels:TH_MONTHS_S, datasets:[{ label:'OT', data:otData, backgroundColor:ctx=>otData[ctx.dataIndex]>MAX_OT?'#EF4444':'rgba(59,130,246,.75)', borderRadius:4 }] },
+        data:{ labels:TH_MONTHS_S, datasets:[{ label:'OT', data:otData, backgroundColor:ctx=>otData[ctx.dataIndex]>maxOt?'#EF4444':'rgba(59,130,246,.75)', borderRadius:4 }] },
         options:{ responsive:true, maintainAspectRatio:false,
             plugins:{ legend:{display:false},
-                annotation:{annotations:{l1:{type:'line',yMin:MAX_OT,yMax:MAX_OT,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:`Max ${MAX_OT}ชม.`,display:true,position:'end',backgroundColor:'rgba(239,68,68,.8)',font:{size:10}}}}}
+                annotation:{annotations:{l1:{type:'line',yMin:maxOt,yMax:maxOt,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:`Max ${maxOt}ชม.`,display:true,position:'end',backgroundColor:'rgba(239,68,68,.8)',font:{size:10}}}}}
             },
             scales:{ y:{beginAtZero:true, ticks:{font:{size:10}}, grid:{color:'rgba(0,0,0,.05)'}}, x:{grid:{display:false}, ticks:{font:{size:10}}} }
         }
@@ -2222,6 +2223,7 @@ function renderCalSum() {
     });
 
     // Bar: Monthly OT Hours with English labels
+    const calMaxOt = readSettings().maxOt || 48;
     const EN_MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const otArr = [];
     for (let m = 1; m <= 12; m++) {
@@ -2233,14 +2235,14 @@ function renderCalSum() {
     if (calOTChart) calOTChart.destroy();
     calOTChart = new Chart($('cal-ot-chart').getContext('2d'), {
         type: 'bar',
-        data: { labels: EN_MO, datasets: [{ data: otArr, backgroundColor: otArr.map(v => v > MAX_OT ? '#EF4444' : 'rgba(59,130,246,.75)'), borderRadius: 3 }] },
+        data: { labels: EN_MO, datasets: [{ data: otArr, backgroundColor: otArr.map(v => v > calMaxOt ? '#EF4444' : 'rgba(59,130,246,.75)'), borderRadius: 3 }] },
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
                 tooltip: { callbacks: { label: c => c.raw.toFixed(1) + ' hrs' } },
-                annotation: { annotations: { l1: { type:'line', yMin:MAX_OT, yMax:MAX_OT, borderColor:'#EF4444', borderWidth:2, borderDash:[6,4],
-                    label:{ content:`Max OT ${MAX_OT} hr`, display:true, position:'end', backgroundColor:'rgba(239,68,68,.85)', font:{size:10} } } } }
+                annotation: { annotations: { l1: { type:'line', yMin:calMaxOt, yMax:calMaxOt, borderColor:'#EF4444', borderWidth:2, borderDash:[6,4],
+                    label:{ content:`Max OT ${calMaxOt} hr`, display:true, position:'end', backgroundColor:'rgba(239,68,68,.85)', font:{size:10} } } } }
             },
             scales: { y: { beginAtZero:true, ticks:{ font:{size:9} }, grid:{ color:'rgba(0,0,0,.05)' } }, x: { grid:{ display:false }, ticks:{ font:{size:8} } } }
         }
