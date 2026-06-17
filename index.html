@@ -863,6 +863,10 @@
                 <label>ยอด PVD ณ ปัจจุบัน (บาท)</label>
                 <input type="number" id="future-pvd-balance" min="0" placeholder="0" oninput="saveFutureData();renderFutureTab()">
             </div>
+            <div class="future-inp-row">
+                <label>ผลตอบแทนสมมุติ (%/ปี)<span style="font-size:9px;color:var(--text-muted);display:block;line-height:1.4;margin-top:2px">ตราสารหนี้ ~2–4% · ผสม ~5–6% · หุ้นไทย ~7–9% · ต่างประเทศ ~8–12%</span></label>
+                <input type="number" id="future-pvd-return-rate" min="0" max="20" step="0.5" placeholder="6" oninput="saveFutureData();renderFutureTab()">
+            </div>
             <div class="future-summary" id="future-pvd-summary"></div>
         </div>
 
@@ -2905,6 +2909,7 @@ function loadFutureData() {
     $('future-pvd-co-inp-row').style.display = d.pvdCoManual ? 'flex' : 'none';
     $('future-pvd-co-rate-inp').value = d.pvdCoRate || '';
     $('future-pvd-balance').value = d.pvdBalance || '';
+    $('future-pvd-return-rate').value = d.pvdReturnRate ?? '6';
     setCoopType(d.coopType || 'pct', false);
     $('future-coop-pct').value   = d.coopPct || '';
     $('future-coop-fixed').value = d.coopFixed || '';
@@ -2919,6 +2924,7 @@ function saveFutureData() {
         pvdCoManual: $('future-pvd-co-manual')?.checked,
         pvdCoRate: parseFloat($('future-pvd-co-rate-inp')?.value)||0,
         pvdBalance: parseFloat($('future-pvd-balance')?.value)||0,
+        pvdReturnRate: parseFloat($('future-pvd-return-rate')?.value)||6,
         coopType: $('future-coop-type-pct')?.classList.contains('active') ? 'pct' : 'fixed',
         coopPct: parseFloat($('future-coop-pct')?.value)||0,
         coopFixed: parseFloat($('future-coop-fixed')?.value)||0,
@@ -3008,13 +3014,23 @@ function renderFutureTab() {
     const pvdBalance = parseFloat($('future-pvd-balance')?.value) || 0;
     const monthsToRetire = Math.max(0, totalWorkMonthsRetire - totalWorkMonthsNow);
     const pvdAtRetire = pvdBalance + monthlyTotalPvd * monthsToRetire;
+    const annualReturnRate = parseFloat($('future-pvd-return-rate')?.value) || 6;
+    const r_m = annualReturnRate / 12 / 100;
+    let pvdAtRetireWithReturn;
+    if (r_m === 0) {
+        pvdAtRetireWithReturn = pvdAtRetire;
+    } else {
+        const growth = Math.pow(1 + r_m, monthsToRetire);
+        pvdAtRetireWithReturn = Math.round(pvdBalance * growth + monthlyTotalPvd * (growth - 1) / r_m);
+    }
 
     if ($('future-pvd-summary')) {
         $('future-pvd-summary').innerHTML = `
             <div class="future-row"><span>รวมสมทบรายเดือน (พนักงาน+บริษัท)</span><span style="font-weight:700;color:var(--primary)">${fmtB(monthlyTotalPvd)}</span></div>
             <div class="future-row"><span>ยอด PVD ณ ปัจจุบัน</span><span style="font-weight:700">${fmtB(pvdBalance)}</span></div>
             <div class="future-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px"><span>ยอดเมื่อเกษียณ (ไม่รวมผลตอบแทน)</span><span style="font-weight:700;color:var(--primary);font-size:15px">${fmtB(pvdAtRetire)}</span></div>
-            <div style="font-size:10px;color:var(--text-muted);margin-top:2px">* เพิ่ม ${fmtB(monthlyTotalPvd)}/เดือน × ${monthsToRetire.toLocaleString('th-TH')} เดือน</div>`;
+            <div class="future-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px"><span>ยอดเมื่อเกษียณ (รวมผลตอบแทน ${annualReturnRate}%/ปี)</span><span style="font-weight:700;color:#059669;font-size:15px">${fmtB(pvdAtRetireWithReturn)}</span></div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:2px">* เพิ่ม ${fmtB(monthlyTotalPvd)}/เดือน × ${monthsToRetire.toLocaleString('th-TH')} เดือน · ดอกเบี้ยทบต้น ${annualReturnRate}%/ปี</div>`;
     }
 
     // Section 2: Cooperative
