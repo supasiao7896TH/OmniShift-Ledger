@@ -143,6 +143,7 @@ tr:last-child td{border-bottom:none}
       <a class="navlink" href="#s12">OT รายสัปดาห์</a>
       <a class="navlink" href="#s13">ความเป็นส่วนตัว</a>
       <a class="navlink" href="#s14">💰 ภาษี</a>
+      <a class="navlink" href="#s15">🌱 อนาคต</a>
     </div>
     <a class="back-app-btn" href="./">⬅ กลับแอป</a>
   </div>
@@ -249,6 +250,8 @@ tr:last-child td{border-bottom:none}
               <tr><td>PVD พนักงานสมทบ (%)</td><td>7%</td><td>% ที่พนักงานสมทบเข้ากองทุนสำรองเลี้ยงชีพ — ใช้คำนวณลดหย่อนภาษีใน Tab ภาษี อัตโนมัติ (ลดหย่อนได้เฉพาะส่วนพนักงานเท่านั้น)</td></tr>
               <tr><td>ประกันสังคม (บาท/เดือน)</td><td>875 บาท</td><td>อัตรา ณ ปี 2569 (5% × ฐานค่าจ้างสูงสุด 17,500) — ใช้คำนวณลดหย่อนประกันสังคมใน Tab ภาษี อัตโนมัติ</td></tr>
               <tr><td>โบนัสประจำปี (เดือน)</td><td>0</td><td>โบนัสสิ้นปีที่ได้รับ คิดเป็นจำนวนเดือนของเงินเดือน เช่น 2 = 2 × เงินเดือน — รวมเข้าฐานรายได้ที่ใช้คำนวณภาษีใน Tab ภาษี อัตโนมัติ</td></tr>
+              <tr><td>วันเกิด</td><td>—</td><td>วันเกิดของผู้ใช้ — ใช้คำนวณอายุ ณ ปีเกษียณและแสดงคำเตือนหากเกษียณก่อนอายุ 55 ปี ใน Tab อนาคต</td></tr>
+              <tr><td>วันเริ่มทำงาน</td><td>—</td><td>วันแรกที่เข้าทำงาน — ใช้คำนวณอายุงาน, อัตรา PVD บริษัทสมทบอัตโนมัติ และจำนวนเดือนสะสม SSO ใน Tab อนาคต</td></tr>
             </tbody>
           </table>
         </div>
@@ -819,11 +822,12 @@ tr:last-child td{border-bottom:none}
             <thead><tr><th>ส่วน</th><th>ความหมาย</th></tr></thead>
             <tbody>
               <tr><td><strong>ภาษีหัก ณ ที่จ่าย / เดือน</strong></td><td>ประมาณภาษีที่ HR หักทุกเดือน — คำนวณเหมือนกัน คือ ภาษีทั้งปี ÷ 12</td></tr>
-              <tr><td><strong>รายได้รวมทั้งปี</strong></td><td>ยอดจริง + Projection เดือนที่เหลือ</td></tr>
+              <tr><td><strong>รายได้รวมทั้งปี</strong></td><td>ยอดจริง + Projection เดือนที่เหลือ + โบนัสประจำปี (ถ้ากรอกไว้)</td></tr>
               <tr><td><strong>ค่าใช้จ่าย 50%</strong></td><td>หักได้สูงสุด 100,000 บาท (กฎหมายกำหนด)</td></tr>
               <tr><td><strong>เงินได้สุทธิ</strong></td><td>รายได้ − ค่าใช้จ่าย − ค่าลดหย่อนทั้งหมด</td></tr>
               <tr><td><strong>ภาษีที่ต้องเสียทั้งปี</strong></td><td>คำนวณจากอัตราก้าวหน้า 8 ขั้น (0%–35%)</td></tr>
-              <tr><td><strong>ได้คืน / ต้องจ่ายเพิ่ม</strong></td><td>เปรียบเทียบภาษีทั้งปีกับที่ถูกหักไปแล้ว</td></tr>
+              <tr><td><strong>💳 ภาษีหัก ณ ที่จ่ายสะสม</strong></td><td>แสดงประมาณการ (ภาษีทั้งปี ÷ 12 × จำนวนเดือน) — เปิด Toggle <em>"กรอกยอดจริงจากสลิปแทน"</em> แล้วกรอกยอดรวมที่ถูกหักมาจริง เพื่อให้ผลลัพธ์แม่นยำขึ้น</td></tr>
+              <tr><td><strong>ได้คืน / ต้องจ่ายเพิ่ม</strong></td><td>เปรียบเทียบภาษีทั้งปีกับยอดที่ถูกหักจริง (หรือประมาณการ) — ตัวเลขนี้ใช้ยื่น ภ.ง.ด. 91 ได้เลย</td></tr>
             </tbody>
           </table>
         </div>
@@ -849,11 +853,119 @@ tr:last-child td{border-bottom:none}
     </div>
   </div>
 
+  <!-- SECTION 15 -->
+  <div class="section" id="s15">
+    <div class="card">
+      <div class="card-header">
+        <span class="icon">🌱</span>
+        <h2>Tab อนาคต — วางแผนการเงิน</h2>
+        <span class="sec-num">15</span>
+      </div>
+      <div class="card-body">
+        <p>ช่วยวางแผนการเงินระยะยาวสู่วันเกษียณ ทุกส่วนคำนวณอัตโนมัติจาก <strong>วันเกิด</strong> และ <strong>วันเริ่มทำงาน</strong> ที่กรอกไว้ใน Tab การตั้งค่า</p>
+        <div class="infobox infobox-orange">
+          <span class="infobox-icon">⚠️</span>
+          <p>ตัวเลขทั้งหมดเป็น <strong>ประมาณการ</strong> เพื่อช่วยวางแผน ตัวเลขจริงอาจแตกต่างตามผลตอบแทนการลงทุน นโยบายบริษัท และกฎหมายที่อาจปรับในอนาคต</p>
+        </div>
+
+        <div class="divider"></div>
+        <h3 style="font-size:.95rem;font-weight:700;margin:0 0 8px;color:var(--text)">🎯 เกษียณปีไหน</h3>
+        <p>กรอกปีที่ต้องการเกษียณ (พ.ศ.) ระบบจะแสดงอายุ ณ วันเกษียณ และอีกกี่ปีจากปัจจุบัน ทุก section จะปรับผลลัพธ์ตามทันที หากเลือกปีที่อายุน้อยกว่า 55 ปี จะแสดงคำเตือน SSO ยังไม่ถึงสิทธิ์</p>
+
+        <div class="divider"></div>
+        <h3 style="font-size:.95rem;font-weight:700;margin:0 0 8px;color:var(--text)">💼 กองทุนสำรองเลี้ยงชีพ (PVD)</h3>
+        <div class="infobox infobox-blue" style="margin-top:0">
+          <span class="infobox-icon">ℹ️</span>
+          <p>ลดหย่อนภาษีได้เฉพาะ <strong>ส่วนพนักงานเท่านั้น</strong> ส่วนบริษัทสมทบไม่สามารถนำไปลดหย่อนได้</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>รายการ</th><th>รายละเอียด</th></tr></thead>
+            <tbody>
+              <tr><td>อัตราพนักงานสมทบ</td><td>ดึงจาก Tab การตั้งค่า (ช่อง PVD พนักงานสมทบ %)</td></tr>
+              <tr><td>อัตราบริษัทสมทบ (อัตโนมัติ)</td><td>คำนวณจากอายุงาน ณ ปัจจุบันตาม scale ด้านล่าง</td></tr>
+              <tr><td>อัตราบริษัทสมทบ (กรอกเอง)</td><td>เปิด Toggle "กรอกอัตราบริษัทสมทบเอง" เพื่อระบุ % จริงจากสลิป</td></tr>
+              <tr><td>ยอด PVD ณ ปัจจุบัน</td><td>กรอกยอดรวมจากใบแจ้งยอดกองทุน (พนักงาน + บริษัท)</td></tr>
+              <tr><td>Projection ถึงเกษียณ</td><td>ยอดปัจจุบัน + (สมทบรายเดือนรวม × เดือนที่เหลือ) ไม่รวมผลตอบแทนการลงทุน</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h4 style="font-size:.9rem;font-weight:700;margin:12px 0 6px;color:var(--orange)">Scale อัตราบริษัทสมทบ (อัตโนมัติ)</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>อายุงาน</th><th>อัตราบริษัทสมทบ</th></tr></thead>
+            <tbody>
+              <tr><td>ปีที่ 1 (0–1 ปี)</td><td>5%</td></tr>
+              <tr><td>ปีที่ 2 (1–2 ปี)</td><td>6%</td></tr>
+              <tr><td>ปีที่ 3 (2–3 ปี)</td><td>7%</td></tr>
+              <tr><td>ปีที่ 4 (3–4 ปี)</td><td>8%</td></tr>
+              <tr><td>ปีที่ 5 (4–5 ปี)</td><td>9%</td></tr>
+              <tr><td>ปีที่ 6–19 (5–20 ปี)</td><td>10%</td></tr>
+              <tr><td>ปีที่ 20+ (≥ 20 ปี)</td><td>15%</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="divider"></div>
+        <h3 style="font-size:.95rem;font-weight:700;margin:0 0 8px;color:var(--text)">🏦 สหกรณ์ออมทรัพย์ PTTGC</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>รายการ</th><th>รายละเอียด</th></tr></thead>
+            <tbody>
+              <tr><td>วิธีหักเงินออม</td><td>เลือก <strong>"% ของเงินเดือน"</strong> (สูงสุด 20%) หรือ <strong>"จำนวนบาทคงที่"</strong></td></tr>
+              <tr><td>ยอดออมทรัพย์ปัจจุบัน</td><td>ยอดเงินออมสะสมทั้งหมดที่มีอยู่ตอนนี้</td></tr>
+              <tr><td>เงินกู้คงค้าง</td><td>ยอดหนี้เงินกู้สหกรณ์ที่ยังค้างชำระ</td></tr>
+              <tr><td>ดอกเบี้ยสหกรณ์ % ต่อปี</td><td>อัตราดอกเบี้ยเงินออมที่สหกรณ์จ่ายให้ (ค่าเริ่มต้น 4.5%)</td></tr>
+              <tr><td>ยอด Net ปัจจุบัน</td><td>ยอดออม − เงินกู้คงค้าง</td></tr>
+              <tr><td>Projection ถึงเกษียณ</td><td>คำนวณด้วย Compound Interest รายปี: <em>FV = PV×(1+r)ⁿ + PMT×((1+r)ⁿ−1)/r</em></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="divider"></div>
+        <h3 style="font-size:.95rem;font-weight:700;margin:0 0 8px;color:var(--text)">🏛️ ประกันสังคม — ชราภาพ</h3>
+        <p>คำนวณสิทธิ์ชราภาพตามกฎหมายประกันสังคมล่าสุด ปี 2569 ฐานเงินเดือนสูงสุด 17,500 บาท</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>รายการ</th><th>รายละเอียด</th></tr></thead>
+            <tbody>
+              <tr><td>เดือนสะสม ณ ปัจจุบัน</td><td>นับจากวันเริ่มทำงานถึงปัจจุบัน (อัตโนมัติ)</td></tr>
+              <tr><td>เดือนสะสม ณ เกษียณ</td><td>นับจากวันเริ่มทำงานถึงสิ้นปีเกษียณที่เลือก</td></tr>
+              <tr><td>อายุรับสิทธิ์</td><td>55 ปี ตามกฎหมายปัจจุบัน</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h4 style="font-size:.9rem;font-weight:700;margin:12px 0 6px;color:var(--orange)">สูตรคำนวณสิทธิ์ชราภาพ</h4>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ประเภท</th><th>เงื่อนไข</th><th>วิธีคำนวณ</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>💰 บำเหน็จ</strong></td>
+                <td>สะสม &lt; 180 เดือน (15 ปี)</td>
+                <td>เงินสมทบรวม/เดือน × จำนวนเดือน<br><small>(พนักงาน 3% + นายจ้าง 3% + รัฐ 1% = 7% × ฐานค่าจ้าง)</small></td>
+              </tr>
+              <tr>
+                <td><strong>🏆 บำนาญ</strong></td>
+                <td>สะสม ≥ 180 เดือน (15 ปี)</td>
+                <td>20% × ค่าจ้างเฉลี่ย + 1.5%/ปี ที่เกิน 15 ปี<br><small>เช่น 20 ปี → 20% + (5×1.5%) = 27.5% × ค่าจ้าง</small></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="infobox infobox-green" style="margin-top:8px">
+          <span class="infobox-icon">💡</span>
+          <p>ลองเลื่อนปีเกษียณเพื่อดูผลต่าง เช่น เกษียณที่ 55 กับ 60 ปี — ถ้าสะสมได้ครบ 180 เดือน จะได้บำนาญรายเดือนตลอดชีวิต ซึ่งคุ้มค่ากว่าบำเหน็จก้อนเดียวในระยะยาว</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <footer class="footer">
   <div class="footer-logo">🏭</div>
-  <p>Developed in collaboration by <strong>Supasit A.@1981 TH &amp; AI Partner</strong> &nbsp;·&nbsp; V11.2</p>
+  <p>Developed in collaboration by <strong>Supasit A.@1981 TH &amp; AI Partner</strong> &nbsp;·&nbsp; V12.0</p>
   <p style="margin-top:8px"><a href="./">⬅ กลับไปยังแอป ShiftPro Tracker</a></p>
 </footer>
 
