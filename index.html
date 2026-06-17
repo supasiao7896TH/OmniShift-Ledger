@@ -967,7 +967,8 @@
             <div><label class="fl">OT 2.0× (ชม.)</label><input type="number" inputmode="decimal" id="mi-ot20" class="fi" min="0" step="0.25" placeholder="0"></div>
             <div><label class="fl">OT 3.0× (ชม.)</label><input type="number" inputmode="decimal" id="mi-ot30" class="fi" min="0" step="0.25" placeholder="0"></div>
         </div>
-        <div style="margin-bottom:12px"><label class="fl">เหตุผล</label><select id="mi-reason" class="fi"></select></div>
+        <div style="margin-bottom:12px"><label class="fl">เหตุผล</label><select id="mi-reason" class="fi" onchange="toggleLeaveHrsRow()"></select></div>
+        <div id="mi-leave-hrs-row" style="display:none;margin-bottom:12px"><label class="fl">ชั่วโมงที่ลา <span style="font-size:10px;font-weight:400;color:var(--text-muted)">(เว้นว่าง = เต็มวัน)</span></label><input type="number" inputmode="decimal" id="mi-leave-hrs" class="fi" min="0" max="12" step="0.5" placeholder="เช่น 2 ชม. = ลาครึ่งเช้า"></div>
         <div style="margin-bottom:18px"><label class="fl">รายละเอียด</label><input type="text" id="mi-detail" class="fi" placeholder="เพิ่มรายละเอียด..."></div>
         <button onclick="saveDayModal()" class="btn-p">บันทึก</button>
     </div>
@@ -1144,7 +1145,19 @@
 'use strict';
 
 // ===== Constants =====
-const REASON_VER = 2;
+const REASON_VER = 3;
+const LEAVE_TYPES = [
+    {key:'ลาพักร้อน',           emoji:'🏖️', type:'annual',    quota:null, note:'ตามอายุงาน + สะสม'},
+    {key:'ลาป่วย',              emoji:'🤒', type:'yearly',    quota:30,   note:'30 วัน/ปี'},
+    {key:'ลากิจ',               emoji:'💼', type:'yearly',    quota:6,    note:'6 วัน/ปี'},
+    {key:'ลาอุปสมบท',          emoji:'⛩️', type:'lifetime',  quota:120,  note:'120 วัน/ครั้ง (อายุงาน ≥ 2 ปี)', minService:2},
+    {key:'ลาประกอบพิธีฮัจญ์', emoji:'🕌', type:'lifetime',  quota:120,  note:'120 วัน/ครั้ง (อายุงาน ≥ 2 ปี)', minService:2},
+    {key:'ลาฝึกสมาธิ/บวชชี',  emoji:'🧘', type:'every5yr',  quota:7,    note:'7 วัน ทุก 5 ปี (อายุงาน ≥ 2 ปี)', minService:2},
+    {key:'ลาคลอด',             emoji:'🍼', type:'perEvent',  quota:90,   note:'ไม่เกิน 90 วัน/ครรภ์'},
+    {key:'ลาดูแลภรรยาคลอด',   emoji:'👶', type:'yearly',    quota:3,    note:'3 วัน/ครั้ง'},
+    {key:'ลารับราชการทหาร',   emoji:'🪖', type:'yearly',    quota:60,   note:'60 วัน/ปี'},
+];
+const LEAVE_SET = new Set(LEAVE_TYPES.map(l => l.key));
 const DEFAULT_HOURS = 176;
 const MAX_OT = 48;
 const GEMINI_MODEL = 'gemini-2.5-flash';
@@ -1295,7 +1308,11 @@ const TH_DAYS = ['อา','จ','อ','พ','พฤ','ศ','ส'];
 // ===== State =====
 let curYear, curMonth, statsYear;
 let activeKey = null, activePick = '-';
-let reasonOpts = ['','แทนกะ','มีคนมาแทน','ลาพักร้อน','ลาป่วย','ลากิจ','แทนกะแอ้ว','ทำงานล่วงเวลากะ 4/2','ทำงานล่วงเวลากะ 3/3','แลกกะ','ช่วยงาน Shutdown PE1','ช่วยงาน Shutdown PE2','ช่วยงาน Shutdown PE3','ช่วยงาน Start up PE1','ช่วยงาน Start up PE2','ช่วยงาน Start up PE3','ช่วยงาน Shutdown PE1(LOTO)','ช่วยงาน Shutdown PE2(LOTO)','ช่วยงาน Shutdown PE3(LOTO)','แทนกะเก่ง','ทำงานต่อเนื่องเร่งด่วน'];
+let reasonOpts = ['','แทนกะ','มีคนมาแทน',
+    'ลาพักร้อน','ลาป่วย','ลากิจ',
+    'ลาอุปสมบท','ลาประกอบพิธีฮัจญ์','ลาฝึกสมาธิ/บวชชี',
+    'ลาคลอด','ลาดูแลภรรยาคลอด','ลารับราชการทหาร',
+    'แทนกะแอ้ว','ทำงานล่วงเวลากะ 4/2','ทำงานล่วงเวลากะ 3/3','แลกกะ','ช่วยงาน Shutdown PE1','ช่วยงาน Shutdown PE2','ช่วยงาน Shutdown PE3','ช่วยงาน Start up PE1','ช่วยงาน Start up PE2','ช่วยงาน Start up PE3','ช่วยงาน Shutdown PE1(LOTO)','ช่วยงาน Shutdown PE2(LOTO)','ช่วยงาน Shutdown PE3(LOTO)','แทนกะเก่ง','ทำงานต่อเนื่องเร่งด่วน'];
 let chartIncome = null, chartOT = null;
 
 const TEAM_OFFSETS = { A: 0, C: 3, D: 6, B: 9 };
@@ -1603,6 +1620,12 @@ function updateSumBar(data) {
 }
 
 // ===== Day Modal =====
+function toggleLeaveHrsRow() {
+    const isLeave = LEAVE_SET.has($('mi-reason').value);
+    $('mi-leave-hrs-row').style.display = isLeave ? 'block' : 'none';
+    if (!isLeave) $('mi-leave-hrs').value = '';
+}
+
 function openDayModal(key, day) {
     activeKey = key;
     const [yr, mo] = key.split('-');
@@ -1617,6 +1640,8 @@ function openDayModal(key, day) {
     $('mi-ot30').value = d.ot30||'';
     $('mi-detail').value = d.detail||'';
     $('mi-reason').innerHTML = reasonOpts.map(r=>`<option value="${eh(r)}"${r===(d.reason||'')?'selected':''}>${eh(r)}</option>`).join('');
+    $('mi-leave-hrs').value = d.leaveHours > 0 ? d.leaveHours : '';
+    toggleLeaveHrsRow();
     openModal('modal-day');
 }
 
@@ -1671,8 +1696,9 @@ function doSaveDayModal() {
     const ot30=parseFloat($('mi-ot30').value)||0;
     const reason=$('mi-reason').value;
     const detail=$('mi-detail').value.trim();
-    if (activePick!=='-'||ot15||ot20||ot30||reason||detail) {
-        data[activeKey]={shift:activePick,ot15,ot20,ot30,reason,detail};
+    const leaveHours = LEAVE_SET.has(reason) ? (parseFloat($('mi-leave-hrs').value)||0) : 0;
+    if (activePick!=='-'||ot15||ot20||ot30||reason||detail||leaveHours) {
+        data[activeKey]={shift:activePick,ot15,ot20,ot30,reason,detail,leaveHours};
     } else {
         delete data[activeKey];
     }
@@ -1777,14 +1803,101 @@ function renderStatsCharts(incData, otData) {
     });
 }
 
+// ===== Leave Quota Helpers =====
+function fmtLeaveDays(d) {
+    if (d <= 0) return '0 วัน';
+    const hrs = d * 12;
+    if (d >= 1 && d === Math.floor(d)) return `${d} วัน`;
+    if (hrs < 12 && hrs === Math.floor(hrs)) return `${hrs} ชม.`;
+    if (hrs < 12) return `${hrs.toFixed(1)} ชม.`;
+    return `${d.toFixed(1)} วัน`;
+}
+
+function countLeaveForYear(year) {
+    const counts = {};
+    LEAVE_TYPES.forEach(lt => { counts[lt.key] = 0; });
+    for (let m = 1; m <= 12; m++) {
+        const data = getMonthData(year, m);
+        Object.values(data).forEach(d => {
+            if (!d || !LEAVE_SET.has(d.reason)) return;
+            const hrs = (d.leaveHours > 0) ? d.leaveHours : 12;
+            counts[d.reason] += hrs / 12;
+        });
+    }
+    return counts;
+}
+
+function getAnnualLeaveBase(workStartDate, year) {
+    if (!workStartDate) return 10;
+    const start = new Date(workStartDate);
+    const jan1 = new Date(year, 0, 1);
+    const months = Math.max(0, (jan1 - start) / (30.44 * 86400000));
+    if (months < 6) return 0;
+    if (months < 12) return 6;
+    return (months / 12) < 5 ? 10 : 15;
+}
+
+function getAnnualLeaveCarryover(year, workStartDate) {
+    const thisYear = new Date().getFullYear();
+    if (year <= thisYear) return 0;
+    const prevYear = year - 1;
+    const prevBase = getAnnualLeaveBase(workStartDate, prevYear);
+    const prevCarry = getAnnualLeaveCarryover(prevYear, workStartDate);
+    const prevTotal = prevBase + prevCarry;
+    const prevCounts = countLeaveForYear(prevYear);
+    const prevUsed = prevCounts['ลาพักร้อน'] || 0;
+    const unused = Math.max(0, prevTotal - prevUsed);
+    const jan1next = new Date(year, 0, 1);
+    const yrs = workStartDate ? (jan1next - new Date(workStartDate)) / (365.25 * 86400000) : 5;
+    return Math.min(unused, yrs >= 5 ? 30 : 20);
+}
+
 // ===== Leave & Swap Stats =====
 function renderLeaveSwapStats() {
-    const LEAVE_CATS = ['ลาป่วย', 'ลากิจ', 'ลาพักร้อน'];
-    const leaveCounts = { 'ลาป่วย': 0, 'ลากิจ': 0, 'ลาพักร้อน': 0, 'ลาอื่นๆ': 0 };
-    const leaveColors = { 'ลาป่วย': '#EF4444', 'ลากิจ': '#F59E0B', 'ลาพักร้อน': '#22C55E', 'ลาอื่นๆ': '#9CA3AF' };
+    const s = readSettings();
+    const leaveCounts = countLeaveForYear(statsYear);
+    const annualBase = getAnnualLeaveBase(s.workStartDate, statsYear);
+    const annualCarry = getAnnualLeaveCarryover(statsYear, s.workStartDate);
+    const annualTotal = annualBase + annualCarry;
+
+    // Leave quota cards
+    const leaveCardsHTML = LEAVE_TYPES.map(lt => {
+        const used = leaveCounts[lt.key] || 0;
+        let quota, note;
+        if (lt.type === 'annual') {
+            quota = annualTotal;
+            note = annualCarry > 0
+                ? `สิทธิ์ปีนี้ ${annualBase} + สะสม ${annualCarry} = ${annualTotal} วัน`
+                : `สิทธิ์ปีนี้ ${annualTotal} วัน (${lt.note})`;
+        } else {
+            quota = lt.quota;
+            note = lt.note;
+        }
+        const remaining = Math.max(0, quota - used);
+        const pct = quota > 0 ? Math.min(100, used / quota * 100) : 0;
+        const barClr = pct >= 90 ? '#EF4444' : pct >= 70 ? '#F59E0B' : '#22C55E';
+        const remClr = remaining <= 0 ? '#EF4444' : remaining <= quota * 0.2 ? '#F59E0B' : '#059669';
+        return `<div style="border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:6px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">
+                <span style="font-size:13px;font-weight:700">${lt.emoji} ${lt.key}</span>
+                <span style="font-size:10px;color:var(--text-muted);text-align:right;max-width:55%;line-height:1.4">${note}</span>
+            </div>
+            <div style="background:var(--border);border-radius:99px;height:5px;margin-bottom:5px">
+                <div style="background:${barClr};width:${pct.toFixed(1)}%;height:5px;border-radius:99px;transition:width .4s"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px">
+                <span style="color:var(--text-muted)">ใช้ไป <strong style="color:var(--text)">${fmtLeaveDays(used)}</strong></span>
+                <span style="color:var(--text-muted)">เหลือ <strong style="color:${remClr}">${fmtLeaveDays(remaining)}</strong> / ${quota} วัน</span>
+            </div>
+        </div>`;
+    }).join('');
+
+    $('st-leave-yr').textContent = statsYear;
+    $('st-leave').innerHTML = leaveCardsHTML;
+
+    // Swap tracking — keep all existing logic below
     const outSwaps = [];
     const inSwaps = [];
-
     for (let m = 1; m <= 12; m++) {
         const data = getMonthData(statsYear, m);
         const daysInMo = new Date(statsYear, m, 0).getDate();
@@ -1795,49 +1908,19 @@ function renderLeaveSwapStats() {
             const reason = d.reason || '';
             const detail = d.detail || '';
             const dateLabel = `${day} ${TH_MONTHS_S[m-1]}`;
-
-            // Leave counting
-            if (LEAVE_CATS.includes(reason)) {
-                leaveCounts[reason]++;
-            } else if (reason === 'ลาอื่นๆ') {
-                leaveCounts['ลาอื่นๆ']++;
-            }
-
-            // Swap tracking — outgoing: I covered someone
-            // ตรวจสอบเฉพาะ reason ไม่บังคับ shift เพราะ rotation อาจเขียนทับ shift ได้
             if (reason.startsWith('แทนกะ')) {
                 let person = detail;
                 if (!person && reason.length > 4) person = reason.slice(4);
                 const swapShift = (d.shift === 'M' || d.shift === 'N') ? d.shift : null;
                 outSwaps.push({ dateLabel, person: person || '?', shift: swapShift });
             }
-            // Incoming: someone covered for me
-            // Method A — explicit 'มีคนมาแทน' reason
             if (reason === 'มีคนมาแทน') {
                 inSwaps.push({ dateLabel, person: detail || '?', leaveType: '' });
-            }
-            // Method B — leave type reason + detail has text (e.g. reason='ลาพักร้อน', detail='เก่งแทน')
-            else if (LEAVE_CATS.includes(reason) && detail) {
+            } else if (LEAVE_SET.has(reason) && detail) {
                 inSwaps.push({ dateLabel, person: detail, leaveType: reason });
             }
         }
     }
-
-    // Leave stats card
-    const leaveTotal = Object.values(leaveCounts).reduce((a, b) => a + b, 0);
-    $('st-leave-yr').textContent = statsYear;
-    $('st-leave').innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:8px">
-            ${Object.entries(leaveCounts).map(([type, count]) => `
-            <div style="display:flex;align-items:center;gap:10px">
-                <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;min-width:72px;text-align:center;background:${leaveColors[type]}22;color:${leaveColors[type]}">${type}</span>
-                <div style="flex:1;background:#F3F4F6;border-radius:99px;height:8px">
-                    <div style="background:${leaveColors[type]};width:${leaveTotal > 0 ? (count / leaveTotal * 100).toFixed(0) : 0}%;height:8px;border-radius:99px;transition:width .4s"></div>
-                </div>
-                <span style="font-size:13px;font-weight:700;min-width:36px;text-align:right">${count} วัน</span>
-            </div>`).join('')}
-            <div style="font-size:11px;color:var(--text-muted);text-align:right;margin-top:2px">รวมทั้งปี ${leaveTotal} วัน</div>
-        </div>`;
 
     // Swap stats card
     $('st-swap-yr').textContent = statsYear;
@@ -2166,9 +2249,22 @@ function getMonthData(y,mo) {
 
 // ===== Reasons =====
 function loadReasons() {
+    const NEW_LEAVE = ['ลาอุปสมบท','ลาประกอบพิธีฮัจญ์','ลาฝึกสมาธิ/บวชชี','ลาคลอด','ลาดูแลภรรยาคลอด','ลารับราชการทหาร'];
     if (SS.get('reasonOptionsVersion') && parseInt(SS.get('reasonOptionsVersion'))===REASON_VER) {
         try{ const s=SS.get('reasonOptionsV2'); if(s){reasonOpts=JSON.parse(s);return;} }catch(e){}
     }
+    // Merge: preserve saved custom opts, inject new leave types if missing
+    try {
+        const s=SS.get('reasonOptionsV2');
+        if (s) {
+            const saved=JSON.parse(s);
+            const savedSet=new Set(saved);
+            const insertIdx=Math.max(saved.indexOf('ลากิจ')+1, saved.indexOf('ลาป่วย')+1, saved.indexOf('ลาพักร้อน')+1, 3);
+            let offset=0;
+            NEW_LEAVE.forEach(lt=>{if(!savedSet.has(lt)){saved.splice(insertIdx+offset,0,lt);offset++;}});
+            reasonOpts=saved;
+        }
+    } catch(e){}
     SS.set('reasonOptionsV2', JSON.stringify(reasonOpts));
     SS.set('reasonOptionsVersion', REASON_VER);
 }
