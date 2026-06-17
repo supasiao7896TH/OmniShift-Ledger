@@ -512,6 +512,10 @@
                 <input type="number" inputmode="decimal" id="ssoRateInput" class="fi set-inp" placeholder="875" min="0" max="9000">
             </div>
             <div class="set-row" style="cursor:default">
+                <span class="set-row-label">โบนัสประจำปี (เดือน)<br><span style="font-size:10px;color:var(--text-muted);font-weight:400">จ่าย ณ สิ้นปี เช่น 2 = 2 × เงินเดือน (ใช้คำนวณภาษี)</span></span>
+                <input type="number" inputmode="decimal" id="annualBonusMonthsInput" class="fi set-inp" placeholder="0" min="0" max="24" step="0.5">
+            </div>
+            <div class="set-row" style="cursor:default">
                 <span class="set-row-label">ชม.ทำงาน/เดือน</span>
                 <input type="number" inputmode="decimal" id="monthlyHoursInput" class="fi set-inp" placeholder="176">
             </div>
@@ -1956,7 +1960,7 @@ function renderCalSum() {
 function saveSettings() {
     SS.set('settings', JSON.stringify({
         salary:$('salaryInput').value, mRate:$('mRateInput').value, nRate:$('nRateInput').value,
-        house:$('houseAllowanceRate').value, bonus:$('holidayBonusRate').value, mhours:$('monthlyHoursInput').value, pvdRate:$('pvdRateInput').value, ssoRate:$('ssoRateInput').value
+        house:$('houseAllowanceRate').value, bonus:$('holidayBonusRate').value, mhours:$('monthlyHoursInput').value, pvdRate:$('pvdRateInput').value, ssoRate:$('ssoRateInput').value, annualBonusMonths:$('annualBonusMonthsInput').value
     }));
     SS.set('last_saved', new Date().toISOString());
     renderCal();
@@ -1973,14 +1977,15 @@ function readSettings() {
         bonus: parseFloat($('holidayBonusRate')?.value)||0,
         mhours: mh>0?mh:DEFAULT_HOURS,
         pvdRate: parseFloat($('pvdRateInput')?.value)||7,
-        ssoRate: parseFloat($('ssoRateInput')?.value)||875
+        ssoRate: parseFloat($('ssoRateInput')?.value)||875,
+        annualBonusMonths: parseFloat($('annualBonusMonthsInput')?.value)||0
     };
 }
 
 function loadSettings() {
     let s={};
     try{ const str=SS.get('settings'); if(str) s=JSON.parse(str); }catch(e){}
-    const def={salary:'',mRate:'150',nRate:'200',house:'15',bonus:'16',mhours:String(DEFAULT_HOURS),pvdRate:'7',ssoRate:'875'};
+    const def={salary:'',mRate:'150',nRate:'200',house:'15',bonus:'16',mhours:String(DEFAULT_HOURS),pvdRate:'7',ssoRate:'875',annualBonusMonths:'0'};
     const m={...def,...s};
     $('salaryInput').value=m.salary;
     $('mRateInput').value=m.mRate;
@@ -1990,6 +1995,7 @@ function loadSettings() {
     $('monthlyHoursInput').value=m.mhours;
     $('pvdRateInput').value=m.pvdRate;
     $('ssoRateInput').value=m.ssoRate;
+    $('annualBonusMonthsInput').value=m.annualBonusMonths;
 }
 
 // ===== Data =====
@@ -2436,6 +2442,10 @@ function renderTaxResult() {
         useAnnual = totalIncome;
     }
 
+    // Annual bonus (year-end lump sum from settings)
+    const annualBonusAmt = s.salary > 0 ? Math.round(s.salary * (s.annualBonusMonths || 0)) : 0;
+    const totalTaxIncome = useAnnual + annualBonusAmt;
+
     // Income summary
     let incHtml = `<div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700;margin-bottom:2px">
         <span>รายได้จริงในระบบ (${activeMths.length} เดือน)</span>
@@ -2449,6 +2459,16 @@ function renderTaxResult() {
         <div style="font-size:10px;color:var(--text-muted);margin-top:2px">* จากค่าเฉลี่ย ${fmtB(projMonthlyAvg)}/เดือน × 12</div>`;
     } else if (activeMths.length === 0 && s.salary > 0) {
         incHtml += `<div style="font-size:11px;color:#F97316;margin-top:4px">⚠ ยังไม่มีข้อมูลกะปีนี้ — ใช้เงินเดือนฐาน ${fmtB(baseMonthlyEst)}/เดือน ประมาณการ</div>`;
+    }
+    if (annualBonusAmt > 0) {
+        incHtml += `<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:3px">
+            <span style="color:var(--text-muted)">+ โบนัสประจำปี (${s.annualBonusMonths} เดือน × ${fmtB(s.salary)})</span>
+            <span style="color:#059669;font-weight:600">${fmtB(annualBonusAmt)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;border-top:1px solid var(--border);margin-top:5px;padding-top:5px">
+            <span>รายได้รวมที่ใช้คำนวณภาษี</span>
+            <span style="color:var(--primary)">${fmtB(totalTaxIncome)}</span>
+        </div>`;
     }
     $('tax-income-summary').innerHTML = incHtml;
 
@@ -2469,11 +2489,11 @@ function renderTaxResult() {
     if ($('tax-pvd-auto-val'))   $('tax-pvd-auto-val').textContent   = '฿' + pvdAuto.toLocaleString('th-TH');
 
     // Fund bucket warning
-    const det = computeTaxDeductions(useAnnual, sso);
+    const det = computeTaxDeductions(totalTaxIncome, sso);
     const fundWarn = $('tax-fund-bucket-warn');
     if (fundWarn) fundWarn.style.display = det.rawFund > 500000 ? 'block' : 'none';
 
-    if (useAnnual <= 0) {
+    if (totalTaxIncome <= 0) {
         const msg = '<div style="font-size:13px;color:var(--text-muted);padding:6px 0">กรุณาตั้งค่าเงินเดือนใน "การตั้งค่า" ก่อนครับ</div>';
         $('tax-monthly-result').innerHTML = msg;
         $('tax-annual-result').innerHTML = msg;
@@ -2481,7 +2501,7 @@ function renderTaxResult() {
         return;
     }
 
-    const taxable = Math.max(useAnnual - det.expenseDeduction - det.totalPersonalDeductions, 0);
+    const taxable = Math.max(totalTaxIncome - det.expenseDeduction - det.totalPersonalDeductions, 0);
     const annualTax = calcThaiIncomeTax(taxable);
     const monthlyWHT = Math.round(annualTax / 12);
     const paidSoFar  = Math.round(monthlyWHT * activeMths.length);
@@ -2499,7 +2519,7 @@ function renderTaxResult() {
 
     // Annual tax
     let annualHtml = `
-        <div class="tax-res-row"><span>รายได้รวมทั้งปี${isCurrentYear?' (projection)':''}</span><span>${fmtB(useAnnual)}</span></div>
+        <div class="tax-res-row"><span>รายได้รวมทั้งปี${isCurrentYear?' (projection)':''}</span><span>${fmtB(totalTaxIncome)}</span></div>
         <div class="tax-res-row deduct"><span>(-) ค่าใช้จ่าย 50% (สูงสุด 100,000)</span><span>-${fmtB(det.expenseDeduction)}</span></div>
         <div class="tax-res-row deduct"><span>(-) ค่าลดหย่อนส่วนบุคคลรวม</span><span>-${fmtB(det.totalPersonalDeductions)}</span></div>
         <div class="tax-res-row" style="border-top:1px dashed var(--border);padding-top:5px;margin-top:3px">
