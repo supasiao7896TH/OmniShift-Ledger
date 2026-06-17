@@ -327,6 +327,19 @@
         .tax-child-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)}
         .tax-child-item:last-child{border-bottom:none}
         .fund-info-box{background:var(--primary-light);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--text-muted);line-height:1.5}
+        /* Future tab */
+        .future-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
+        .future-section-title{font-size:15px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+        .future-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;gap:8px}
+        .future-row span:first-child{color:var(--text-muted);flex:1}
+        .future-row span:last-child{text-align:right}
+        .future-summary{background:var(--primary-light);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:13px}
+        .future-chip-toggle{display:flex;gap:6px;margin:4px 0}
+        .future-chip-toggle button{flex:1;padding:7px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text-muted);font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+        .future-chip-toggle button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+        .future-inp-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px}
+        .future-inp-row label{color:var(--text-muted);flex:1;font-size:13px}
+        .future-inp-row input{width:110px;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:'Sarabun',sans-serif;font-size:13px;text-align:right}
     </style>
 </head>
 <body>
@@ -514,6 +527,14 @@
             <div class="set-row" style="cursor:default">
                 <span class="set-row-label">โบนัสประจำปี (เดือน)<br><span style="font-size:10px;color:var(--text-muted);font-weight:400">จ่าย ณ สิ้นปี เช่น 2 = 2 × เงินเดือน (ใช้คำนวณภาษี)</span></span>
                 <input type="number" inputmode="decimal" id="annualBonusMonthsInput" class="fi set-inp" placeholder="0" min="0" max="24" step="0.5">
+            </div>
+            <div class="set-row" style="cursor:default">
+                <span class="set-row-label">วันเกิด</span>
+                <input type="date" id="birthDateInput" class="fi set-inp">
+            </div>
+            <div class="set-row" style="cursor:default">
+                <span class="set-row-label">วันเริ่มทำงาน</span>
+                <input type="date" id="workStartDateInput" class="fi set-inp">
             </div>
             <div class="set-row" style="cursor:default">
                 <span class="set-row-label">ชม.ทำงาน/เดือน</span>
@@ -793,6 +814,106 @@
     </div>
 </div>
 
+<!-- ======== TAB: อนาคต ======== -->
+<div id="tab-future" class="tab">
+    <div class="app-header">
+        <div style="font-size:20px;font-weight:700;text-align:center">อนาคต — วางแผนการเงิน</div>
+    </div>
+    <div style="padding:14px;display:flex;flex-direction:column">
+
+        <!-- เกษียณปีไหน -->
+        <div class="future-section">
+            <div class="future-section-title">🎯 เกษียณปีไหน</div>
+            <div class="future-inp-row">
+                <label>เกษียณปี พ.ศ.</label>
+                <input type="number" id="future-retire-year" min="2560" max="2620" step="1" oninput="renderFutureTab()">
+            </div>
+            <div id="future-retire-info" style="font-size:13px;color:var(--text-muted);margin-top:6px;text-align:right"></div>
+        </div>
+
+        <!-- Section 1: PVD -->
+        <div class="future-section">
+            <div class="future-section-title">💼 กองทุนสำรองเลี้ยงชีพ (PVD)</div>
+            <div class="future-row">
+                <span>อายุงาน</span>
+                <span id="future-work-years">—</span>
+            </div>
+            <div class="future-row">
+                <span>พนักงานสมทบ</span>
+                <span><span id="future-pvd-emp-rate">—</span> → <span id="future-pvd-emp-amt">—</span></span>
+            </div>
+            <div class="future-row">
+                <span>บริษัทสมทบ</span>
+                <span><span id="future-pvd-co-rate">—</span> → <span id="future-pvd-co-amt">—</span></span>
+            </div>
+            <div class="future-inp-row" style="margin-top:4px">
+                <label for="future-pvd-co-manual">กรอกอัตราบริษัทสมทบเอง</label>
+                <input type="checkbox" id="future-pvd-co-manual" onchange="toggleFuturePvdCoManual()" style="width:auto;padding:0;border:none;background:none">
+            </div>
+            <div id="future-pvd-co-inp-row" class="future-inp-row" style="display:none">
+                <label>อัตราบริษัทสมทบ (%)</label>
+                <input type="number" id="future-pvd-co-rate-inp" min="0" max="20" step="0.5" placeholder="10" oninput="saveFutureData();renderFutureTab()">
+            </div>
+            <div class="future-inp-row">
+                <label>ยอด PVD ณ ปัจจุบัน (บาท)</label>
+                <input type="number" id="future-pvd-balance" min="0" placeholder="0" oninput="saveFutureData();renderFutureTab()">
+            </div>
+            <div class="future-summary" id="future-pvd-summary"></div>
+        </div>
+
+        <!-- Section 2: สหกรณ์ -->
+        <div class="future-section">
+            <div class="future-section-title">🏦 สหกรณ์ออมทรัพย์ PTTGC</div>
+            <div style="margin-bottom:6px;font-size:13px;color:var(--text-muted)">วิธีหัก</div>
+            <div class="future-chip-toggle">
+                <button id="future-coop-type-pct" onclick="setCoopType('pct')">% ของเงินเดือน</button>
+                <button id="future-coop-type-fixed" onclick="setCoopType('fixed')">จำนวนบาทคงที่</button>
+            </div>
+            <div id="future-coop-pct-row" class="future-inp-row" style="display:flex">
+                <label>อัตราออม (%)</label>
+                <input type="number" id="future-coop-pct" min="0" max="20" step="0.5" placeholder="5" oninput="saveFutureData();renderFutureTab()">
+            </div>
+            <div id="future-coop-fixed-row" class="future-inp-row" style="display:none">
+                <label>ออมรายเดือน (บาท)</label>
+                <input type="number" id="future-coop-fixed" min="0" placeholder="0" oninput="saveFutureData();renderFutureTab()">
+            </div>
+            <div class="future-inp-row">
+                <label>ยอดออมทรัพย์ปัจจุบัน (บาท)</label>
+                <input type="number" id="future-coop-balance" min="0" placeholder="0" oninput="saveFutureData();renderFutureTab()">
+            </div>
+            <div class="future-inp-row">
+                <label>เงินกู้คงค้าง (บาท)</label>
+                <input type="number" id="future-coop-loan" min="0" placeholder="0" oninput="saveFutureData();renderFutureTab()">
+            </div>
+            <div class="future-inp-row">
+                <label>ดอกเบี้ยสหกรณ์ (% ต่อปี)</label>
+                <input type="number" id="future-coop-rate" min="0" max="20" step="0.1" placeholder="4.5" oninput="saveFutureData();renderFutureTab()">
+            </div>
+            <div class="future-summary" id="future-coop-summary"></div>
+        </div>
+
+        <!-- Section 3: SSO -->
+        <div class="future-section">
+            <div class="future-section-title">🏛️ ประกันสังคม — ชราภาพ</div>
+            <div class="future-row">
+                <span>เดือนสะสมปัจจุบัน</span>
+                <span id="future-sso-months-now">—</span>
+            </div>
+            <div class="future-row">
+                <span>เดือนสะสมเมื่อเกษียณ</span>
+                <span id="future-sso-months-retire">—</span>
+            </div>
+            <div class="future-row">
+                <span>ประเภท</span>
+                <span id="future-sso-type" style="font-weight:600">—</span>
+            </div>
+            <div class="future-summary" id="future-sso-result"></div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:8px;line-height:1.6">* อ้างอิงกฎ SSO ปี 2569: ฐานค่าจ้างสูงสุด 17,500 บาท | สิทธิ์รับเมื่ออายุ 55 ปี | บำนาญ 20% + 1.5%/ปี (หลัง 15 ปี)</div>
+        </div>
+
+    </div>
+</div>
+
 <!-- Bottom Nav -->
 <nav class="bot-nav">
     <button class="nav-btn active" id="nav-calendar" onclick="switchTab('calendar')">
@@ -806,6 +927,10 @@
     <button class="nav-btn" id="nav-tax" onclick="switchTab('tax')">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14l6-6"/><circle cx="9.5" cy="9.5" r=".5" fill="currentColor" stroke="none"/><circle cx="14.5" cy="14.5" r=".5" fill="currentColor" stroke="none"/><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 2.5 2 2.5-2 3.5 2z"/></svg>
         ภาษี
+    </button>
+    <button class="nav-btn" id="nav-future" onclick="switchTab('future')">
+        <span style="font-size:22px;line-height:1">🌱</span>
+        อนาคต
     </button>
     <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -1303,13 +1428,14 @@ window.onload = function() {
 
 // ===== Tabs =====
 function switchTab(tab) {
-    ['calendar','stats','settings','tax'].forEach(t => {
+    ['calendar','stats','settings','tax','future'].forEach(t => {
         $('tab-'+t).classList.toggle('active', t===tab);
         $('nav-'+t).classList.toggle('active', t===tab);
     });
     if (tab==='stats') renderStats();
     if (tab==='settings') renderThemePicker();
     if (tab==='tax') renderTaxTab();
+    if (tab==='future') { loadFutureData(); renderFutureTab(); }
 }
 
 // ===== Calendar =====
@@ -1980,7 +2106,8 @@ function renderCalSum() {
 function saveSettings() {
     SS.set('settings', JSON.stringify({
         salary:$('salaryInput').value, mRate:$('mRateInput').value, nRate:$('nRateInput').value,
-        house:$('houseAllowanceRate').value, bonus:$('holidayBonusRate').value, mhours:$('monthlyHoursInput').value, pvdRate:$('pvdRateInput').value, ssoRate:$('ssoRateInput').value, annualBonusMonths:$('annualBonusMonthsInput').value
+        house:$('houseAllowanceRate').value, bonus:$('holidayBonusRate').value, mhours:$('monthlyHoursInput').value, pvdRate:$('pvdRateInput').value, ssoRate:$('ssoRateInput').value, annualBonusMonths:$('annualBonusMonthsInput').value,
+        birthDate:$('birthDateInput').value, workStartDate:$('workStartDateInput').value
     }));
     SS.set('last_saved', new Date().toISOString());
     renderCal();
@@ -1998,14 +2125,16 @@ function readSettings() {
         mhours: mh>0?mh:DEFAULT_HOURS,
         pvdRate: parseFloat($('pvdRateInput')?.value)||7,
         ssoRate: parseFloat($('ssoRateInput')?.value)||875,
-        annualBonusMonths: parseFloat($('annualBonusMonthsInput')?.value)||0
+        annualBonusMonths: parseFloat($('annualBonusMonthsInput')?.value)||0,
+        birthDate: $('birthDateInput')?.value||'',
+        workStartDate: $('workStartDateInput')?.value||''
     };
 }
 
 function loadSettings() {
     let s={};
     try{ const str=SS.get('settings'); if(str) s=JSON.parse(str); }catch(e){}
-    const def={salary:'',mRate:'150',nRate:'200',house:'15',bonus:'16',mhours:String(DEFAULT_HOURS),pvdRate:'7',ssoRate:'875',annualBonusMonths:'0'};
+    const def={salary:'',mRate:'150',nRate:'200',house:'15',bonus:'16',mhours:String(DEFAULT_HOURS),pvdRate:'7',ssoRate:'875',annualBonusMonths:'0',birthDate:'',workStartDate:''};
     const m={...def,...s};
     $('salaryInput').value=m.salary;
     $('mRateInput').value=m.mRate;
@@ -2016,6 +2145,9 @@ function loadSettings() {
     $('pvdRateInput').value=m.pvdRate;
     $('ssoRateInput').value=m.ssoRate;
     $('annualBonusMonthsInput').value=m.annualBonusMonths;
+    $('birthDateInput').value=m.birthDate;
+    $('workStartDateInput').value=m.workStartDate;
+    if ($('tab-future') && $('tab-future').classList.contains('active')) renderFutureTab();
 }
 
 // ===== Data =====
@@ -2638,6 +2770,230 @@ function showToast(msg, type='ok', dur=3000) {
     box.appendChild(t);
     setTimeout(()=>t.classList.add('show'),50);
     setTimeout(()=>{t.classList.remove('show');t.addEventListener('transitionend',()=>t.remove());},dur);
+}
+
+// ===== Future Tab =====
+function getPvdEmployerRate(yearsOfService) {
+    if (yearsOfService >= 20) return 15;
+    if (yearsOfService >= 5)  return 10;
+    if (yearsOfService >= 4)  return 9;
+    if (yearsOfService >= 3)  return 8;
+    if (yearsOfService >= 2)  return 7;
+    if (yearsOfService >= 1)  return 6;
+    return 5;
+}
+
+function getYearsMonthsBetween(startStr, endStr) {
+    const s = new Date(startStr);
+    const e = new Date(endStr);
+    let years = e.getFullYear() - s.getFullYear();
+    let months = e.getMonth() - s.getMonth();
+    if (months < 0) { years--; months += 12; }
+    const totalMonths = Math.max(0, years * 12 + months);
+    return { years: Math.max(0,years), months: Math.max(0,months), totalMonths };
+}
+
+function loadFutureData() {
+    let d = {};
+    try { const str = SS.get('future_data'); if (str) d = JSON.parse(str); } catch(e) {}
+    const defaultRetire = new Date().getFullYear() + 543 + 25;
+    $('future-retire-year').value = d.retireYearBE || defaultRetire;
+    $('future-pvd-co-manual').checked = !!d.pvdCoManual;
+    $('future-pvd-co-inp-row').style.display = d.pvdCoManual ? 'flex' : 'none';
+    $('future-pvd-co-rate-inp').value = d.pvdCoRate || '';
+    $('future-pvd-balance').value = d.pvdBalance || '';
+    setCoopType(d.coopType || 'pct', false);
+    $('future-coop-pct').value   = d.coopPct || '';
+    $('future-coop-fixed').value = d.coopFixed || '';
+    $('future-coop-balance').value = d.coopBalance || '';
+    $('future-coop-loan').value    = d.coopLoan || '';
+    $('future-coop-rate').value    = d.coopRate || '4.5';
+}
+
+function saveFutureData() {
+    const d = {
+        retireYearBE: parseInt($('future-retire-year')?.value)||0,
+        pvdCoManual: $('future-pvd-co-manual')?.checked,
+        pvdCoRate: parseFloat($('future-pvd-co-rate-inp')?.value)||0,
+        pvdBalance: parseFloat($('future-pvd-balance')?.value)||0,
+        coopType: $('future-coop-type-pct')?.classList.contains('active') ? 'pct' : 'fixed',
+        coopPct: parseFloat($('future-coop-pct')?.value)||0,
+        coopFixed: parseFloat($('future-coop-fixed')?.value)||0,
+        coopBalance: parseFloat($('future-coop-balance')?.value)||0,
+        coopLoan: parseFloat($('future-coop-loan')?.value)||0,
+        coopRate: parseFloat($('future-coop-rate')?.value)||4.5,
+    };
+    SS.set('future_data', JSON.stringify(d));
+}
+
+function toggleFuturePvdCoManual() {
+    const manual = $('future-pvd-co-manual').checked;
+    $('future-pvd-co-inp-row').style.display = manual ? 'flex' : 'none';
+    saveFutureData();
+    renderFutureTab();
+}
+
+function setCoopType(type, save) {
+    if (save === undefined) save = true;
+    const isPct = type === 'pct';
+    $('future-coop-type-pct').classList.toggle('active', isPct);
+    $('future-coop-type-fixed').classList.toggle('active', !isPct);
+    $('future-coop-pct-row').style.display = isPct ? 'flex' : 'none';
+    $('future-coop-fixed-row').style.display = isPct ? 'none' : 'flex';
+    if (save) { saveFutureData(); renderFutureTab(); }
+}
+
+function renderFutureTab() {
+    const s = readSettings();
+    const fmtB = v => '฿' + Math.round(Math.abs(v)).toLocaleString('th-TH');
+
+    const today = new Date();
+    const birthDate = s.birthDate ? new Date(s.birthDate) : null;
+    const workStart = s.workStartDate ? new Date(s.workStartDate) : null;
+
+    const retireYearBE = parseInt($('future-retire-year')?.value) || (today.getFullYear() + 543 + 25);
+    const retireYearCE = retireYearBE - 543;
+    const retireDate = new Date(retireYearCE, 11, 31);
+
+    let retireAge = null;
+    if (birthDate) {
+        retireAge = retireYearCE - birthDate.getFullYear();
+    }
+
+    let workYearsNow = 0, workMonthsNow = 0, totalWorkMonthsNow = 0;
+    let totalWorkMonthsRetire = 0;
+    if (workStart) {
+        const todayStr = today.toISOString().slice(0,10);
+        const retireStr = retireDate.toISOString().slice(0,10);
+        const wn = getYearsMonthsBetween(s.workStartDate, todayStr);
+        workYearsNow = wn.years;
+        workMonthsNow = wn.months;
+        totalWorkMonthsNow = wn.totalMonths;
+        const wr = getYearsMonthsBetween(s.workStartDate, retireStr);
+        totalWorkMonthsRetire = wr.totalMonths;
+    }
+
+    // Retire info
+    let retireInfo = '';
+    if (birthDate && retireAge !== null) {
+        const yearsLeft = retireYearCE - today.getFullYear();
+        retireInfo = `อายุ ${retireAge} ปี • อีก ${Math.max(0, yearsLeft)} ปี`;
+        if (retireAge < 55) retireInfo += ' • ⚠ ก่อนอายุ 55 (SSO ยังไม่ถึงสิทธิ์)';
+    }
+    if ($('future-retire-info')) $('future-retire-info').textContent = retireInfo;
+
+    // Section 1: PVD
+    const workYearsFloat = totalWorkMonthsNow / 12;
+    if ($('future-work-years')) {
+        $('future-work-years').textContent = workStart ? `${workYearsNow} ปี ${workMonthsNow} เดือน` : 'ยังไม่ได้กรอกวันเริ่มทำงาน';
+    }
+
+    const empRate = s.pvdRate || 7;
+    const coManual = $('future-pvd-co-manual')?.checked;
+    const coRateAuto = getPvdEmployerRate(workYearsFloat);
+    const coRate = coManual ? (parseFloat($('future-pvd-co-rate-inp')?.value) || coRateAuto) : coRateAuto;
+
+    const monthlyEmpPvd = Math.round(s.salary * empRate / 100);
+    const monthlyCoPvd  = Math.round(s.salary * coRate / 100);
+    const monthlyTotalPvd = monthlyEmpPvd + monthlyCoPvd;
+
+    if ($('future-pvd-emp-rate')) $('future-pvd-emp-rate').textContent = `${empRate}%`;
+    if ($('future-pvd-emp-amt'))  $('future-pvd-emp-amt').textContent  = fmtB(monthlyEmpPvd) + '/เดือน';
+    if ($('future-pvd-co-rate'))  $('future-pvd-co-rate').textContent  = `${coRate}% ${coManual ? '(กรอกเอง)' : '(อัตโนมัติ)'}`;
+    if ($('future-pvd-co-amt'))   $('future-pvd-co-amt').textContent   = fmtB(monthlyCoPvd) + '/เดือน';
+
+    const pvdBalance = parseFloat($('future-pvd-balance')?.value) || 0;
+    const monthsToRetire = Math.max(0, totalWorkMonthsRetire - totalWorkMonthsNow);
+    const pvdAtRetire = pvdBalance + monthlyTotalPvd * monthsToRetire;
+
+    if ($('future-pvd-summary')) {
+        $('future-pvd-summary').innerHTML = `
+            <div class="future-row"><span>รวมสมทบรายเดือน (พนักงาน+บริษัท)</span><span style="font-weight:700;color:var(--primary)">${fmtB(monthlyTotalPvd)}</span></div>
+            <div class="future-row"><span>ยอด PVD ณ ปัจจุบัน</span><span style="font-weight:700">${fmtB(pvdBalance)}</span></div>
+            <div class="future-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px"><span>ยอดเมื่อเกษียณ (ไม่รวมผลตอบแทน)</span><span style="font-weight:700;color:var(--primary);font-size:15px">${fmtB(pvdAtRetire)}</span></div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:2px">* เพิ่ม ${fmtB(monthlyTotalPvd)}/เดือน × ${monthsToRetire.toLocaleString('th-TH')} เดือน</div>`;
+    }
+
+    // Section 2: Cooperative
+    const coopType = $('future-coop-type-pct')?.classList.contains('active') ? 'pct' : 'fixed';
+    const coopPct   = parseFloat($('future-coop-pct')?.value) || 0;
+    const coopFixed = parseFloat($('future-coop-fixed')?.value) || 0;
+    const monthlyCoopSave = coopType === 'pct' ? Math.round(s.salary * coopPct / 100) : coopFixed;
+    const coopBalance = parseFloat($('future-coop-balance')?.value) || 0;
+    const coopLoan    = parseFloat($('future-coop-loan')?.value) || 0;
+    const coopRate    = parseFloat($('future-coop-rate')?.value) || 4.5;
+    const coopNet     = coopBalance - coopLoan;
+
+    const yearsToRetire = monthsToRetire / 12;
+    const r = coopRate / 100;
+    let coopAtRetire = 0;
+    if (yearsToRetire > 0 && r > 0) {
+        const annualSave = monthlyCoopSave * 12;
+        coopAtRetire = coopBalance * Math.pow(1 + r, yearsToRetire) + annualSave * (Math.pow(1 + r, yearsToRetire) - 1) / r;
+    } else {
+        coopAtRetire = coopBalance + monthlyCoopSave * monthsToRetire;
+    }
+    coopAtRetire = Math.round(coopAtRetire);
+
+    if ($('future-coop-summary')) {
+        $('future-coop-summary').innerHTML = `
+            <div class="future-row"><span>ยอด net ปัจจุบัน (ออม − กู้)</span><span style="font-weight:700;color:${coopNet >= 0 ? 'var(--primary)' : '#EF4444'}">${fmtB(coopNet)}</span></div>
+            <div class="future-row"><span>ออมรายเดือน</span><span style="font-weight:700">${fmtB(monthlyCoopSave)}</span></div>
+            <div class="future-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px"><span>ยอดเมื่อเกษียณ (รวมดอกเบี้ย ${coopRate}%)</span><span style="font-weight:700;color:var(--primary);font-size:15px">${fmtB(coopAtRetire)}</span></div>`;
+    }
+
+    // Section 3: SSO
+    const SSO_MAX_WAGE = 17500;
+    const SSO_RETIRE_AGE = 55;
+    const SSO_EMP_RATE_CHARA = 0.03;
+    const SSO_CO_RATE_CHARA  = 0.03;
+    const SSO_GOV_RATE_CHARA = 0.01;
+
+    const insuredWage = Math.min(s.salary || SSO_MAX_WAGE, SSO_MAX_WAGE);
+    const monthlyContribChara = Math.round(insuredWage * (SSO_EMP_RATE_CHARA + SSO_CO_RATE_CHARA + SSO_GOV_RATE_CHARA));
+
+    const ssoMonthsNow = totalWorkMonthsNow;
+    const ssoMonthsRetire = totalWorkMonthsRetire;
+
+    if ($('future-sso-months-now')) $('future-sso-months-now').textContent = workStart ? `${ssoMonthsNow} เดือน (${Math.floor(ssoMonthsNow/12)} ปี ${ssoMonthsNow%12} เดือน)` : '—';
+    if ($('future-sso-months-retire')) $('future-sso-months-retire').textContent = workStart ? `${ssoMonthsRetire} เดือน (${Math.floor(ssoMonthsRetire/12)} ปี ${ssoMonthsRetire%12} เดือน)` : '—';
+
+    let ssoType = '', ssoResultHtml = '';
+    if (workStart) {
+        const canReceive = retireAge === null || retireAge >= SSO_RETIRE_AGE;
+        if (!canReceive) {
+            ssoType = '⚠ ยังไม่ถึงอายุรับสิทธิ์ 55 ปี';
+            ssoResultHtml = `<div style="color:#F97316;font-size:13px">กรุณาเลือกปีเกษียณที่อายุ 55 ปีขึ้นไป เพื่อรับสิทธิ์ชราภาพ</div>`;
+        } else if (ssoMonthsRetire < 180) {
+            const bamet = Math.round(monthlyContribChara * ssoMonthsRetire);
+            ssoType = '💰 บำเหน็จ (สะสม < 15 ปี)';
+            ssoResultHtml = `
+                <div class="future-row"><span>เดือนสะสม ณ เกษียณ</span><span>${ssoMonthsRetire} เดือน</span></div>
+                <div class="future-row"><span>เงินสมทบรวม/เดือน (พนักงาน+นายจ้าง+รัฐ)</span><span>${fmtB(monthlyContribChara)}</span></div>
+                <div class="future-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px"><span style="font-weight:700">บำเหน็จที่ได้รับ (ครั้งเดียว)</span><span style="font-weight:700;color:var(--primary);font-size:15px">${fmtB(bamet)}</span></div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:2px">* ${fmtB(monthlyContribChara)}/เดือน × ${ssoMonthsRetire} เดือน (ไม่รวมดอกเบี้ยกองทุน)</div>
+                <div style="font-size:10px;color:#F97316;margin-top:4px">💡 สะสมให้ครบ 180 เดือน (15 ปี) เพื่อรับบำนาญรายเดือน</div>`;
+        } else {
+            const extraYears = Math.max(0, Math.floor(ssoMonthsRetire / 12) - 15);
+            const pensionRate = 0.20 + extraYears * 0.015;
+            const avgWage = insuredWage;
+            const monthlyPension = Math.round(pensionRate * avgWage);
+            const yearlyPension  = monthlyPension * 12;
+            ssoType = '🏆 บำนาญ (สะสม ≥ 15 ปี)';
+            ssoResultHtml = `
+                <div class="future-row"><span>เดือนสะสม ณ เกษียณ</span><span>${ssoMonthsRetire} เดือน (${Math.floor(ssoMonthsRetire/12)} ปี)</span></div>
+                <div class="future-row"><span>อัตราบำนาญ</span><span style="font-weight:700">${(pensionRate*100).toFixed(1)}% <small>(20% + ${extraYears}×1.5%)</small></span></div>
+                <div class="future-row"><span>ค่าจ้างฐาน (สูงสุด 17,500)</span><span>${fmtB(avgWage)}</span></div>
+                <div class="future-row" style="border-top:1px solid var(--border);padding-top:6px;margin-top:4px"><span style="font-weight:700">บำนาญรายเดือน</span><span style="font-weight:700;color:var(--primary);font-size:15px">${fmtB(monthlyPension)}</span></div>
+                <div class="future-row"><span>บำนาญรายปี</span><span style="font-weight:600">${fmtB(yearlyPension)}</span></div>`;
+        }
+    } else {
+        ssoType = '—';
+        ssoResultHtml = '<div style="font-size:13px;color:var(--text-muted)">กรุณากรอกวันเริ่มทำงานในการตั้งค่าก่อนครับ</div>';
+    }
+
+    if ($('future-sso-type')) $('future-sso-type').textContent = ssoType;
+    if ($('future-sso-result')) $('future-sso-result').innerHTML = ssoResultHtml;
 }
 </script>
 <script>
