@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup — Calendar Highlight</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Sarabun', sans-serif; background: #F3F4F6; color: #111827; padding: 16px; }
+
+  h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #6B7280; margin-bottom: 20px; }
+  .section-label { font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase;
+    letter-spacing: .08em; margin: 20px 0 10px; }
+
+  /* ── Calendar grid ── */
+  .cal-wrap { background: #fff; border-radius: 16px; border: 1px solid #E5E7EB;
+    overflow: hidden; max-width: 360px; margin-bottom: 8px; }
+  .cal-hdr { background: #F97316; color: #fff; padding: 10px 14px;
+    font-size: 14px; font-weight: 700; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+  .cal-dh { text-align: center; font-size: 11px; font-weight: 700; color: #6B7280;
+    padding: 6px 0; background: #F9FAFB; border-bottom: 1px solid #E5E7EB; }
+  .day { position: relative; min-height: 62px; padding: 5px 4px 4px;
+    border-right: 1px solid #F3F4F6; border-bottom: 1px solid #F3F4F6;
+    cursor: pointer; transition: background .15s; }
+  .day:nth-child(7n) { border-right: none; }
+  .day-num { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .day-shift { font-size: 9.5px; color: #6B7280; line-height: 1.3; }
+  .day-today .day-num { background: #F97316; color: #fff; border-radius: 50%;
+    width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+  .day-empty { background: #F9FAFB; }
+
+  /* ── NORMAL dot (current) ── */
+  .dot-orange::after { content: ''; position: absolute; bottom: 5px; right: 5px;
+    width: 7px; height: 7px; border-radius: 50%; background: #F97316; }
+
+  /* ══════════════════════════════════════════════
+     PALETTE A — VIOLET / สีม่วง
+  ══════════════════════════════════════════════ */
+  /* Style A1: Background tint + top stripe */
+  .hl-a1 { background: #EDE9FE; }
+  .hl-a1::before { content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; background: #7C3AED; border-radius: 0; }
+  .hl-a1 .day-num { color: #5B21B6; }
+  .hl-a1 .day-shift { color: #7C3AED; }
+
+  /* Style A2: Badge pill */
+  .hl-a2 .extra-badge { display: inline-block; font-size: 9px; font-weight: 700;
+    background: #7C3AED; color: #fff; border-radius: 4px; padding: 0px 4px;
+    margin-top: 2px; line-height: 1.6; }
+
+  /* ══════════════════════════════════════════════
+     PALETTE B — SKY BLUE / สีฟ้า
+  ══════════════════════════════════════════════ */
+  .hl-b1 { background: #E0F2FE; }
+  .hl-b1::before { content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; background: #0284C7; }
+  .hl-b1 .day-num { color: #0369A1; }
+  .hl-b1 .day-shift { color: #0284C7; }
+
+  .hl-b2 .extra-badge { display: inline-block; font-size: 9px; font-weight: 700;
+    background: #0284C7; color: #fff; border-radius: 4px; padding: 0px 4px;
+    margin-top: 2px; line-height: 1.6; }
+
+  /* ══════════════════════════════════════════════
+     PALETTE C — AMBER / สีเหลืองทอง
+  ══════════════════════════════════════════════ */
+  .hl-c1 { background: #FEFCE8; }
+  .hl-c1::before { content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; background: #CA8A04; }
+  .hl-c1 .day-num { color: #92400E; }
+  .hl-c1 .day-shift { color: #B45309; }
+
+  .hl-c2 .extra-badge { display: inline-block; font-size: 9px; font-weight: 700;
+    background: #CA8A04; color: #fff; border-radius: 4px; padding: 0px 4px;
+    margin-top: 2px; line-height: 1.6; }
+
+  /* ── Legend ── */
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 8px 0 4px;
+    font-size: 12px; align-items: center; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .legend-box { width: 14px; height: 14px; border-radius: 3px; }
+
+  /* ── Comparison label ── */
+  .compare-label { font-size: 13px; font-weight: 700; color: #374151; margin: 14px 0 6px;
+    padding-left: 2px; display: flex; align-items: center; gap: 6px; }
+  .palette-chip { font-size: 11px; font-weight: 700; padding: 2px 10px;
+    border-radius: 20px; color: #fff; }
+  .chip-a { background: #7C3AED; }
+  .chip-b { background: #0284C7; }
+  .chip-c { background: #CA8A04; }
+
+  .style-note { font-size: 11px; color: #6B7280; margin-bottom: 6px; margin-left: 2px; }
+
+  /* Current vs New side-by-side */
+  .compare-row { display: flex; gap: 12px; margin-bottom: 4px; flex-wrap: wrap; }
+  .compare-col { flex: 1; min-width: 160px; }
+  .compare-col-label { font-size: 11px; font-weight: 700; color: #9CA3AF;
+    text-align: center; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em; }
+
+  .infobox { background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 10px;
+    padding: 10px 14px; font-size: 12px; color: #92400E; margin-top: 20px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<h1>📅 Mockup — Highlight วันทำงานพิเศษ</h1>
+<p class="subtitle">วันที่มาทำงานนอกเหนือจากกะปกติ (OT วันหยุด / แทนกะ / กะตรงข้าม)</p>
+
+<!-- CURRENT STATE -->
+<div class="section-label">📍 ปัจจุบัน — จุดส้มเล็กๆ มุมขวาล่าง</div>
+<div class="cal-wrap">
+  <div class="cal-hdr">มิถุนายน 2569</div>
+  <div class="cal-grid">
+    <div class="cal-dh">อา</div><div class="cal-dh">จ</div><div class="cal-dh">อ</div>
+    <div class="cal-dh">พ</div><div class="cal-dh">พฤ</div><div class="cal-dh">ศ</div><div class="cal-dh">ส</div>
+    <div class="day day-empty"></div><div class="day day-empty"></div><div class="day day-empty"></div>
+    <div class="day day-empty"></div><div class="day day-empty"></div><div class="day day-empty"></div>
+    <div class="day">
+      <div class="day-num">1</div>
+      <div class="day-shift">🌞A 🌙D</div>
+    </div>
+    <div class="day">
+      <div class="day-num">2</div>
+      <div class="day-shift">🌞B 🌙C</div>
+    </div>
+    <div class="day">
+      <div class="day-num">3</div>
+      <div class="day-shift">🌙A</div>
+    </div>
+    <!-- วันพิเศษ: จุดส้ม -->
+    <div class="day dot-orange">
+      <div class="day-num">4</div>
+      <div class="day-shift">วันหยุด</div>
+    </div>
+    <div class="day day-today">
+      <div class="day-num">5</div>
+      <div class="day-shift">🌞C 🌙B</div>
+    </div>
+    <!-- วันพิเศษ: จุดส้ม -->
+    <div class="day dot-orange">
+      <div class="day-num">6</div>
+      <div class="day-shift">🌞D</div>
+    </div>
+    <div class="day">
+      <div class="day-num">7</div>
+      <div class="day-shift">🌙B</div>
+    </div>
+    <div class="day">
+      <div class="day-num">8</div>
+      <div class="day-shift">🌞A 🌙D</div>
+    </div>
+    <div class="day">
+      <div class="day-num">9</div>
+      <div class="day-shift">🌞B</div>
+    </div>
+    <!-- วันพิเศษ: จุดส้ม -->
+    <div class="day dot-orange">
+      <div class="day-num">10</div>
+      <div class="day-shift">วันหยุด</div>
+    </div>
+  </div>
+</div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#F97316"></div> วันพิเศษ (จุดส้มเล็ก — มองยาก)</div>
+</div>
+
+
+<!-- ══ PALETTE A ══ -->
+<div class="compare-label"><span class="palette-chip chip-a">A</span> Violet — สีม่วง</div>
+
+<div class="style-note">Style A1 — พื้นหลังทั้งช่อง + แถบสีบนสุด (เด่นมาก มองเห็นชัดทันที)</div>
+<div class="cal-wrap">
+  <div class="cal-hdr">มิถุนายน 2569</div>
+  <div class="cal-grid">
+    <div class="cal-dh">อา</div><div class="cal-dh">จ</div><div class="cal-dh">อ</div>
+    <div class="cal-dh">พ</div><div class="cal-dh">พฤ</div><div class="cal-dh">ศ</div><div class="cal-dh">ส</div>
+    <div class="day day-empty"></div><div class="day day-empty"></div><div class="day day-empty"></div>
+    <div class="day day-empty"></div><div class="day day-empty"></div><div class="day day-empty"></div>
+    <div class="day"><div class="day-num">1</div><div class="day-shift">🌞A 🌙D</div></div>
+    <div class="day"><div class="day-num">2</div><div class="day-shift">🌞B 🌙C</div></div>
+    <div class="day"><div class="day-num">3</div><div class="day-shift">🌙A</div></div>
+    <div class="day hl-a1">
+      <div class="day-num">4</div>
+      <div class="day-shift">OT วันหยุด</div>
+    </div>
+    <div class="day day-today"><div class="day-num">5</div><div class="day-shift">🌞C 🌙B</div></div>
+    <div class="day hl-a1">
+      <div class="day-num">6</div>
+      <div class="day-shift">แทนกะ</div>
+    </div>
+    <div class="day"><div class="day-num">7</div><div class="day-shift">🌙B</div></div>
+    <div class="day"><div class="day-num">8</div><div class="day-shift">🌞A 🌙D</div></div>
+    <div class="day"><div class="day-num">9</div><div class="day-shift">🌞B</div></div>
+    <div class="day hl-a1">
+      <div class="day-num">10</div>
+      <div class="day-shift">OT วันหยุด</div>
+    </div>
+  </div>
+</div>
+
+<div class="style-note" style="margin-top:10px">Style A2 — Badge pill สีม่วง (พื้นขาวปกติ เพิ่ม label ระบุประเภท)</div>
+<div class="cal-wrap">
+  <div class="cal-hdr">มิถุนายน 2569</div>
+  <div class="cal-grid">
+    <div class="cal-dh">อา</div><div class="cal-dh">จ</div><div class="cal-dh">อ</div>
+    <div class="cal-dh">พ</div><div class="cal-dh">พฤ</div><div class="cal-dh">ศ</div><div class="cal-dh">ส</div>
+    <div class="day day-empty"></div><div class="day day-empty"></div><div class="day day-empty"></div>
+    <div class="day day-empty"></div><div class="day day-empty"></div><div class="day day-empty"></div>
+    <div class="day"><div class="day-num">1</div><div class="day-shift">🌞A 🌙D</div></div>
+    <div class="day"><div class="day-num">2</div><div class="day-shift">🌞B 🌙C</div></div>
+    <div class="day"><div class="day-num">3</div><div class="day-shift">🌙A</div></div>
+    <div class="day hl-a2">
+      <div class="day-num">4</div>
+      <div class="day-shift">วันหยุด</div>
+      <div><span class="extra-badge">+OT</span></div>
+    </div>
+    <div class="day day-today"><div class="day-num">5</div><div class="day-shift">🌞C 🌙B</div></div>
+    <div class="day hl-a2">
+      <div class="day-num">6</div>
+      <div class="day-shift">🌞D</div>
+      <div><span class="extra-badge">แทนกะ</span></div>
+    </div>
+    <div class="day"><div class="day-num">7</div><div class="day-shift">🌙B</div></div>
+    <div class="day"><div class="day-num">8</div><div class="day-shift">🌞A 🌙D</div></div>
+    <div class="day"><div class="day-num">9</div><div class="day-shift">🌞B</div></div>
+    <div class="day hl-a2">
+      <div class="day-num">10</div>
+      <div class="day-shift">วันหยุด</div>
+      <div><span class="extra-badge">+OT</span></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ PALETTE B ══ -->
+<div class="compare-label"><span class="palette-chip chip-b">B</span> Sky Blue — สีฟ้า</div>
+
+<div class="style-note">Style B1 — พื้นหลังฟ้าอ่อน + แถบน้ำเงินบนสุด</div>
+<div class="cal-wrap">
+  <div class="cal-hdr">มิถุนายน 2569</div>
+  <div class="cal-grid">
+    <div class="cal-dh">อา</div><div class="cal-dh">จ</div><div class="cal-dh">อ</div>
+    <div class="cal-dh">พ</div><div class="cal-dh">พฤ</div><div class="cal-dh">ศ</div><div class="cal-dh">ส</div>
+    <div class="day day-empty"></div><div class="day day-empty"></div><div class="day day-empty"></div>
+    <div class="day day-empty"></div><div class="day day-empty"></div><div class="day day-empty"></div>
+    <div class="day"><div class="day-num">1</div><div class="day-shift">🌞A 🌙D</div></div>
+    <div class="day"><div class="day-num">2</div><div class="day-shift">🌞B 🌙C</div></div>
+    <div class="day"><div class="day-num">3</div><div class="day-shift">🌙A</div></div>
+    <div class="day hl-b1">
+      <div class="day-num">4</div>
+      <div class="day-shift">OT วันหยุด</div>
+    </div>
+    <div class="day day-today"><div class="day-num">5</div><div class="day-shift">🌞C 🌙B</div></div>
+    <div class="day hl-b1">
+      <div class="day-num">6</div>
+      <div class="day-shift">แทนกะ</div>
+    </div>
+    <div class="day"><div class="day-num">7</div><div class="day-shift">🌙B</div></div>
+    <div class="day"><div class="day-num">8</div><div class="day-shift">🌞A 🌙D</div></div>
+    <div class="day"><div class="day-num">9</div><div class="day-shift">🌞B</div></div>
+    <div class="day hl-b1">
+      <div class="day-num">10</div>
+      <div class="day-shift">OT วันหยุด</div>
+    </div>
+  </div>
+</div>
+
+<div class="style-note" style="margin-top:10px">Style B2 — Badge pill สีน้ำเงิน</div>
+<div class="cal-wrap">
+  <div class="cal-hdr">มิถุนายน 2569</div>
+  <div class="cal-grid">
+    <div class="cal-dh">อา</div><div class="cal-dh">จ</div><div class="cal-dh">อ</div>
+    <div class="cal-dh">พ</div><div class="cal-dh">พฤ</div><div class="cal-dh">ศ</div><div class="cal-dh">ส</div>
+    <div class="day day-empty"></div><div class="day day-empty"></div><div class="day day-empty"></div>
+    <div class="day day-empty"></div><div class="day day-empty"></div><div class="day day-empty"></div>
+    <div class="day"><div class="day-num">1</div><div class="day-shift">🌞A 🌙D</div></div>
+    <div class="day"><div class="day-num">2</div><div class="day-shift">🌞B 🌙C</div></div>
+    <div class="day"><div class="day-num">3</div><div class="day-shift">🌙A</div></div>
+    <div class="day hl-b2">
+      <div class="day-num">4</div>
+      <div class="day-shift">วันหยุด</div>
+      <div><span class="extra-badge">+OT</span></div>
+    </div>
+    <div class="day day-today"><div class="day-num">5</div><div class="day-shift">🌞C 🌙B</div></div>
+    <div class="day hl-b2">
+      <div class="day-num">6</div>
+      <div class="day-shift">🌞D</div>
+      <div><span class="extra-badge">แทนกะ</span></div>
+    </div>
+    <div class="day"><div class="day-num">7</div><div class="day-shift">🌙B</div></div>
+    <div class="day"><div class="day-num">8</div><div class="day-shift">🌞A 🌙D</div></div>
+    <div class="day"><div class="day-num">9</div><div class="day-shift">🌞B</div></div>
+    <div class="day hl-b2">
+      <div class="day-num">10</div>
+      <div class="day-shift">วันหยุด</div>
+      <div><span class="extra-badge">+OT</span></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ PALETTE C ══ -->
+<div class="compare-label"><span class="palette-chip chip-c">C</span> Amber Gold — สีเหลืองทอง</div>
+
+<div class="style-note">Style C1 — พื้นหลังเหลืองอ่อน + แถบทองบนสุด</div>
+<div class="cal-wrap">
+  <div class="cal-hdr">มิถุนายน 2569</div>
+  <div class="cal-grid">
+    <div class="cal-dh">อา</div><div class="cal-dh">จ</div><div class="cal-dh">อ</div>
+    <div class="cal-dh">พ</div><div class="cal-dh">พฤ</div><div class="cal-dh">ศ</div><div class="cal-dh">ส</div>
+    <div class="day day-empty"></div><div class="day day-empty"></div><div class="day day-empty"></div>
+    <div class="day day-empty"></div><div class="day day-empty"></div><div class="day day-empty"></div>
+    <div class="day"><div class="day-num">1</div><div class="day-shift">🌞A 🌙D</div></div>
+    <div class="day"><div class="day-num">2</div><div class="day-shift">🌞B 🌙C</div></div>
+    <div class="day"><div class="day-num">3</div><div class="day-shift">🌙A</div></div>
+    <div class="day hl-c1">
+      <div class="day-num">4</div>
+      <div class="day-shift">OT วันหยุด</div>
+    </div>
+    <div class="day day-today"><div class="day-num">5</div><div class="day-shift">🌞C 🌙B</div></div>
+    <div class="day hl-c1">
+      <div class="day-num">6</div>
+      <div class="day-shift">แทนกะ</div>
+    </div>
+    <div class="day"><div class="day-num">7</div><div class="day-shift">🌙B</div></div>
+    <div class="day"><div class="day-num">8</div><div class="day-shift">🌞A 🌙D</div></div>
+    <div class="day"><div class="day-num">9</div><div class="day-shift">🌞B</div></div>
+    <div class="day hl-c1">
+      <div class="day-num">10</div>
+      <div class="day-shift">OT วันหยุด</div>
+    </div>
+  </div>
+</div>
+
+<div class="style-note" style="margin-top:10px">Style C2 — Badge pill สีทอง</div>
+<div class="cal-wrap">
+  <div class="cal-hdr">มิถุนายน 2569</div>
+  <div class="cal-grid">
+    <div class="cal-dh">อา</div><div class="cal-dh">จ</div><div class="cal-dh">อ</div>
+    <div class="cal-dh">พ</div><div class="cal-dh">พฤ</div><div class="cal-dh">ศ</div><div class="cal-dh">ส</div>
+    <div class="day day-empty"></div><div class="day day-empty"></div><div class="day day-empty"></div>
+    <div class="day day-empty"></div><div class="day day-empty"></div><div class="day day-empty"></div>
+    <div class="day"><div class="day-num">1</div><div class="day-shift">🌞A 🌙D</div></div>
+    <div class="day"><div class="day-num">2</div><div class="day-shift">🌞B 🌙C</div></div>
+    <div class="day"><div class="day-num">3</div><div class="day-shift">🌙A</div></div>
+    <div class="day hl-c2">
+      <div class="day-num">4</div>
+      <div class="day-shift">วันหยุด</div>
+      <div><span class="extra-badge">+OT</span></div>
+    </div>
+    <div class="day day-today"><div class="day-num">5</div><div class="day-shift">🌞C 🌙B</div></div>
+    <div class="day hl-c2">
+      <div class="day-num">6</div>
+      <div class="day-shift">🌞D</div>
+      <div><span class="extra-badge">แทนกะ</span></div>
+    </div>
+    <div class="day"><div class="day-num">7</div><div class="day-shift">🌙B</div></div>
+    <div class="day"><div class="day-num">8</div><div class="day-shift">🌞A 🌙D</div></div>
+    <div class="day"><div class="day-num">9</div><div class="day-shift">🌞B</div></div>
+    <div class="day hl-c2">
+      <div class="day-num">10</div>
+      <div class="day-shift">วันหยุด</div>
+      <div><span class="extra-badge">+OT</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="infobox">
+  <strong>สรุปตัวเลือก:</strong><br>
+  <strong>Style 1 (พื้นหลัง+แถบ)</strong> — มองเห็นชัดที่สุดตั้งแต่แรก แนะนำถ้าอยากให้เด่นมาก<br>
+  <strong>Style 2 (Badge pill)</strong> — สะอาดกว่า ยังบอกประเภทได้ แต่ต้องมองใกล้กว่า<br><br>
+  <strong>Palette แนะนำ: A (Violet)</strong> — ตัดกับสีส้มของแอปได้ดีที่สุด ไม่ชนกับ primary สีส้ม
+</div>
+
+</body>
+</html>
