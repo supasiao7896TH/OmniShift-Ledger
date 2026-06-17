@@ -571,6 +571,10 @@
                 <span class="set-row-label">ชม.ทำงาน/เดือน</span>
                 <input type="number" inputmode="decimal" id="monthlyHoursInput" class="fi set-inp" placeholder="176">
             </div>
+            <div class="set-row" style="cursor:default">
+                <span class="set-row-label">OT สูงสุด (ชม./เดือน)<br><span style="font-size:10px;color:var(--text-muted);font-weight:400">กฎหมายไทย = 36 ชม. · PTTGC = 48 ชม. · บางหน่วยงาน = 60–72 ชม.</span></span>
+                <input type="number" inputmode="decimal" id="maxOtInput" class="fi set-inp" placeholder="48" min="0" max="999">
+            </div>
         </div>
         <button onclick="saveSettings()" class="btn-p">บันทึกการตั้งค่า</button>
         <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;padding:0 2px;margin-top:12px">วันหยุดส่วนตัว</div>
@@ -2247,7 +2251,7 @@ function renderCalSum() {
 function saveSettings() {
     SS.set('settings', JSON.stringify({
         salary:$('salaryInput').value, mRate:$('mRateInput').value, nRate:$('nRateInput').value,
-        house:$('houseAllowanceRate').value, bonus:$('holidayBonusRate').value, mhours:$('monthlyHoursInput').value, pvdRate:$('pvdRateInput').value, ssoRate:$('ssoRateInput').value, annualBonusMonths:$('annualBonusMonthsInput').value,
+        house:$('houseAllowanceRate').value, bonus:$('holidayBonusRate').value, mhours:$('monthlyHoursInput').value, maxOt:$('maxOtInput').value, pvdRate:$('pvdRateInput').value, ssoRate:$('ssoRateInput').value, annualBonusMonths:$('annualBonusMonthsInput').value,
         birthDate:$('birthDateInput').value, workStartDate:$('workStartDateInput').value
     }));
     SS.set('last_saved', new Date().toISOString());
@@ -2264,6 +2268,7 @@ function readSettings() {
         house: parseFloat($('houseAllowanceRate')?.value)||0,
         bonus: parseFloat($('holidayBonusRate')?.value)||0,
         mhours: mh>0?mh:DEFAULT_HOURS,
+        maxOt: parseFloat($('maxOtInput')?.value)||48,
         pvdRate: parseFloat($('pvdRateInput')?.value)||7,
         ssoRate: parseFloat($('ssoRateInput')?.value)||875,
         annualBonusMonths: parseFloat($('annualBonusMonthsInput')?.value)||0,
@@ -2275,7 +2280,7 @@ function readSettings() {
 function loadSettings() {
     let s={};
     try{ const str=SS.get('settings'); if(str) s=JSON.parse(str); }catch(e){}
-    const def={salary:'',mRate:'150',nRate:'200',house:'15',bonus:'16',mhours:String(DEFAULT_HOURS),pvdRate:'7',ssoRate:'875',annualBonusMonths:'0',birthDate:'',workStartDate:''};
+    const def={salary:'',mRate:'150',nRate:'200',house:'15',bonus:'16',mhours:String(DEFAULT_HOURS),maxOt:'48',pvdRate:'7',ssoRate:'875',annualBonusMonths:'0',birthDate:'',workStartDate:''};
     const m={...def,...s};
     $('salaryInput').value=m.salary;
     $('mRateInput').value=m.mRate;
@@ -2283,6 +2288,7 @@ function loadSettings() {
     $('houseAllowanceRate').value=m.house;
     $('holidayBonusRate').value=m.bonus;
     $('monthlyHoursInput').value=m.mhours;
+    $('maxOtInput').value=m.maxOt;
     $('pvdRateInput').value=m.pvdRate;
     $('ssoRateInput').value=m.ssoRate;
     $('annualBonusMonthsInput').value=m.annualBonusMonths;
@@ -2403,7 +2409,8 @@ async function askGeminiOTPlan() {
         ot15 += d.ot15||0; ot20 += d.ot20||0; ot30 += d.ot30||0;
     }
     const otDone = ot15+ot20+ot30;
-    const otRemain = Math.max(0, 48 - otDone);
+    const maxOt = s.maxOt || 48;
+    const otRemain = Math.max(0, maxOt - otDone);
     const baseInc = s.salary + calcHouseAllowance(s.salary, s.house) + s.salary*(s.bonus/100);
     const shiftInc = mD*s.mRate + nD*s.nRate;
     const otInc = hr > 0 ? ot15*hr*1.5 + ot20*hr*2.0 + ot30*hr*3.0 : 0;
@@ -2415,7 +2422,7 @@ async function askGeminiOTPlan() {
 - อัตราค่าแรง: ${hr > 0 ? 'ชม.ละ ฿'+(hr*1.5).toFixed(0)+' (OT 1.5×) / ฿'+(hr*2).toFixed(0)+' (2×) / ฿'+(hr*3).toFixed(0)+' (3×)' : 'ยังไม่ได้ตั้งค่าเงินเดือน'}
 - กะที่ทำแล้ว: เช้า ${mD} กะ | ดึก ${nD} กะ
 - OT ที่ทำแล้ว: ${otDone.toFixed(1)} ชม. (1.5×: ${ot15}ชม. | 2×: ${ot20}ชม. | 3×: ${ot30}ชม.)
-- OT ที่ทำได้อีก: ${otRemain.toFixed(1)} ชม. (กฎหมาย max 48 ชม./เดือน)
+- OT ที่ทำได้อีก: ${otRemain.toFixed(1)} ชม. (max ${maxOt} ชม./เดือน)
 - รายได้สะสมเดือนนี้ (ประมาณ): ฿${Math.round(totalSoFar).toLocaleString()}
 
 ## กรุณาแนะนำ (ตอบภาษาไทย กระชับ)
@@ -2707,7 +2714,7 @@ ${prevInfo.join('\n')}
 ## กรุณาวิเคราะห์และให้คำแนะนำ (ตอบภาษาไทย กระชับ อ่านง่าย)
 1. **สรุปภาพรวมเดือนนี้** — ผลการทำงาน vs เดือนก่อน
 2. **แนวโน้มรายได้** — เพิ่ม/ลดเท่าไร คิดเป็น%
-3. **คำแนะนำ OT เดือนหน้า** — ควรทำ OT กี่ชั่วโมงเพื่อเป้าหมายรายได้ที่ดีขึ้น (Max 48 ชม./เดือน)
+3. **คำแนะนำ OT เดือนหน้า** — ควรทำ OT กี่ชั่วโมงเพื่อเป้าหมายรายได้ที่ดีขึ้น (Max ${s.maxOt||48} ชม./เดือน)
 4. **เคล็ดลับเพิ่มรายได้** — 2-3 ข้อจริงๆที่ทำได้`;
 
     _lastGeminiCall = () => askGeminiShiftAdvice(true);
