@@ -1384,7 +1384,8 @@ const SHIFT_PATTERNS = {
         id: 'gc14',
         name: 'รอบ 14 วัน (GC: 3-2 / 2-3 / 2-2)',
         desc: 'ทำงาน 3-2 วัน / หยุด 2-3 วัน สลับเช้า–ดึกทุก loop — รอบเต็ม 28 วัน (50% ทำงาน) อ้างอิงตาราง GC',
-        anchorHint: 'ตัวอย่างปี 2026: ใช้วันอ้างอิง 14 ม.ค. 2026 (ทีม A เริ่มกะเช้า)',
+        anchorHint: 'วันอ้างอิงตั้งให้อัตโนมัติตามตาราง GC (14 ม.ค. 2026) — คุณแค่เลือก "ทีม" ของตัวเองพอ',
+        defaultAnchor: '2026-01-14', // เฟสของตาราง GC ตายตัว (cycleDay 0 = ทีม A เริ่มกะเช้า)
         cycleLength: 28,
         teamOffsets: { A: 0, C: 7, B: 14, D: 21 },
         baseSeq: ['M','M','-','-','-','N','N','-','-','M','M','M','-','-','N','N','-','-','-','M','M','-','-','N','N','N','-','-'],
@@ -2064,6 +2065,12 @@ function renderPatternSelect() {
 function setPattern(id) {
     if (!SHIFT_PATTERNS[id]) return;
     rotConfig.patternId = id;
+    // รูปแบบที่เฟสตายตัว (เช่น GC) → ตั้งวันอ้างอิงให้อัตโนมัติ ผู้ใช้ไม่ต้องกรอกเอง
+    const da = getPattern(id).defaultAnchor;
+    if (da) {
+        rotConfig.anchorDate = da;
+        if ($('rot-anchor')) $('rot-anchor').value = da;
+    }
     saveRotConfig();
     const desc = $('patternDesc');
     if (desc) desc.textContent = getPattern(id).desc;
@@ -2105,7 +2112,11 @@ function getTeamForDate(dateStr, segments) {
 
 function openRotationModal() {
     loadRotConfig();
+    // รูปแบบที่เฟสตายตัว (GC) → บังคับใช้วันอ้างอิงที่ถูกต้องเสมอ (กันผู้ใช้กรอกผิด)
+    const da = getPattern(rotConfig.patternId).defaultAnchor;
+    if (da && rotConfig.anchorDate !== da) { rotConfig.anchorDate = da; saveRotConfig(); }
     $('rot-anchor').value = rotConfig.anchorDate || '';
+    if (da) $('rot-anchor').readOnly = true; else $('rot-anchor').readOnly = false;
     renderRotSegs();
     renderRotPatternInfo();
     const savedMo = SS.get('rot_last_months');
@@ -2149,7 +2160,7 @@ function removeRotSeg(idx) {
 }
 
 function applyRotation() {
-    const anchorStr = $('rot-anchor').value;
+    const anchorStr = $('rot-anchor').value || getPattern(rotConfig.patternId).defaultAnchor || '';
     const numMo = parseInt($('rot-months').value);
     SS.set('rot_last_months', String(numMo));
     if (!anchorStr) { showToast('กรุณาระบุวันอ้างอิง', 'err'); return; }
