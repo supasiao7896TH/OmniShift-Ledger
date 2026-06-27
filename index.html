@@ -586,6 +586,11 @@
         </div>
         <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;padding:0 2px">การจัดการ</div>
         <div class="set-sec">
+            <div class="set-row" style="flex-direction:column;align-items:stretch;gap:6px">
+                <label for="patternSelect" class="set-row-label" style="font-weight:700">รูปแบบกะ (Shift Pattern)</label>
+                <select id="patternSelect" class="fi" onchange="setPattern(this.value)"></select>
+                <span id="patternDesc" style="font-size:11px;color:var(--text-muted);line-height:1.4"></span>
+            </div>
             <div class="set-row" onclick="openRotationModal()">
                 <span class="set-row-label">ตั้งค่าการหมุนเวียนกะ</span>
                 <svg width="16" height="16" fill="#9CA3AF" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
@@ -1044,15 +1049,9 @@
             <div id="rot-segs"></div>
             <div style="font-size:11px;color:var(--text-muted);margin-top:4px">ตัวอย่าง: ม.ค.–22 ก.พ. = ทีม A / 23 ก.พ.เป็นต้นไป = ทีม B</div>
         </div>
-        <!-- Pattern reference -->
+        <!-- Pattern reference (render ตามรูปแบบที่เลือก) -->
         <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:10px;margin-bottom:12px;font-size:11px">
-            <div style="font-weight:700;color:#1D4ED8;margin-bottom:4px">รูปแบบวงรอบ 12 วัน</div>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;font-size:10px;text-align:center">
-                <div style="background:#DCFCE7;border-radius:4px;padding:4px"><div style="font-weight:700;color:#15803D">A=เช้า</div><div style="color:#6B7280">D=ดึก</div><div style="color:#9CA3AF">3 วัน</div></div>
-                <div style="background:#FEF9C3;border-radius:4px;padding:4px"><div style="font-weight:700;color:#166534">C=เช้า</div><div style="color:#6B7280">B=ดึก</div><div style="color:#9CA3AF">3 วัน</div></div>
-                <div style="background:#DBEAFE;border-radius:4px;padding:4px"><div style="font-weight:700;color:#1D4ED8">D=เช้า</div><div style="color:#6B7280">A=ดึก</div><div style="color:#9CA3AF">3 วัน</div></div>
-                <div style="background:#EDE9FE;border-radius:4px;padding:4px"><div style="font-weight:700;color:#5B21B6">B=เช้า</div><div style="color:#6B7280">C=ดึก</div><div style="color:#9CA3AF">3 วัน</div></div>
-            </div>
+            <div id="rot-pattern-info"></div>
         </div>
         <!-- Months -->
         <div style="margin-bottom:12px">
@@ -1369,8 +1368,32 @@ let reasonOpts = ['','แทนกะ','มีคนมาแทน',
     'แทนกะแอ้ว','ทำงานล่วงเวลากะ 4/2','ทำงานล่วงเวลากะ 3/3','แลกกะ','ช่วยงาน Shutdown PE1','ช่วยงาน Shutdown PE2','ช่วยงาน Shutdown PE3','ช่วยงาน Start up PE1','ช่วยงาน Start up PE2','ช่วยงาน Start up PE3','ช่วยงาน Shutdown PE1(LOTO)','ช่วยงาน Shutdown PE2(LOTO)','ช่วยงาน Shutdown PE3(LOTO)','แทนกะเก่ง','ทำงานต่อเนื่องเร่งด่วน'];
 let chartIncome = null, chartOT = null;
 
-const TEAM_OFFSETS = { A: 0, C: 3, D: 6, B: 9 };
-let rotConfig = { anchorDate: '', segments: [] };
+// ===== คลังรูปแบบกะ (Shift Pattern Registry) =====
+// แต่ละรูปแบบนิยามเป็นข้อมูล: ความยาวรอบ + ลำดับกะของทีมอ้างอิง (offset 0) + offset ของแต่ละทีม
+// baseSeq: 'M'=เช้า, 'N'=ดึก, '-'=หยุด  (1 ช่อง = 1 วันในรอบ)
+const SHIFT_PATTERNS = {
+    legacy12: {
+        id: 'legacy12',
+        name: 'รอบ 12 วัน (3 ทำ 3 หยุด)',
+        desc: 'ทำงาน 3 วัน / หยุด 3 วัน สลับเช้า–ดึก (รอบ 12 วัน)',
+        cycleLength: 12,
+        teamOffsets: { A: 0, C: 3, D: 6, B: 9 },
+        baseSeq: ['M','M','M','-','-','-','N','N','N','-','-','-'],
+    },
+    gc14: {
+        id: 'gc14',
+        name: 'รอบ 14 วัน (GC: 3-2 / 2-3 / 2-2)',
+        desc: 'ทำงาน 3-2 วัน / หยุด 2-3 วัน สลับเช้า–ดึกทุก loop — รอบเต็ม 28 วัน (50% ทำงาน) อ้างอิงตาราง GC',
+        anchorHint: 'ตัวอย่างปี 2026: ใช้วันอ้างอิง 14 ม.ค. 2026 (ทีม A เริ่มกะเช้า)',
+        cycleLength: 28,
+        teamOffsets: { A: 0, C: 7, B: 14, D: 21 },
+        baseSeq: ['M','M','-','-','-','N','N','-','-','M','M','M','-','-','N','N','-','-','-','M','M','-','-','N','N','N','-','-'],
+    },
+};
+const DEFAULT_PATTERN = 'legacy12';
+function getPattern(id) { return SHIFT_PATTERNS[id] || SHIFT_PATTERNS[DEFAULT_PATTERN]; }
+const TEAM_OFFSETS = SHIFT_PATTERNS.legacy12.teamOffsets; // เผื่อโค้ดเดิมอ้างถึง
+let rotConfig = { anchorDate: '', segments: [], patternId: DEFAULT_PATTERN };
 let calPieChart = null, calOTChart = null;
 let calSumOpen = false;
 
@@ -1469,16 +1492,15 @@ function getHolName(dk, yr) {
     return HOL_NAMES[dk] || (VAR_HOL_NAMES[String(yr)] || {})[dk] || '';
 }
 
-// 4-team pair lookup (which pair does เช้า/ดึก each cycle day)
-const PAIR_BY_CYCLE = [
-    {m:'A',n:'D'},{m:'A',n:'D'},{m:'A',n:'D'},
-    {m:'C',n:'B'},{m:'C',n:'B'},{m:'C',n:'B'},
-    {m:'D',n:'A'},{m:'D',n:'A'},{m:'D',n:'A'},
-    {m:'B',n:'C'},{m:'B',n:'C'},{m:'B',n:'C'},
-];
-function getPairForDate(dateStr, anchorStr) {
-    const diff = Math.round((new Date(dateStr+'T00:00:00') - new Date(anchorStr+'T00:00:00')) / 86400000);
-    return PAIR_BY_CYCLE[((diff % 12) + 12) % 12];
+// หาว่าวันนั้นทีมไหนเข้าเช้า (m) / ทีมไหนเข้าดึก (n) ตามรูปแบบที่เลือก
+function getPairForDate(dateStr, anchorStr, patternId) {
+    const p = getPattern(patternId);
+    let m = null, n = null;
+    for (const t of Object.keys(p.teamOffsets)) {
+        const s = getShiftFromCycle(dateStr, anchorStr, t, patternId);
+        if (s === 'M') m = t; else if (s === 'N') n = t;
+    }
+    return { m, n };
 }
 
 // ===== Safe Storage =====
@@ -1501,6 +1523,7 @@ window.onload = function() {
     const t = new Date();
     curYear = t.getFullYear(); curMonth = t.getMonth()+1; statsYear = curYear;
     loadSettings(); loadReasons(); loadRotConfig(); loadCustomHols(); loadTheme();
+    renderPatternSelect();
     $('restore-file').onchange = restoreData;
     renderCal();
 };
@@ -1512,7 +1535,7 @@ function switchTab(tab) {
         $('nav-'+t).classList.toggle('active', t===tab);
     });
     if (tab==='stats') renderStats();
-    if (tab==='settings') { renderThemePicker(); loadHapticSettings(); }
+    if (tab==='settings') { renderThemePicker(); loadHapticSettings(); renderPatternSelect(); }
     if (tab==='tax') renderTaxTab();
     if (tab==='future') { loadFutureData(); renderFutureTab(); }
 }
@@ -1608,7 +1631,7 @@ function renderCal() {
         const holName = getHolName(dk, curYear) || (isCustomHol ? customHolMap[fullDateKey] : '');
         const holBadge = holName ? `<div class="hol-name${isCustomHol ? ' custom' : ''}">${holName}</div>` : '';
         const dateStr = `${curYear}-${pad2(curMonth)}-${pad2(d)}`;
-        const pair = rotConfig.anchorDate ? getPairForDate(dateStr, rotConfig.anchorDate) : null;
+        const pair = rotConfig.anchorDate ? getPairForDate(dateStr, rotConfig.anchorDate, rotConfig.patternId) : null;
         const teamBadge = pair ? `<div class="team-pair"><span class="tp-m">🌞${pair.m}</span><span class="tp-n">🌙${pair.n}</span></div>` : '';
         weekHtml += `<div class="${cls}" onclick="openDayModal('${key}',${d})">
             ${hasOT?'<span class="ot-dot"></span>':''}
@@ -2011,28 +2034,63 @@ function loadRotConfig() {
         if (str) {
             const p = JSON.parse(str);
             if (p && typeof p === 'object') {
-                rotConfig = { anchorDate: p.anchorDate || '', segments: Array.isArray(p.segments) ? p.segments : [] };
+                rotConfig = {
+                    anchorDate: p.anchorDate || '',
+                    segments: Array.isArray(p.segments) ? p.segments : [],
+                    patternId: SHIFT_PATTERNS[p.patternId] ? p.patternId : DEFAULT_PATTERN,
+                };
                 return;
             }
         }
     } catch(e) {}
-    rotConfig = { anchorDate: '', segments: [] };
+    rotConfig = { anchorDate: '', segments: [], patternId: DEFAULT_PATTERN };
 }
 
 function saveRotConfig() {
     SS.set('rotation_config', JSON.stringify(rotConfig));
 }
 
-function getShiftFromCycle(dateStr, anchorStr, team) {
+// เติม dropdown เลือกรูปแบบกะ + คำอธิบายของรูปแบบที่เลือกอยู่
+function renderPatternSelect() {
+    const sel = $('patternSelect');
+    if (!sel) return;
+    sel.innerHTML = Object.values(SHIFT_PATTERNS).map(p =>
+        `<option value="${p.id}"${rotConfig.patternId === p.id ? ' selected' : ''}>${eh(p.name)}</option>`).join('');
+    const desc = $('patternDesc');
+    if (desc) desc.textContent = getPattern(rotConfig.patternId).desc;
+}
+
+// เปลี่ยนรูปแบบกะ — บันทึกค่า แล้ว re-render (ไม่ลบข้อมูลกะที่ลงไว้แล้ว)
+function setPattern(id) {
+    if (!SHIFT_PATTERNS[id]) return;
+    rotConfig.patternId = id;
+    saveRotConfig();
+    const desc = $('patternDesc');
+    if (desc) desc.textContent = getPattern(id).desc;
+    renderRotPatternInfo();
+    renderCal();
+    showToast('เปลี่ยนรูปแบบกะแล้ว — เปิด "ตั้งค่าการหมุนเวียนกะ" แล้วกดนำไปใส่ในปฏิทินใหม่');
+}
+
+// แสดงข้อมูลรูปแบบกะที่เลือกอยู่ ในกล่องของ modal หมุนเวียนกะ
+function renderRotPatternInfo() {
+    const el = $('rot-pattern-info');
+    if (!el) return;
+    const p = getPattern(rotConfig.patternId);
+    el.innerHTML = `<div style="font-weight:700;color:#1D4ED8;margin-bottom:4px">${eh(p.name)}</div>` +
+        `<div style="color:#1E40AF;line-height:1.5">${eh(p.desc)}</div>` +
+        (p.anchorHint ? `<div style="color:#1D4ED8;margin-top:4px">📌 ${eh(p.anchorHint)}</div>` : '');
+}
+
+function getShiftFromCycle(dateStr, anchorStr, team, patternId) {
+    const p = getPattern(patternId);
     const d1 = new Date(dateStr + 'T00:00:00');
     const d0 = new Date(anchorStr + 'T00:00:00');
     const daysDiff = Math.round((d1 - d0) / 86400000);
-    const cycleDay = ((daysDiff % 12) + 12) % 12;
-    const personalDay = ((cycleDay - (TEAM_OFFSETS[team] || 0)) % 12 + 12) % 12;
-    if (personalDay < 3) return 'M';
-    if (personalDay < 6) return '-';
-    if (personalDay < 9) return 'N';
-    return '-';
+    const L = p.cycleLength;
+    const cycleDay = ((daysDiff % L) + L) % L;
+    const personalDay = ((cycleDay - (p.teamOffsets[team] || 0)) % L + L) % L;
+    return p.baseSeq[personalDay];
 }
 
 function getTeamForDate(dateStr, segments) {
@@ -2049,6 +2107,7 @@ function openRotationModal() {
     loadRotConfig();
     $('rot-anchor').value = rotConfig.anchorDate || '';
     renderRotSegs();
+    renderRotPatternInfo();
     const savedMo = SS.get('rot_last_months');
     if (savedMo) $('rot-months').value = savedMo;
     openModal('modal-rotation');
@@ -2113,7 +2172,7 @@ function applyRotation() {
             const key = `${y}-${mo}-${day}`;
             const ymk = `${y}_${mo}`;
             const team = getTeamForDate(dateStr, rotConfig.segments);
-            const shift = getShiftFromCycle(dateStr, anchorStr, team);
+            const shift = getShiftFromCycle(dateStr, anchorStr, team, rotConfig.patternId);
             if (!groups[ymk]) groups[ymk] = { y, mo, ch: {} };
             groups[ymk].ch[key] = shift;
         }
