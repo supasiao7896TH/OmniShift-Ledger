@@ -156,6 +156,7 @@ tr:last-child td{border-bottom:none}
     <p class="hero-sub">คู่มือการใช้งานฉบับสมบูรณ์ สำหรับพนักงานกะโรงงาน ระบบ 4 ทีม A/B/C/D</p>
     <div class="hero-badges">
       <span class="badge badge-orange">🔄 4 ทีมหมุนเวียน</span>
+      <span class="badge badge-green">🆕 เลือกรูปแบบกะ</span>
       <span class="badge badge-blue">💰 คำนวณรายได้</span>
       <span class="badge badge-orange">🤖 AI วิเคราะห์</span>
       <span class="badge badge-blue">📱 PWA ออฟไลน์</span>
@@ -257,7 +258,19 @@ tr:last-child td{border-bottom:none}
         </div>
         <div class="divider"></div>
         <h3 style="font-size:.95rem;font-weight:700;margin:14px 0 6px;color:var(--orange)">🔄 ตั้งค่าการหมุนเวียนกะ — ส่วนสำคัญที่สุด</h3>
-        <p style="margin-bottom:10px">ระบบใช้รูปแบบ <strong>4 ทีม (A/B/C/D) วนรอบ 12 วัน</strong> โดยแต่ละทีมจะหมุนเวียนกันระหว่างกะเช้า กะดึก และวันหยุด</p>
+        <p style="margin-bottom:10px">ระบบรองรับ <strong>4 ทีม (A/B/C/D)</strong> และให้ <strong>เลือกรูปแบบกะได้ 2 แบบ</strong> โดยแต่ละทีมหมุนเวียนกันระหว่างกะเช้า กะดึก และวันหยุด</p>
+
+        <h4 style="font-size:.9rem;font-weight:700;margin:14px 0 6px;color:var(--orange)">🆕 เลือกรูปแบบกะ (Shift Pattern)</h4>
+        <p style="margin-bottom:8px">ไป <span class="path">Settings → การจัดการ → รูปแบบกะ</span> แล้วเลือกจาก dropdown:</p>
+        <ul class="blist">
+          <li><strong>รอบ 12 วัน (3 ทำ 3 หยุด)</strong> — ทำงาน 3 วัน / หยุด 3 วัน สลับเช้า–ดึก (รูปแบบเดิม)</li>
+          <li><strong>รอบ 14 วัน (GC: 3-2 / 2-3 / 2-2)</strong> — ทำงาน 3-2 วัน / หยุด 2-3 วัน สลับเช้า–ดึกทุก loop รอบเต็ม 28 วัน (ทำงาน 50%) <strong>อ้างอิงตาราง GC</strong></li>
+        </ul>
+        <div class="infobox infobox-blue">
+          <span class="infobox-icon">ℹ️</span>
+          <p>เปลี่ยนรูปแบบกะแล้ว <strong>ข้อมูลที่ลงไว้ไม่ถูกลบ</strong> — ต้องเปิด "ตั้งค่าการหมุนเวียนกะ" แล้วกด <strong>"นำไปใส่ในปฏิทิน"</strong> อีกครั้ง เพื่อให้ปฏิทินอัปเดตตามรูปแบบใหม่</p>
+        </div>
+
         <div class="team-legend">
           <span class="team-chip team-a">ทีม A</span>
           <span class="team-chip team-b">ทีม B</span>
@@ -266,16 +279,16 @@ tr:last-child td{border-bottom:none}
         </div>
         <p>วิธีตั้งค่า: ไป <span class="path">Settings → ตั้งค่าการหมุนเวียนกะ</span></p>
         <ol class="steps">
-          <li><span class="step-num">1</span>กด <strong>"เพิ่ม segment"</strong></li>
-          <li><span class="step-num">2</span>เลือก <strong>"วันที่เริ่มต้น"</strong> — วันแรกที่คุณรู้ว่าตัวเองอยู่ทีมไหน</li>
-          <li><span class="step-num">3</span>เลือก <strong>"ทีม"</strong> ของตัวเอง (A / B / C / D)</li>
-          <li><span class="step-num">4</span>กด <strong>"บันทึกและเติมกะ"</strong> — ระบบจะคำนวณกะของทุกวันอัตโนมัติ</li>
+          <li><span class="step-num">1</span>ตรวจ <strong>"วันอ้างอิง"</strong> ด้านบน — แบบ <strong>GC ระบบตั้งให้อัตโนมัติ</strong> (14 ม.ค. 2026) ไม่ต้องแก้ · แบบ 12 วัน ให้กรอกวันที่ทีม A เข้ากะเช้าวันแรกจากตารางโรงงาน</li>
+          <li><span class="step-num">2</span>กด <strong>"+ เพิ่มช่วง"</strong> → เลือก <strong>วันที่เริ่ม</strong> และ <strong>ทีม</strong> ของตัวเอง (A / B / C / D)</li>
+          <li><span class="step-num">3</span>เลือก <strong>จำนวนเดือนที่ต้องการเติม</strong></li>
+          <li><span class="step-num">4</span>กด <strong>"นำไปใส่ในปฏิทิน"</strong> — ระบบจะคำนวณกะของทุกวันอัตโนมัติ (OT / เหตุผล ที่ลงไว้ไม่ถูกลบ)</li>
         </ol>
         <div class="infobox infobox-orange">
           <span class="infobox-icon">⚠️</span>
-          <p><strong>หากถูกย้ายทีม:</strong> กด "เพิ่ม segment" อีกอัน แล้วระบุ <strong>วันที่เริ่มทีมใหม่</strong> และ <strong>ทีมใหม่</strong> ระบบจะปรับกะนับจากวันนั้นโดยอัตโนมัติ</p>
+          <p><strong>หากถูกย้ายทีม:</strong> กด "+ เพิ่มช่วง" อีกอัน แล้วระบุ <strong>วันที่เริ่มทีมใหม่</strong> และ <strong>ทีมใหม่</strong> ระบบจะปรับกะนับจากวันนั้นโดยอัตโนมัติ</p>
         </div>
-        <p>หลังตั้งค่าแล้ว ปฏิทินจะแสดงสัญลักษณ์บนแต่ละวัน เช่น <code>🌞A 🌙D</code> หรือ <code>🌞C 🌙B</code></p>
+        <p>หลังตั้งค่าแล้ว ปฏิทินจะแสดงสัญลักษณ์บนแต่ละวัน เช่น <code>🌞A 🌙D</code> หรือ <code>🌞C 🌙D</code></p>
         <ul class="blist">
           <li><strong>🌞</strong> = ทีมที่ทำ<strong>กะเช้า (M)</strong>วันนั้น</li>
           <li><strong>🌙</strong> = ทีมที่ทำ<strong>กะดึก (N)</strong>วันนั้น</li>
