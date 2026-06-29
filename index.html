@@ -512,6 +512,20 @@
     <div style="padding:14px;display:flex;flex-direction:column;gap:14px">
         <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;padding:0 2px">🎨 ธีมสี</div>
         <div class="set-sec" style="padding:14px 10px">
+            <div style="display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:12px">
+                <img src="icons/icon-192.png" style="width:44px;height:44px;border-radius:12px;flex-shrink:0;object-fit:cover" onerror="this.style.display='none'">
+                <div style="flex:1;min-width:0">
+                    <div style="font-size:15px;font-weight:700;color:var(--primary);margin-bottom:2px">ShiftPro Tracker</div>
+                    <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;line-height:1.4">บันทึกกะทำงาน · คำนวณ OT · วางแผนรายได้</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:5px">
+                        <span style="font-size:9px;font-weight:700;color:var(--primary);border:1px solid var(--primary);border-radius:20px;padding:2px 8px">📅 กะทำงาน</span>
+                        <span style="font-size:9px;font-weight:700;color:var(--primary);border:1px solid var(--primary);border-radius:20px;padding:2px 8px">⚡ OT</span>
+                        <span style="font-size:9px;font-weight:700;color:var(--primary);border:1px solid var(--primary);border-radius:20px;padding:2px 8px">📊 รายได้</span>
+                        <span style="font-size:9px;font-weight:700;color:var(--primary);border:1px solid var(--primary);border-radius:20px;padding:2px 8px">🧾 ภาษี</span>
+                        <span style="font-size:9px;font-weight:700;color:var(--primary);border:1px solid var(--primary);border-radius:20px;padding:2px 8px">🤖 AI</span>
+                    </div>
+                </div>
+            </div>
             <div id="theme-picker"></div>
         </div>
         <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;padding:0 2px">🔊 เสียง &amp; การสั่น</div>
@@ -1329,31 +1343,6 @@ function updateWCBranding(id) {
 
 function renderThemePicker() {
     const cur = SS.get('theme') || 'orange';
-    const ct  = THEMES.find(x => x.id === cur) || THEMES[0];
-
-    // ── App Identity Card ──
-    const appCard = `
-    <div style="
-        display:flex;align-items:center;gap:12px;
-        background:${ct.primary}14;
-        border:1px solid var(--border);
-        border-radius:14px;padding:12px 14px;margin-bottom:14px">
-        <img src="icons/icon-192.png"
-             style="width:44px;height:44px;border-radius:12px;flex-shrink:0;object-fit:cover"
-             onerror="this.style.display='none'">
-        <div style="flex:1;min-width:0">
-            <div style="font-size:15px;font-weight:700;color:${ct.primary};margin-bottom:2px;letter-spacing:.01em">ShiftPro Tracker</div>
-            <div style="font-size:10px;color:var(--text-muted);margin-bottom:8px;line-height:1.4">บันทึกกะทำงาน · คำนวณ OT · วางแผนรายได้</div>
-            <div style="display:flex;flex-wrap:wrap;gap:5px">
-                ${['📅 กะทำงาน','⚡ OT','📊 รายได้','🧾 ภาษี','🤖 AI'].map(f =>
-                    `<span style="font-size:9px;font-weight:700;color:${ct.primary};
-                        background:${ct.primary}18;border:1px solid ${ct.primary}40;
-                        border-radius:20px;padding:2px 8px;white-space:nowrap">${f}</span>`
-                ).join('')}
-            </div>
-        </div>
-    </div>`;
-
     const mkBtn = t => {
         const sel = t.id === cur;
         return `<button onclick="applyTheme('${t.id}')" style="
@@ -1373,7 +1362,7 @@ function renderThemePicker() {
     };
     const std = THEMES.filter(t => !t.wc);
     const wc  = THEMES.filter(t => t.wc);
-    $('theme-picker').innerHTML = appCard +
+    $('theme-picker').innerHTML =
         `<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">${std.map(mkBtn).join('')}</div>` +
         `<div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;padding:10px 2px 6px;border-top:1px solid var(--border);margin-top:10px">⚽ World Cup 2026 Edition</div>` +
         `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${wc.map(mkBtn).join('')}</div>`;
