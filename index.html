@@ -41,13 +41,14 @@
             --cal-extra-stripe: #7C3AED;
             --focus-ring:  rgba(249,115,22,.18);
             --nav-h: 60px;
+            --brand-h: 34px;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Sarabun', sans-serif;
             background: var(--bg);
             color: var(--text);
-            padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+            padding-bottom: calc(var(--nav-h) + var(--brand-h) + env(safe-area-inset-bottom));
             min-height: 100vh;
         }
         .app-header {
@@ -185,8 +186,43 @@
             display: flex; justify-content: space-around;
             padding: 10px 8px;
             position: sticky;
-            bottom: var(--nav-h);
+            bottom: calc(var(--nav-h) + var(--brand-h));
         }
+        /* Brand footer (logo strip above bottom nav) */
+        .brand-footer {
+            position: fixed; left: 0; right: 0; bottom: var(--nav-h);
+            height: var(--brand-h);
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            z-index: 25;
+        }
+        .brand-flag {
+            width: 22px; height: 22px; border-radius: 5px; overflow: hidden;
+            display: flex; flex-direction: column; flex-shrink: 0;
+        }
+        .brand-flag div:nth-child(1) { flex: 1; background: #A51931; }
+        .brand-flag div:nth-child(2) { flex: 1; background: #F4F5F8; }
+        .brand-flag div:nth-child(3) { flex: 2; background: #2D2A4A; }
+        .brand-flag div:nth-child(4) { flex: 1; background: #F4F5F8; }
+        .brand-flag div:nth-child(5) { flex: 1; background: #A51931; }
+        .brand-name {
+            font-family: 'Sarabun', sans-serif; font-weight: 700; font-size: 12px;
+            color: var(--text); letter-spacing: -0.01em; white-space: nowrap;
+        }
+        .brand-name span { font-family: monospace; font-weight: 500; color: oklch(0.58 0.19 280); }
+        .brand-paws { position: relative; width: 20px; height: 17px; flex-shrink: 0; }
+        .brand-paw { position: absolute; width: 11px; height: 11px; }
+        .brand-paw:nth-child(1) { left: 0; top: 4px; transform: rotate(-18deg); }
+        .brand-paw:nth-child(2) { left: 9px; top: -1px; transform: rotate(14deg); }
+        .brand-paw span {
+            position: absolute; border-radius: 50%; background: oklch(0.68 0.16 50);
+        }
+        .brand-paw .pad { left: 2px; top: 4px; width: 7px; height: 5px; }
+        .brand-paw .toe1 { left: 0; top: 1px; width: 3px; height: 3px; }
+        .brand-paw .toe2 { left: 2.5px; top: -1px; width: 3px; height: 3.5px; }
+        .brand-paw .toe3 { left: 5.5px; top: -1px; width: 3px; height: 3.5px; }
+        .brand-paw .toe4 { left: 8px; top: 1px; width: 3px; height: 3px; }
         .sum-item { text-align: center; }
         .sum-label { font-size: 10px; color: var(--text-muted); }
         .sum-val { font-size: 15px; font-weight: 700; }
@@ -980,6 +1016,16 @@
             <div style="font-size:10px;color:var(--text-muted);margin-top:8px;line-height:1.6">* อ้างอิงกฎ SSO ปี 2569: ฐานค่าจ้างสูงสุด 17,500 บาท | สิทธิ์รับเมื่ออายุ 55 ปี | บำนาญ 20% + 1.5%/ปี (หลัง 15 ปี)</div>
         </div>
 
+    </div>
+</div>
+
+<!-- Brand footer -->
+<div class="brand-footer">
+    <div class="brand-flag"><div></div><div></div><div></div><div></div><div></div></div>
+    <span class="brand-name">Supasit<span>@1981th</span></span>
+    <div class="brand-paws">
+        <div class="brand-paw"><span class="pad"></span><span class="toe1"></span><span class="toe2"></span><span class="toe3"></span><span class="toe4"></span></div>
+        <div class="brand-paw"><span class="pad"></span><span class="toe1"></span><span class="toe2"></span><span class="toe3"></span><span class="toe4"></span></div>
     </div>
 </div>
 
